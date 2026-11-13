@@ -8,9 +8,15 @@ import { layoutForWidth } from '../canvas/layout-cache';
 import { useCanvasLoop } from '../hooks/useCanvasLoop';
 import { harmonyLive } from '../harmony-service';
 import { getEngine, getWaitEngine, hub, live, transport } from '../runtime';
+import { speller } from '../../core/key-detection/key';
+import { useHarmony } from '../store/harmony-store';
 import { useSettings } from '../store/settings';
 
 const active = new Map<number, Hand>();
+const approaching = new Map<number, { hand: Hand; prox: number; label: string }>();
+/** Anfängermodus: so lange vorher leuchtet die Zieltaste auf (Songsekunden) */
+const APPROACH_SEC = 1.2;
+let spellCache: { key: unknown; fn: (pc: number) => string } | null = null;
 const noJudgements = new Map<number, never>();
 const noneSatisfied = new Set<number>();
 let labelCache: { key: string; map: Map<number, string> } | null = null;
@@ -50,6 +56,27 @@ export function PianoKeyboard() {
     }
     const s = useSettings.getState();
     const group = wait?.currentGroup ?? null;
+    // Anfängermodus: gleich zu spielende Tasten mit Notennamen
+    approaching.clear();
+    if (s.beginnerMode && notes.length > 0) {
+      const key = useHarmony.getState().songKey;
+      if (spellCache?.key !== key) spellCache = { key, fn: speller(key) };
+      const spell = spellCache.fn;
+      const loop = live.loop;
+      // inkl. Noten genau auf der Position (Wait-Modus wartet auf ihrem Anfang)
+      for (let i = firstNoteIndexAtOrAfter(notes, pos - 1e-6); i < notes.length; i++) {
+        const n = notes[i]!;
+        if (n.startSec > pos + APPROACH_SEC) break;
+        if (n.startSec < pos - 1e-6) continue;
+        if (n.startSec < hideBefore) continue;
+        if (live.practiced && live.practiced !== 'both' && live.practiced !== n.hand) continue;
+        if (loop && (n.startSec >= loop.endSec || n.startSec < loop.startSec)) continue;
+        const prox = Math.min(1, 1 - (n.startSec - pos) / APPROACH_SEC);
+        const prev = approaching.get(n.midi);
+        if (!prev || prev.prox < prox)
+          approaching.set(n.midi, { hand: n.hand, prox, label: spell(n.midi % 12) });
+      }
+    }
     drawKeyboard(ctx, layout, h, {
       pressed: hub.pressed,
       sustained: hub.sustained,
@@ -61,6 +88,7 @@ export function PianoKeyboard() {
       flashes: live.flashes,
       hint: wait?.hint ?? false,
       nowMs: performance.now(),
+      approaching: approaching.size > 0 ? approaching : null,
       ghost: harmonyLive.ghost ?? harmonyLive.autoGhost,
       ghostSoft: harmonyLive.ghost === null,
       scalePcs: harmonyLive.scalePcs,

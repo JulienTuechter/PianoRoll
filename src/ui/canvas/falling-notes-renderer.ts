@@ -2,7 +2,7 @@ import type { TrailMark, TrailNote } from '../../core/free-play/note-trail';
 import { firstNoteIndexAtOrAfter, midiToName } from '../../core/note-event-model/notes';
 import type { MeasureInfo } from '../../core/note-event-model/tempo-map';
 import type { NoteEvent } from '../../core/note-event-model/types';
-import { handColors, theme } from '../theme';
+import { handColors, rgba, theme } from '../theme';
 import type { KeyboardLayout } from './keyboard-layout';
 
 export interface FallingFrame {
@@ -23,6 +23,51 @@ export interface FallingFrame {
   hideBeforeSec: number | null;
   /** Loop-Grenzen (Songzeit) */
   loop: { startSec: number; endSec: number } | null;
+  /** Anfängermodus: Führungsstrahlen von kommenden Noten zur Taste */
+  beginner: boolean;
+}
+
+/** Wie weit (Songsekunden) vor dem Anschlag Strahlen sichtbar werden */
+const BEAM_LEAD_SEC = 2.5;
+
+function drawBeams(
+  ctx: CanvasRenderingContext2D,
+  layout: KeyboardLayout,
+  height: number,
+  f: FallingFrame,
+  yFor: (sec: number) => number,
+): void {
+  const lead = Math.min(f.windowSec, BEAM_LEAD_SEC);
+  // Noten genau auf der Position einschließen: im Wait-Modus steht die Zeit auf ihrem Anfang
+  const start = firstNoteIndexAtOrAfter(f.notes, f.positionSec - 1e-6);
+  for (let i = start; i < f.notes.length; i++) {
+    const n = f.notes[i]!;
+    if (n.startSec > f.positionSec + lead) break;
+    if (n.startSec < f.positionSec - 1e-6) continue;
+    if (f.practiced !== null && f.practiced !== 'both' && f.practiced !== n.hand) continue;
+    if (f.hideBeforeSec !== null && n.startSec < f.hideBeforeSec - 1e-6) continue;
+    if (f.loop && (n.startSec >= f.loop.endSec - 1e-6 || n.startSec < f.loop.startSec - 1e-6)) continue;
+    const k = layout.byMidi[n.midi];
+    if (!k) continue;
+    const prox = 1 - (n.startSec - f.positionSec) / lead; // 0 = weit weg, 1 = gleich
+    const color = n.hand === 'right' ? handColors.right : handColors.left;
+    const yBottom = Math.max(0, yFor(n.startSec));
+    const inset = k.black ? 1 : Math.max(2, k.w * 0.18);
+    const grad = ctx.createLinearGradient(0, yBottom, 0, height);
+    grad.addColorStop(0, rgba(color, 0.08));
+    grad.addColorStop(1, rgba(color, 0.3 + 0.5 * prox));
+    ctx.fillStyle = grad;
+    ctx.fillRect(k.x + inset, yBottom, k.w - inset * 2, height - yBottom);
+    // Landepunkt glüht auf
+    const cx = k.x + k.w / 2;
+    const r = k.w * (0.6 + 0.6 * prox);
+    const glow = ctx.createRadialGradient(cx, height, 0, cx, height, r * 1.6);
+    glow.addColorStop(0, rgba('#ffffff', 0.25 + 0.6 * prox));
+    glow.addColorStop(0.35, rgba(color, 0.5 * prox));
+    glow.addColorStop(1, rgba(color, 0));
+    ctx.fillStyle = glow;
+    ctx.fillRect(cx - r * 1.6, height - r * 1.6, r * 3.2, r * 1.6);
+  }
 }
 
 /**
@@ -75,6 +120,8 @@ export function drawFallingNotes(
     if (yEnd >= 0 && yEnd <= height) ctx.fillRect(0, Math.round(yEnd) - 1, width, 2);
     if (yStart >= 0 && yStart <= height) ctx.fillRect(0, Math.round(yStart) - 1, width, 2);
   }
+
+  if (f.beginner) drawBeams(ctx, layout, height, f, yFor);
 
   if (f.waiting) {
     ctx.fillStyle = theme.waitGlow;

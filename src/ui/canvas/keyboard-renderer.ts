@@ -1,6 +1,6 @@
 import type { KeyJudgement } from '../../core/practice-engine/engine-types';
 import type { Hand } from '../../core/note-event-model/types';
-import { handColors, theme } from '../theme';
+import { handColors, rgba, theme } from '../theme';
 import { BLACK_HEIGHT_RATIO, type KeyboardLayout, type KeyRect } from './keyboard-layout';
 
 export interface KeyFlash {
@@ -30,6 +30,8 @@ export interface KeyboardFrame {
   ghostSoft: boolean;
   /** Harmony Assist: Tonhöhenklassen der Tonleiter */
   scalePcs: ReadonlySet<number> | null;
+  /** Anfängermodus: gleich zu spielende Tasten (Nähe 0..1) mit Notennamen */
+  approaching: ReadonlyMap<number, { hand: Hand; prox: number; label: string }> | null;
 }
 
 function roundRectBottom(
@@ -245,7 +247,8 @@ export function drawKeyboard(
     if (f.scalePcs?.has(k.midi % 12)) drawScaleDot(ctx, k, scaleY);
     const gh = ghostHand.get(k.midi);
     if (gh) drawGhost(ctx, k, whiteMarkY, gh, height, f.ghostSoft, f.pressed.has(k.midi));
-    if (look.expectHand) drawExpectMarker(ctx, k, whiteMarkY, look.expectHand, f.hint, f.nowMs);
+    if (look.expectHand && !f.approaching?.has(k.midi))
+      drawExpectMarker(ctx, k, whiteMarkY, look.expectHand, f.hint, f.nowMs);
     drawMark(ctx, k, whiteMarkY, look.mark);
   });
 
@@ -261,7 +264,8 @@ export function drawKeyboard(
     if (f.scalePcs?.has(k.midi % 12)) drawScaleDot(ctx, k, bh - 6);
     const gh = ghostHand.get(k.midi);
     if (gh) drawGhost(ctx, k, blackMarkY, gh, bh, f.ghostSoft, f.pressed.has(k.midi));
-    if (look.expectHand) drawExpectMarker(ctx, k, blackMarkY, look.expectHand, f.hint, f.nowMs);
+    if (look.expectHand && !f.approaching?.has(k.midi))
+      drawExpectMarker(ctx, k, blackMarkY, look.expectHand, f.hint, f.nowMs);
     drawMark(ctx, k, blackMarkY, look.mark);
   }
 
@@ -275,6 +279,36 @@ export function drawKeyboard(
     }
   }
 
+  if (f.approaching) drawApproaching(ctx, layout, height, bh, f.approaching);
+
   ctx.fillStyle = theme.nowLine;
   ctx.fillRect(0, 0, layout.width, 2);
+}
+
+/** Anfängermodus: Zieltaste leuchtet in Handfarbe auf (stärker, je näher die Note) und zeigt den Notennamen. */
+function drawApproaching(
+  ctx: CanvasRenderingContext2D,
+  layout: KeyboardLayout,
+  height: number,
+  bh: number,
+  approaching: ReadonlyMap<number, { hand: Hand; prox: number; label: string }>,
+): void {
+  for (const [midi, a] of approaching) {
+    const k = layout.byMidi[midi];
+    if (!k) continue;
+    const color = a.hand === 'right' ? handColors.right : handColors.left;
+    const h = k.black ? bh : height;
+    ctx.fillStyle = rgba(color, 0.12 + 0.4 * a.prox);
+    ctx.fillRect(k.x + 1, 2, k.w - 2, h - 3);
+    ctx.fillStyle = rgba(color, 0.5 + 0.5 * a.prox);
+    ctx.fillRect(k.x + 1, 2, k.w - 2, 4);
+    // Notenname groß auf der Taste
+    ctx.font = `800 ${Math.max(10, Math.min(18, k.w * (k.black ? 0.9 : 0.75)))}px system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = k.black ? '#ffffff' : '#0e1014';
+    ctx.globalAlpha = 0.45 + 0.55 * a.prox;
+    ctx.fillText(a.label, k.x + k.w / 2, k.black ? bh * 0.45 : bh + (height - bh) * 0.35);
+    ctx.globalAlpha = 1;
+  }
 }

@@ -78,6 +78,11 @@ export interface Settings {
   quantSwing: number;
   quantMinNote: number;
   quantResolveOverlaps: boolean;
+  // Visuell
+  /** Anfängermodus: Führungsstrahl zur Taste, Zieltaste leuchtet vorher auf (mit Notennamen) */
+  beginnerMode: boolean;
+  /** Funkeneffekte, wenn Balken auf die Klaviatur treffen bzw. aufsteigen */
+  particles: boolean;
 }
 
 interface SettingsStore extends Settings {
@@ -133,6 +138,8 @@ export const defaultSettings: Settings = {
   quantSwing: 0.5,
   quantMinNote: 16,
   quantResolveOverlaps: true,
+  beginnerMode: false,
+  particles: false,
 };
 
 function safeLocalStorage(): Storage | null {
@@ -175,7 +182,7 @@ export const useSettings = create<SettingsStore>()(
     }),
     {
       name: 'pianist-settings',
-      version: 7,
+      version: 8,
       storage: createJSONStorage(() => idbStorage),
       // Neue Felder bekommen Standardwerte; unbekannte alte Felder werden ignoriert
       migrate: (persisted) => ({ ...defaultSettings, ...(persisted as Partial<Settings>) }),

@@ -80,7 +80,23 @@ export function SettingsDialog() {
       </fieldset>
 
       <fieldset>
-        <legend>Anzeige</legend>
+        <legend>Visuell</legend>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={s.beginnerMode}
+            onChange={(e) => s.update({ beginnerMode: e.target.checked })}
+          />
+          Anfängermodus: Führungsstrahl zur Taste, Zieltaste leuchtet vorher mit Notennamen auf
+        </label>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={s.particles}
+            onChange={(e) => s.update({ particles: e.target.checked })}
+          />
+          Partikeleffekte: Funken, wenn Noten auf die Klaviatur treffen bzw. im freien Spiel aufsteigen
+        </label>
         <label className="check">
           <input
             type="checkbox"
