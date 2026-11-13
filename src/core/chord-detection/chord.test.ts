@@ -59,3 +59,28 @@ describe('Umbenennen', () => {
     expect(respell(inv, flats).symbol).toBe('Db/F');
   });
 });
+
+describe('Cluster und exotische Tonmengen', () => {
+  it('nennt Cluster nach dem gebräuchlichsten enthaltenen Akkord', () => {
+    // C E G + Ab + D# (Eb) → kein exotischer Name, sondern ein bekannter Akkord
+    const c = detectChord([48, 52, 55, 56, 63], sharps)!;
+    expect(
+      c.typeName in
+        {
+          major: 1,
+          minor: 1,
+          augmented: 1,
+          'major seventh': 1,
+          'minor seventh': 1,
+          sixth: 1,
+          'minor sixth': 1,
+          'dominant seventh': 1,
+        },
+    ).toBe(true);
+    expect(c.bassPc).toBe(0);
+  });
+  it('lässt bekannte Vierklänge unverändert', () => {
+    expect(sym([60, 64, 67, 71])).toBe('Cmaj7');
+    expect(sym([55, 59, 62, 65])).toBe('G7');
+  });
+});

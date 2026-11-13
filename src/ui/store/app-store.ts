@@ -27,6 +27,8 @@ interface AppState {
   loopEnabled: boolean;
   /** Letzter abgeschlossener Loop-Durchlauf */
   lastPass: (PassSummary & { index: number; cleanStreak: number; tempoUp: number | null }) | null;
+  /** Bibliotheks-Startansicht weggeklickt bzw. frei losgespielt (nur für diese Sitzung) */
+  freePlay: boolean;
   set(partial: Partial<Omit<AppState, 'set'>>): void;
 }
 
@@ -47,5 +49,6 @@ export const useApp = create<AppState>()((set) => ({
   loop: null,
   loopEnabled: false,
   lastPass: null,
+  freePlay: false,
   set: (partial) => set(partial),
 }));

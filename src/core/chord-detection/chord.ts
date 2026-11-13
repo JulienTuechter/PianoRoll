@@ -140,12 +140,39 @@ export function respell(c: DetectedChord, spell: (pc: number) => string): Detect
   return { ...c, root, bass, symbol: `${root}${c.suffix}${c.rootPc === c.bassPc ? '' : `/${bass}`}` };
 }
 
-/** Akkord aus gerade klingenden MIDI-Noten (tiefste Note = Bass). */
+/** Gehört der Akkordtyp zu den gebräuchlichen (bekannten) Typen? */
+export function isCommonChord(c: DetectedChord): boolean {
+  return c.typeName in TYPES;
+}
+
+/**
+ * Akkord aus gerade klingenden MIDI-Noten (tiefste Note = Bass).
+ * Ergibt die volle Tonmenge nur einen exotischen Typ (z. B. bei Clustern), wird die gebräuchlichste Teilmenge
+ * gesucht, die möglichst viele Töne abdeckt – „C“ mit Zusatztönen statt „Em♭6♭9/C“.
+ */
 export function detectChord(midis: Iterable<number>, spell: (pc: number) => string): DetectedChord | null {
   const list = [...midis];
   if (list.length < 3) return null;
   const bass = Math.min(...list);
-  return detectChordFromPcs(list, bass, spell);
+  const full = detectChordFromPcs(list, bass, spell);
+  if (full && isCommonChord(full)) return full;
+
+  const pcs = [...new Set(list.map(pc))];
+  if (pcs.length < 3 || pcs.length > 7) return full;
+  const bassPc = pc(bass);
+  let best: { chord: DetectedChord; score: number } | null = null;
+  for (let mask = 1; mask < 1 << pcs.length; mask++) {
+    const subset = pcs.filter((_, i) => mask & (1 << i));
+    if (subset.length < 3 || subset.length === pcs.length) continue;
+    const hasBass = subset.includes(bassPc);
+    const chord = detectChordFromPcs(subset, hasBass ? bassPc : subset[0]!, spell);
+    if (!chord || !isCommonChord(chord)) continue;
+    const score = chordScore(chord) + 40 * (subset.length / pcs.length) - (hasBass ? 0 : 15);
+    if (!best || score > best.score) best = { chord, score };
+  }
+  if (!best) return full;
+  // Basston beibehalten, auch wenn er kein Akkordton ist (z. B. „C/D“)
+  return best.chord.bassPc === bassPc ? best.chord : withBass(best.chord, bassPc, spell);
 }
 
 const INVERSION_LABEL = ['Grundstellung', '1. Umkehrung', '2. Umkehrung', '3. Umkehrung'];

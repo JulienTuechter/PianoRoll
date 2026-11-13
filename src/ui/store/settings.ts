@@ -62,6 +62,8 @@ export interface Settings {
   harmonyKey: { tonicPc: number; mode: 'major' | 'minor' } | null;
   /** Vorschlag beim Anklicken anspielen */
   harmonyAudition: boolean;
+  /** Wahrscheinlichsten Folgeakkord im Freispiel automatisch auf der Klaviatur zeigen */
+  harmonyAutoGhost: boolean;
 }
 
 interface SettingsStore extends Settings {
@@ -106,6 +108,7 @@ export const defaultSettings: Settings = {
   harmonyScaleTones: false,
   harmonyKey: null,
   harmonyAudition: true,
+  harmonyAutoGhost: true,
 };
 
 function safeLocalStorage(): Storage | null {
@@ -148,7 +151,7 @@ export const useSettings = create<SettingsStore>()(
     }),
     {
       name: 'pianist-settings',
-      version: 4,
+      version: 5,
       storage: createJSONStorage(() => idbStorage),
       // Neue Felder bekommen Standardwerte; unbekannte alte Felder werden ignoriert
       migrate: (persisted) => ({ ...defaultSettings, ...(persisted as Partial<Settings>) }),

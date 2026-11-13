@@ -185,7 +185,11 @@ export function startRuntime(): () => void {
   const offMidi = webMidi.onStateChange((midi) => useApp.getState().set({ midi }));
 
   const offInput = hub.subscribe((e) => {
-    if (engine) {
+    // Während des Einzählens zählen Anschläge erst kurz vor dem Startpunkt (vorher: Einspielen, kein Fehler)
+    const ci = live.countIn;
+    const duringCountIn =
+      ci !== null && e.type === 'noteon' && transport.position < ci.startSec - COUNT_IN_GRACE_SEC;
+    if (engine && !duringCountIn) {
       engine.handleInput(e);
       pump(); // Begleitung zur gerade erfüllten Gruppe sofort spielen
     }
@@ -286,6 +290,8 @@ export function startRuntime(): () => void {
 }
 
 const FLASH_MS = 350;
+/** So lange vor Ende des Count-ins werden Anschläge schon gewertet (leicht zu frühes Einsetzen) */
+const COUNT_IN_GRACE_SEC = 0.3;
 
 function onEngineEvent(e: EngineEvent): void {
   const now = performance.now();

@@ -14,6 +14,7 @@ import {
 } from '../core/harmony-suggestions/harmony';
 import { parseKey, sameKey, speller, type MusicalKey } from '../core/key-detection/key';
 import { estimateKey, KeyTracker } from '../core/key-detection/krumhansl';
+import { NoteTrail } from '../core/free-play/note-trail';
 import type { Song } from '../core/note-event-model/types';
 import { audio, hub, live } from './runtime';
 import { useApp } from './store/app-store';
@@ -21,9 +22,15 @@ import { useHarmony, type KeySource, type SuggestionChip } from './store/harmony
 import { useSettings } from './store/settings';
 
 export const harmonyLive = {
+  /** Vom Nutzer gewählter Vorschlag (Hover/Anpinnen) */
   ghost: null as Voicing | null,
+  /** Automatisch angezeigter wahrscheinlichster Folgeakkord (dezenter dargestellt) */
+  autoGhost: null as Voicing | null,
   scalePcs: null as ReadonlySet<number> | null,
 };
+
+/** Verlauf des freien Spiels (aufsteigende Noten + Akkordmarken) */
+export const freeTrail = new NoteTrail(20_000);
 
 const tracker = new KeyTracker(8000);
 let estimated: { key: MusicalKey; confidence: number } | null = null;
@@ -59,6 +66,8 @@ function recompute(afterNoteOn = false): void {
   const h = useHarmony.getState();
   let chord = h.chord;
   if (now && (afterNoteOn || !chord)) {
+    if (afterNoteOn && (now.symbol !== h.chord?.symbol || !h.chordSounding))
+      freeTrail.mark(now.symbol, performance.now());
     chord = now;
     const bass = Math.min(...sounding);
     lastUpper = sounding.filter((m) => m !== bass && m >= 55).sort((a, b) => a - b);
@@ -88,6 +97,16 @@ function recompute(afterNoteOn = false): void {
     });
   }
   updateScaleTones();
+  updateAutoGhost(chord !== null ? suggestions[0] : undefined);
+}
+
+/** Nur im freien Spiel ohne Stück – bei pausiertem Übungsstück würde er sich mit den erwarteten Tasten überlagern. */
+function updateAutoGhost(top: SuggestionChip | undefined): void {
+  const s = useSettings.getState();
+  harmonyLive.autoGhost =
+    s.harmonyFree && s.harmonyAutoGhost && top && !useApp.getState().song
+      ? { bass: top.bass, upper: top.upper }
+      : null;
 }
 
 function updateScaleTones(): void {
@@ -144,12 +163,20 @@ export function startHarmony(): () => void {
   };
 
   const offInput = hub.subscribe((e) => {
-    if (e.type === 'noteon') tracker.noteOn(e.midi, e.timeMs, e.velocity);
-    else if (e.type === 'noteoff') tracker.noteOff(e.midi, e.timeMs);
+    if (e.type === 'noteon') {
+      tracker.noteOn(e.midi, e.timeMs, e.velocity);
+      freeTrail.noteOn(e.midi, performance.now(), e.velocity);
+      // Erster Anschlag ohne Stück → Bibliotheks-Startansicht ausblenden
+      if (!useApp.getState().song && !useApp.getState().freePlay) useApp.getState().set({ freePlay: true });
+    } else if (e.type === 'noteoff') {
+      tracker.noteOff(e.midi, e.timeMs);
+      freeTrail.noteOff(e.midi, performance.now());
+    }
     schedule(e.type === 'noteon');
   });
 
   const keyTimer = setInterval(() => {
+    freeTrail.prune(performance.now());
     const est = tracker.estimate(performance.now());
     const next = est ? { key: est.key, confidence: est.confidence } : null;
     if (
@@ -162,7 +189,14 @@ export function startHarmony(): () => void {
   }, 1000);
 
   const offSettings = useSettings.subscribe((s, prev) => {
-    if (s.harmonyKey !== prev.harmonyKey || s.harmonyScaleTones !== prev.harmonyScaleTones) schedule();
+    if (
+      s.harmonyKey !== prev.harmonyKey ||
+      s.harmonyScaleTones !== prev.harmonyScaleTones ||
+      s.harmonyAutoGhost !== prev.harmonyAutoGhost ||
+      s.harmonyFree !== prev.harmonyFree
+    ) {
+      schedule();
+    }
   });
 
   const offSong = useApp.subscribe((a, prev) => {
@@ -170,6 +204,8 @@ export function startHarmony(): () => void {
       analyzeSong(a.song);
       schedule();
     }
+    // Start/Pause ändert, ob der automatische Vorschlag sichtbar ist
+    if (a.transport !== prev.transport) schedule();
   });
   analyzeSong(useApp.getState().song);
   recompute();

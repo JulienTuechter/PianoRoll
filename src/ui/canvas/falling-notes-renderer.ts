@@ -1,3 +1,4 @@
+import type { TrailMark, TrailNote } from '../../core/free-play/note-trail';
 import { firstNoteIndexAtOrAfter, midiToName } from '../../core/note-event-model/notes';
 import type { MeasureInfo } from '../../core/note-event-model/tempo-map';
 import type { NoteEvent } from '../../core/note-event-model/types';
@@ -131,6 +132,85 @@ export function drawFallingNotes(
       ctx.font = nameFont;
       ctx.fillStyle = theme.noteText;
       ctx.fillText(midiToName(n.midi).replace(/\d+$/, ''), x + w / 2, yBottom - 3);
+    }
+  }
+}
+
+export interface RisingFrame {
+  nowMs: number;
+  /** Sichtbare Vergangenheit in Sekunden */
+  windowSec: number;
+  notes: readonly TrailNote[];
+  marks: readonly TrailMark[];
+  /** Tiefer als der Split-Punkt = linke Handfarbe */
+  splitPoint: number;
+  showNoteNames: boolean;
+}
+
+/**
+ * Freies Spiel: gespielte Noten steigen von der Klaviatur nach oben (Unterkante = jetzt).
+ * Erkannte Akkorde stehen als Marken am linken Rand auf Höhe ihres Anschlags.
+ */
+export function drawRisingNotes(
+  ctx: CanvasRenderingContext2D,
+  layout: KeyboardLayout,
+  height: number,
+  f: RisingFrame,
+): void {
+  const { width } = layout;
+  ctx.fillStyle = theme.bg;
+  ctx.fillRect(0, 0, width, height);
+  ctx.fillStyle = theme.laneBlack;
+  for (const k of layout.blacks) ctx.fillRect(k.x, 0, k.w, height);
+  ctx.fillStyle = theme.laneLine;
+  for (const k of layout.whites)
+    if (k.midi % 12 === 0 || k.midi % 12 === 5) ctx.fillRect(Math.round(k.x), 0, 1, height);
+
+  const pxPerMs = height / (f.windowSec * 1000);
+  const yFor = (ms: number) => height - (f.nowMs - ms) * pxPerMs;
+
+  // Akkord-Marken: Linie über die ganze Breite + Name
+  ctx.font = '600 13px system-ui, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'bottom';
+  for (const m of f.marks) {
+    const y = Math.round(yFor(m.timeMs));
+    if (y < 0 || y > height) continue;
+    ctx.fillStyle = theme.measureLine;
+    ctx.fillRect(0, y, width, 1);
+    ctx.fillStyle = '#c9ccd3';
+    ctx.fillText(m.label, 6, y - 3);
+  }
+
+  const nameFont = `600 ${Math.max(8, Math.min(11, layout.whiteWidth * 0.5))}px system-ui, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  for (const n of f.notes) {
+    const k = layout.byMidi[n.midi];
+    if (!k) continue;
+    const yTop = yFor(n.startMs);
+    const yBottom = n.endMs === null ? height : yFor(n.endMs);
+    if (yTop > height || yBottom < 0) continue;
+    const h = Math.max(3, yBottom - yTop);
+    const inset = k.black ? 0.5 : Math.max(1, k.w * 0.08);
+    const x = k.x + inset;
+    const w = k.w - inset * 2;
+    ctx.fillStyle = n.midi < f.splitPoint ? handColors.left : handColors.right;
+    // Anschlagstärke über Deckkraft; gehaltene Noten voll
+    ctx.globalAlpha = n.endMs === null ? 1 : 0.45 + 0.45 * n.velocity;
+    ctx.beginPath();
+    ctx.roundRect(x, yTop, w, h, Math.min(4, w / 3));
+    ctx.fill();
+    if (k.black) {
+      ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    if (f.showNoteNames && h > 14 && w > 9) {
+      ctx.font = nameFont;
+      ctx.fillStyle = theme.noteText;
+      ctx.fillText(midiToName(n.midi).replace(/\d+$/, ''), x + w / 2, yTop + 3);
     }
   }
 }

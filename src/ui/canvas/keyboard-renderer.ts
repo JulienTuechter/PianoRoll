@@ -26,6 +26,8 @@ export interface KeyboardFrame {
   nowMs: number;
   /** Harmony Assist: vorgeschlagener Akkord (Bass = linke Hand, upper = rechte Hand) */
   ghost: { bass: number; upper: readonly number[] } | null;
+  /** true = automatischer Vorschlag: nur Ringe, ohne Tönung */
+  ghostSoft: boolean;
   /** Harmony Assist: Tonhöhenklassen der Tonleiter */
   scalePcs: ReadonlySet<number> | null;
 }
@@ -151,13 +153,22 @@ function drawExpectMarker(
   ctx.globalAlpha = 1;
 }
 
-function drawGhost(ctx: CanvasRenderingContext2D, k: KeyRect, y: number, hand: Hand, height: number): void {
+function drawGhost(
+  ctx: CanvasRenderingContext2D,
+  k: KeyRect,
+  y: number,
+  hand: Hand,
+  height: number,
+  soft: boolean,
+): void {
   const color = hand === 'right' ? handColors.right : handColors.left;
-  // leichte Tönung der ganzen Taste
-  ctx.globalAlpha = 0.28;
-  ctx.fillStyle = color;
-  ctx.fillRect(k.x + 1, 2, k.w - 2, height - 3);
-  ctx.globalAlpha = 1;
+  if (!soft) {
+    // leichte Tönung der ganzen Taste
+    ctx.globalAlpha = 0.28;
+    ctx.fillStyle = color;
+    ctx.fillRect(k.x + 1, 2, k.w - 2, height - 3);
+  }
+  ctx.globalAlpha = soft ? 0.75 : 1;
   // Ring statt gefülltem Punkt (gefüllt = erwartete Taste)
   const r = Math.min(k.w * 0.34, 8);
   ctx.strokeStyle = color;
@@ -165,6 +176,7 @@ function drawGhost(ctx: CanvasRenderingContext2D, k: KeyRect, y: number, hand: H
   ctx.beginPath();
   ctx.arc(k.x + k.w / 2, y, r, 0, Math.PI * 2);
   ctx.stroke();
+  ctx.globalAlpha = 1;
 }
 
 function drawScaleDot(ctx: CanvasRenderingContext2D, k: KeyRect, y: number): void {
@@ -222,7 +234,7 @@ export function drawKeyboard(
     const look = whiteLooks[i]!;
     if (f.scalePcs?.has(k.midi % 12)) drawScaleDot(ctx, k, scaleY);
     const gh = ghostHand.get(k.midi);
-    if (gh && !f.pressed.has(k.midi)) drawGhost(ctx, k, whiteMarkY, gh, height);
+    if (gh && !f.pressed.has(k.midi)) drawGhost(ctx, k, whiteMarkY, gh, height, f.ghostSoft);
     if (look.expectHand) drawExpectMarker(ctx, k, whiteMarkY, look.expectHand, f.hint, f.nowMs);
     drawMark(ctx, k, whiteMarkY, look.mark);
   });
@@ -238,7 +250,7 @@ export function drawKeyboard(
     }
     if (f.scalePcs?.has(k.midi % 12)) drawScaleDot(ctx, k, bh - 6);
     const gh = ghostHand.get(k.midi);
-    if (gh && !f.pressed.has(k.midi)) drawGhost(ctx, k, blackMarkY, gh, bh);
+    if (gh && !f.pressed.has(k.midi)) drawGhost(ctx, k, blackMarkY, gh, bh, f.ghostSoft);
     if (look.expectHand) drawExpectMarker(ctx, k, blackMarkY, look.expectHand, f.hint, f.nowMs);
     drawMark(ctx, k, blackMarkY, look.mark);
   }

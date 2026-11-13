@@ -61,7 +61,8 @@ export function PianoKeyboard() {
       flashes: live.flashes,
       hint: wait?.hint ?? false,
       nowMs: performance.now(),
-      ghost: harmonyLive.ghost,
+      ghost: harmonyLive.ghost ?? harmonyLive.autoGhost,
+      ghostSoft: harmonyLive.ghost === null,
       scalePcs: harmonyLive.scalePcs,
       labels: s.keyboardLabels === 'off' ? null : simulatorLabels(s.simulatorOctave, s.keyboardLabels),
     });

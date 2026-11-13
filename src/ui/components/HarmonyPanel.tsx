@@ -13,7 +13,7 @@ function keyValue(k: MusicalKey | null): string {
   return k ? `${k.tonicPc}-${k.mode}` : 'auto';
 }
 
-function Chip({ chip, id }: { chip: SuggestionChip; id: string }) {
+export function Chip({ chip, id }: { chip: SuggestionChip; id: string }) {
   const pinned = useHarmony((s) => s.pinned === id);
   return (
     <button
@@ -235,6 +235,14 @@ export function HarmonyPanel() {
             onChange={(e) => s.update({ harmonySong: e.target.checked })}
           />
           Akkorde im Stück
+        </label>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={s.harmonyAutoGhost}
+            onChange={(e) => s.update({ harmonyAutoGhost: e.target.checked })}
+          />
+          Wahrscheinlichsten Folgeakkord auf der Klaviatur zeigen
         </label>
         <label className="check">
           <input

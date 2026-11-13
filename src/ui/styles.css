@@ -1065,3 +1065,62 @@ select {
   border-top: 1px solid var(--border);
   margin: 14px 0 4px;
 }
+
+/* Freies Spiel: Startansicht und Harmonie-Leiste */
+.stage-empty-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.harmony-bar {
+  /* oben: unten steigen die frisch gespielten Noten aus der Klaviatur auf */
+  position: absolute;
+  left: 50%;
+  top: 12px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  max-width: calc(100% - 24px);
+  padding: 10px 16px;
+  background: rgba(14, 16, 20, 0.85);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+}
+.hb-chord {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  opacity: 0.6;
+  min-width: 70px;
+}
+.hb-chord.sounding {
+  opacity: 1;
+}
+.hb-symbol {
+  font-size: 28px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.hb-key {
+  color: var(--muted);
+  white-space: nowrap;
+  font-size: 13px;
+}
+.hb-next {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.hb-label {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.harmony-bar .chips {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
