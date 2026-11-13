@@ -1,6 +1,15 @@
 import { useEffect, useRef } from 'react';
 import { formatTime } from '../format';
-import { live, seek, setRate, toggleLoop, toggleMetronome, togglePlay, transport } from '../runtime';
+import {
+  closeSong,
+  live,
+  seek,
+  setRate,
+  toggleLoop,
+  toggleMetronome,
+  togglePlay,
+  transport,
+} from '../runtime';
 import { toggleRecording } from '../recording';
 import { useApp } from '../store/app-store';
 import { useSettings, type PlayMode, type StageView } from '../store/settings';
@@ -64,8 +73,18 @@ export function TransportBar() {
       </button>
 
       <div className="song-title" title={song?.title}>
-        {song ? song.title : 'Kein Stück geladen'}
+        {song ? song.title : 'Freies Spiel'}
       </div>
+      {song && (
+        <button
+          className="btn icon close-song"
+          onClick={closeSong}
+          title="Stück schließen – zurück zum freien Spiel"
+          aria-label="Stück schließen"
+        >
+          ✕
+        </button>
+      )}
 
       {song && (
         <div className="seg mode" role="group" aria-label="Ansicht">

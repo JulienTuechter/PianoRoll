@@ -3,7 +3,7 @@ import { sortEntries } from '../../core/library/library';
 import type { LibraryEntry } from '../../core/library/types';
 import { pickMidiFile } from '../file-picker';
 import { formatTime } from '../format';
-import { deleteLibrarySong, loadDemo, openFromLibrary, renameLibrarySong } from '../runtime';
+import { closeSong, deleteLibrarySong, loadDemo, openFromLibrary, renameLibrarySong } from '../runtime';
 import { useApp } from '../store/app-store';
 
 type SortKey = 'recent' | 'title' | 'added';
@@ -125,6 +125,11 @@ export function LibraryList() {
         <button className="btn" onClick={() => void loadDemo()}>
           Demo-Stück
         </button>
+        {currentId !== null && (
+          <button className="btn" onClick={closeSong} title="Aktuelles Stück schließen">
+            Frei spielen
+          </button>
+        )}
         <label className="sort">
           Sortieren
           <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>

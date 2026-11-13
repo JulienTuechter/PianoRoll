@@ -468,6 +468,16 @@ export function unloadSong(): void {
   useSettings.getState().update({ lastSongId: null });
 }
 
+/** Stück schließen und ins freie Spiel wechseln (ohne Bibliotheks-Startansicht). */
+export function closeSong(): void {
+  if (transport.state === 'playing') transport.pause();
+  audio.allNotesOff('app');
+  if (useApp.getState().song) unloadSong();
+  useApp
+    .getState()
+    .set({ freePlay: true, libraryOpen: false, resultsOpen: false, lastResult: null, lastPass: null });
+}
+
 export async function refreshLibrary(): Promise<void> {
   try {
     useApp.getState().set({ library: await libraryRepo.list() });
