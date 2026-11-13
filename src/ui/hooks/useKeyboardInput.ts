@@ -58,6 +58,12 @@ export function useKeyboardInput(enabled: boolean) {
         if (!e.repeat) toggleMetronome();
         return;
       }
+      if (e.code === 'KeyS' && e.shiftKey) {
+        e.preventDefault();
+        const st = useSettings.getState();
+        if (!e.repeat) st.update({ sidePanelOpen: !st.sidePanelOpen });
+        return;
+      }
       if (e.code === 'KeyB' && e.shiftKey) {
         e.preventDefault();
         useApp.getState().set({ libraryOpen: true });

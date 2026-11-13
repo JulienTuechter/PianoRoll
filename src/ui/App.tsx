@@ -22,6 +22,7 @@ export function App() {
   const dialogOpen = useApp((s) => s.settingsOpen || s.libraryOpen || s.resultsOpen || s.take !== null);
   const ready = useApp((s) => s.ready);
   const onboardingDone = useSettings((s) => s.onboardingDone);
+  const sidePanelOpen = useSettings((s) => s.sidePanelOpen);
   const activeDeviceId = useApp((s) => s.midi.activeDeviceId);
 
   useEffect(() => startRuntime(), []);
@@ -40,7 +41,7 @@ export function App() {
     <div className="app">
       <TransportBar />
       <MeasureTimeline />
-      <main className="main">
+      <main className={`main${sidePanelOpen ? '' : ' side-closed'}`}>
         {/* Falling Notes und Klaviatur teilen sich exakt dieselbe Breite */}
         <div className="stage-col">
           <Stage />
@@ -48,7 +49,7 @@ export function App() {
             <PianoKeyboard />
           </div>
         </div>
-        <SidePanel />
+        {sidePanelOpen && <SidePanel />}
       </main>
       <DropZone />
       <ErrorToast />

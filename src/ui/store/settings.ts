@@ -4,7 +4,6 @@ import type { HandFilter } from '../../core/wait-mode-engine/wait-mode-engine';
 import { MIDDLE_C } from '../../core/note-event-model/types';
 import { libraryRepo } from '../library-repo';
 
-
 export type PlayMode = 'watch' | 'wait' | 'performance';
 /** Mittlerer Bereich: fallende Noten, Notenschrift oder beides übereinander */
 export type StageView = 'falling' | 'notation' | 'split';
@@ -84,6 +83,8 @@ export interface Settings {
   beginnerMode: boolean;
   /** Funkeneffekte, wenn Balken auf die Klaviatur treffen bzw. aufsteigen */
   particles: boolean;
+  /** Seitenpanel rechts ausgeklappt */
+  sidePanelOpen: boolean;
 }
 
 interface SettingsStore extends Settings {
@@ -141,6 +142,7 @@ export const defaultSettings: Settings = {
   quantResolveOverlaps: true,
   beginnerMode: false,
   particles: false,
+  sidePanelOpen: true,
 };
 
 function safeLocalStorage(): Storage | null {
@@ -183,7 +185,7 @@ export const useSettings = create<SettingsStore>()(
     }),
     {
       name: 'pianist-settings',
-      version: 8,
+      version: 9,
       storage: createJSONStorage(() => idbStorage),
       // Neue Felder bekommen Standardwerte; unbekannte alte Felder werden ignoriert
       migrate: (persisted) => ({ ...defaultSettings, ...(persisted as Partial<Settings>) }),

@@ -1372,3 +1372,32 @@ select {
   color: var(--warn);
   border-color: rgba(230, 180, 0, 0.5);
 }
+
+/* Einklappbares Seitenpanel */
+.main.side-closed {
+  grid-template-columns: 1fr;
+}
+.btn.side-toggle {
+  color: var(--muted);
+}
+.btn.side-toggle.active {
+  color: var(--text);
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+@media (max-width: 900px) {
+  /* schmale Fenster: ausgeklappt als Overlay über dem Notenbereich */
+  .main {
+    position: relative;
+  }
+  .main:not(.side-closed) .side {
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(320px, 90vw);
+    z-index: 12;
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.5);
+  }
+}

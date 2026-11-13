@@ -35,6 +35,7 @@ export function TransportBar() {
   const setApp = useApp((s) => s.set);
   const mode = useSettings((s) => s.mode);
   const view = useSettings((s) => s.view);
+  const sidePanelOpen = useSettings((s) => s.sidePanelOpen);
   const metronome = useSettings((s) => s.metronome);
   const loopEnabled = useApp((s) => s.loopEnabled);
   const recording = useApp((s) => s.recording);
@@ -208,6 +209,35 @@ export function TransportBar() {
 
       <button className="btn" onClick={() => setApp({ settingsOpen: true })}>
         Einstellungen
+      </button>
+      <button
+        className={`btn icon side-toggle${sidePanelOpen ? ' active' : ''}`}
+        onClick={() => update({ sidePanelOpen: !sidePanelOpen })}
+        title={sidePanelOpen ? 'Seitenleiste einklappen (Shift+S)' : 'Seitenleiste ausklappen (Shift+S)'}
+        aria-label="Seitenleiste"
+        aria-pressed={sidePanelOpen}
+      >
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+          <rect
+            x="1.5"
+            y="2.5"
+            width="15"
+            height="13"
+            rx="2"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          />
+          <rect
+            x="11"
+            y="3"
+            width="5"
+            height="12"
+            rx="1"
+            fill="currentColor"
+            opacity={sidePanelOpen ? 0.9 : 0.25}
+          />
+        </svg>
       </button>
     </header>
   );
