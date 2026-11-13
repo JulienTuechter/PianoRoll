@@ -46,7 +46,7 @@ export function MeasureTimeline() {
 
   const shown = drag ?? (loop ? normalizeLoop(loop, measures.length) : null);
   const endOf = (i: number) => measures[i + 1]?.startSec ?? total;
-  const label = loop ? `Takt ${loop.startMeasure + 1}–${loop.endMeasure + 1}` : null;
+  const label = loop ? `Takt ${loop.startMeasure + 1} bis ${loop.endMeasure + 1}` : null;
 
   return (
     <div className="timeline">
@@ -54,7 +54,7 @@ export function MeasureTimeline() {
         ref={barRef}
         className="timeline-bar"
         role="slider"
-        aria-label="Takte – klicken zum Springen, ziehen für Loop"
+        aria-label="Takte: klicken zum Springen, ziehen für Loop"
         aria-valuemin={1}
         aria-valuemax={measures.length}
         aria-valuenow={1}
@@ -85,9 +85,10 @@ export function MeasureTimeline() {
               style={{
                 left: `${(m.startSec / total) * 100}%`,
                 width: `${((endOf(m.index) - m.startSec) / total) * 100}%`,
-                background: err > 0 ? `rgba(255, 92, 92, ${0.2 + 0.6 * (err / maxErr)})` : undefined,
+                background:
+                  err > 0 ? `var(--heat-${Math.min(5, 1 + Math.floor((err / maxErr) * 4.999))})` : undefined,
               }}
-              title={`Takt ${m.index + 1}${err ? ` – ${err} Fehler` : ''}`}
+              title={`Takt ${m.index + 1}${err ? `: ${err} Fehler` : ''}`}
             >
               {(m.index % 4 === 0 || measures.length <= 24) && <span>{m.index + 1}</span>}
             </div>

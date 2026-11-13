@@ -40,15 +40,31 @@ export function Onboarding() {
       <ol className="steps">
         {steps.map((s, i) => (
           <li key={i} className={s.ok ? 'ok' : ''}>
-            <span className="step-mark">{s.ok ? '✓' : i + 1}</span>
+            <span className="step-mark">
+              {s.ok ? (
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={3}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M5 12.5l4.5 4.5L19 7.5" />
+                </svg>
+              ) : (
+                i + 1
+              )}
+            </span>
             {s.label}
           </li>
         ))}
       </ol>
       <MidiStatusPanel />
-      {heard !== null && (
-        <p className="success">Super – {midiToName(heard)} empfangen! Dein Piano ist bereit.</p>
-      )}
+      {heard !== null && <p className="success">{midiToName(heard)} empfangen. Dein Piano ist bereit.</p>}
       <div className="dialog-actions">
         <button className="btn" onClick={() => update({ onboardingDone: true })}>
           Ohne Piano fortfahren (Simulator)

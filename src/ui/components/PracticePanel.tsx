@@ -158,7 +158,7 @@ export function PracticeTools() {
       <p className="help">
         {song
           ? 'Folgt dem Takt des Stücks (beim Abspielen).'
-          : 'Im freien Spiel nach Tempo und Taktart oben – gilt auch für Aufnahmen.'}
+          : 'Im freien Spiel nach Tempo und Taktart oben. Gilt auch für Aufnahmen.'}
       </p>
       <label className="field">
         Metronom-Lautstärke

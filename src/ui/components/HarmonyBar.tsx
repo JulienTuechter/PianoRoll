@@ -13,14 +13,18 @@ export function HarmonyBar() {
   return (
     <div className={`harmony-bar${chordSounding ? ' sounding' : ''}`}>
       <div className="hb-chord">
-        <span className="hb-symbol">{chord ? chord.symbol : '–'}</span>
+        {chord ? (
+          <span className="hb-symbol">{chord.symbol}</span>
+        ) : (
+          <span className="hb-symbol hb-empty" aria-label="Noch kein Akkord" />
+        )}
         {chordNumeral && <span className="chord-numeral">{chordNumeral}</span>}
       </div>
       <div className="hb-meta">
-        {key ? <strong>{keyLabel(key)}</strong> : 'Tonart: spiel ein paar Takte'}
-        {chord && <> · {describeChord(chord)}</>}
-        {chord && !chordSounding && ' · zuletzt gespielt'}
-        {!chord && key && ' · spiele mindestens drei Töne gleichzeitig'}
+        {key ? <strong>{keyLabel(key)}</strong> : <span>Tonart: spiel ein paar Takte</span>}
+        {chord && <span>{describeChord(chord)}</span>}
+        {chord && !chordSounding && <span>zuletzt gespielt</span>}
+        {!chord && key && <span>Spiele mindestens drei Töne gleichzeitig</span>}
       </div>
       {suggestions.length > 0 && (
         <div className="hb-next">

@@ -34,8 +34,8 @@ export function SettingsDialog() {
           Eigenes Spiel über die App wiedergeben (Echo)
         </label>
         <p className="help">
-          Der Recital Pro hat eigene Lautsprecher. Mit Echo hörst du jede Note doppelt – nur einschalten, wenn
-          der Piano-Lautsprecher aus ist (z. B. Kopfhörer am Computer).
+          Der Recital Pro hat eigene Lautsprecher. Mit Echo hörst du jede Note doppelt, also nur einschalten,
+          wenn der Piano-Lautsprecher aus ist (z. B. Kopfhörer am Computer).
         </p>
         {s.echo && (
           <label className="field">
@@ -210,8 +210,8 @@ export function SettingsDialog() {
         </div>
         {Math.abs(luminance(s.rightColor) - luminance(s.leftColor)) < 0.12 && (
           <p className="help warn-text">
-            Beide Farben sind ähnlich hell – für Farbenblinde schwer zu unterscheiden. Wähle eine hellere und
-            eine dunklere Farbe.
+            Beide Farben sind ähnlich hell und für Farbenblinde schwer zu unterscheiden. Wähle eine hellere
+            und eine dunklere Farbe.
           </p>
         )}
       </fieldset>

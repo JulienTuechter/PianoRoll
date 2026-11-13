@@ -10,10 +10,8 @@ const MODES = { wait: 'Warten', performance: 'Performance' } as const;
 function heatColor(errors: number, max: number): string {
   if (errors === 0) return 'var(--heat-0)';
   const t = Math.min(1, errors / Math.max(1, max));
-  // gelb → rot, zusätzlich über Helligkeit unterscheidbar
-  const hue = 50 - 50 * t;
-  const light = 62 - 22 * t;
-  return `hsl(${hue} 90% ${light}%)`;
+  // Hitzeskala: Ochsenblut (wenig) bis Weißglut (viel), Stufen auch über Helligkeit unterscheidbar
+  return `var(--heat-${1 + Math.min(4, Math.floor(t * 4.999))})`;
 }
 
 function Bar({ label, value, total, cls }: { label: string; value: number; total: number; cls: string }) {
@@ -43,7 +41,7 @@ function TimingSection({ t }: { t: TimingSummary }) {
           <Bar label="Good" value={t.good} total={judged} cls="good" />
           <Bar label="Miss" value={t.missHits + t.missed} total={judged} cls="miss" />
           <p className="muted small">
-            Punkte: {Math.round(t.points * 100)} % · davon nicht gespielt: {t.missed}
+            Punkte: {Math.round(t.points * 100)} %, davon nicht gespielt: {t.missed}
           </p>
         </div>
         <div>
@@ -107,10 +105,28 @@ export function ResultsDialog() {
   return (
     <dialog ref={ref} className="dialog results wide" onClose={() => set({ resultsOpen: false })}>
       <h2>{result.complete ? 'Geschafft!' : 'Durchgang beendet'}</h2>
-      <p className="muted">
-        {song?.title} · {MODES[result.mode]} · {HANDS[result.hands]} · Tempo {Math.round(result.rate * 100)} %
-        · {formatTime(result.durationMs / 1000)}
-      </p>
+      <dl className="meta-row">
+        <div>
+          <dt>Stück</dt>
+          <dd>{song?.title}</dd>
+        </div>
+        <div>
+          <dt>Modus</dt>
+          <dd>{MODES[result.mode]}</dd>
+        </div>
+        <div>
+          <dt>Hände</dt>
+          <dd>{HANDS[result.hands]}</dd>
+        </div>
+        <div>
+          <dt>Tempo</dt>
+          <dd>{Math.round(result.rate * 100)} %</dd>
+        </div>
+        <div>
+          <dt>Dauer</dt>
+          <dd>{formatTime(result.durationMs / 1000)}</dd>
+        </div>
+      </dl>
 
       <div className="score-row">
         <div className={`score-big ${pct >= 90 ? 'good' : pct >= 70 ? 'mid' : 'low'}`}>{pct} %</div>
@@ -147,7 +163,7 @@ export function ResultsDialog() {
       {!result.complete && (
         <p className="muted">
           Teil-Durchgang ({result.completedGroups} von {result.totalGroups} {perf ? 'Noten' : 'Stellen'}{' '}
-          gespielt) – zählt nicht für die Bestleistung.
+          gespielt) und zählt nicht für die Bestleistung.
         </p>
       )}
 
@@ -163,7 +179,7 @@ export function ResultsDialog() {
                 role="listitem"
                 className="heat-cell"
                 style={{ background: heatColor(errors, maxErr) }}
-                title={`Takt ${i + 1}: ${errors} Fehler – klicken zum Hinspringen`}
+                title={`Takt ${i + 1}: ${errors} Fehler. Klicken zum Hinspringen`}
                 onClick={() => {
                   set({ resultsOpen: false });
                   seekToMeasure(i);
@@ -175,11 +191,11 @@ export function ResultsDialog() {
           </div>
           {worst.length > 0 ? (
             <p className="muted">
-              Problemstellen: {worst.map((w) => `Takt ${w.measure + 1} (${w.errors})`).join(', ')} – in der
+              Problemstellen: {worst.map((w) => `Takt ${w.measure + 1} (${w.errors})`).join(', ')}. In der
               Taktleiste als Loop ziehen und gezielt üben.
             </p>
           ) : (
-            <p className="muted">Keine Fehler – sauber gespielt.</p>
+            <p className="muted">Keine Fehler, sauber gespielt.</p>
           )}
         </>
       )}

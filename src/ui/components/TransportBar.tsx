@@ -77,7 +77,7 @@ export function TransportBar() {
     <header className="transport">
       <div className="tz tz-nav">
         <div className="brand" aria-label="Pianist">
-          Pian<span>i</span>st
+          Pianist
         </div>
         <button
           className="btn ghost"
@@ -93,7 +93,7 @@ export function TransportBar() {
           <button
             className="btn icon close-song"
             onClick={closeSong}
-            title="Stück schließen – zurück zum freien Spiel"
+            title="Stück schließen, zurück zum freien Spiel"
             aria-label="Stück schließen"
           >
             <Icon name="close" />
@@ -147,7 +147,7 @@ export function TransportBar() {
           <button
             className={`btn round toggle${loopEnabled ? ' active' : ''}`}
             onClick={toggleLoop}
-            title="Loop an/aus (L) – Bereich in der Taktleiste ziehen"
+            title="Loop an/aus (L). Bereich in der Taktleiste ziehen"
             aria-pressed={loopEnabled}
             aria-label="Loop"
           >
@@ -252,50 +252,50 @@ function Icon({ name }: { name: IconName }) {
   switch (name) {
     case 'library':
       return (
-        <svg {...common}>
+        <svg {...common} aria-hidden="true">
           <path d="M4 4v16M9 4v16M14 5l5 14.5" />
         </svg>
       );
     case 'close':
       return (
-        <svg {...common}>
+        <svg {...common} aria-hidden="true">
           <path d="M6 6l12 12M18 6L6 18" />
         </svg>
       );
     case 'start':
       return (
-        <svg {...common}>
+        <svg {...common} aria-hidden="true">
           <path d="M6 5v14" />
           <path d="M19 5L9 12l10 7z" fill="currentColor" />
         </svg>
       );
     case 'rec':
       return (
-        <svg {...common}>
+        <svg {...common} aria-hidden="true">
           <circle cx="12" cy="12" r="6" fill="currentColor" stroke="none" />
         </svg>
       );
     case 'stop':
       return (
-        <svg {...common}>
+        <svg {...common} aria-hidden="true">
           <rect x="7" y="7" width="10" height="10" rx="1.5" fill="currentColor" stroke="none" />
         </svg>
       );
     case 'play':
       return (
-        <svg {...common}>
+        <svg {...common} aria-hidden="true">
           <path d="M8 5.5v13l11-6.5z" fill="currentColor" />
         </svg>
       );
     case 'pause':
       return (
-        <svg {...common}>
+        <svg {...common} aria-hidden="true">
           <path d="M9 5v14M15 5v14" strokeWidth={3} />
         </svg>
       );
     case 'loop':
       return (
-        <svg {...common}>
+        <svg {...common} aria-hidden="true">
           <path d="M17 2l3 3-3 3" />
           <path d="M4 11V9a4 4 0 0 1 4-4h12" />
           <path d="M7 22l-3-3 3-3" />
@@ -304,14 +304,14 @@ function Icon({ name }: { name: IconName }) {
       );
     case 'metronome':
       return (
-        <svg {...common}>
+        <svg {...common} aria-hidden="true">
           <path d="M9 3h6l4 18H5z" />
           <path d="M12 16l5-9" />
         </svg>
       );
     case 'settings':
       return (
-        <svg {...common}>
+        <svg {...common} aria-hidden="true">
           <circle cx="12" cy="12" r="3" />
           <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
         </svg>

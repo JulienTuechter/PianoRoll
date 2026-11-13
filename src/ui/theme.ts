@@ -1,27 +1,29 @@
-/** Farben für Canvas-Renderer (CSS-Variablen gelten nur fürs DOM). Design „Flügel“ (warmes Ebenholz, Elfenbein); Feedback-/Handfarben Okabe-Ito-basiert, farbenblind-freundlich. */
+/** Farben für Canvas-Renderer (CSS-Variablen gelten nur fürs DOM). Design „Kiln“ (Hallmark): fast schwarzer Grund, Elfenbein, Glut als „jetzt“; Feedback-/Handfarben Okabe-Ito-basiert, farbenblind-freundlich. Werte = tokens.css in Hex. */
 export const theme = {
-  bg: '#0f0d0c',
-  laneBlack: '#14110f',
-  laneLine: '#211c18',
-  measureLine: '#33291f',
-  measureLabel: '#7d6a50',
-  nowLine: '#6e1f25',
+  bg: '#0b0605',
+  laneBlack: '#100907',
+  laneLine: '#1c1310',
+  measureLine: '#322621',
+  measureLabel: '#7f6e60',
+  /** Anschlagslinie: Glut (--color-accent) */
+  nowLine: '#fe6a00',
   /** Eigener Tastendruck */
   pressed: '#CC79A7',
   /** Feedback: richtig / falsch / Timing (zusätzlich Symbole, da Farbe allein nicht farbenblind-sicher ist) */
-  correct: '#3fb97a',
-  wrong: '#ff4d4d',
-  timing: '#f0c419',
-  waitGlow: '#ffffff',
-  loop: '#b48cff',
-  sustained: '#7a4a66',
-  whiteKey: '#f3ecdc',
-  whiteKeyShade: '#cdbf9f',
-  blackKey: '#171412',
-  blackKeyTop: '#353029',
-  keyBorder: '#463d33',
-  noteText: '#0f0d0c',
-  keyLabel: '#8a7c63',
+  correct: '#6fc884',
+  wrong: '#f47c70',
+  timing: '#f7b83d',
+  waitGlow: '#fff9db',
+  /** Loop: Elfenbein statt einer dritten Farbe */
+  loop: '#f2eadd',
+  sustained: '#5e3729',
+  whiteKey: '#f0e7d6',
+  whiteKeyShade: '#cabba5',
+  blackKey: '#120c09',
+  blackKeyTop: '#352c28',
+  keyBorder: '#322621',
+  noteText: '#0b0605',
+  keyLabel: '#7f6e60',
 } as const;
 
 export const DEFAULT_RIGHT = '#56B4E9';

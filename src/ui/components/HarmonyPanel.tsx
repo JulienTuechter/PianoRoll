@@ -30,7 +30,7 @@ export function Chip({ chip, id }: { chip: SuggestionChip; id: string }) {
       }}
       onFocus={() => showGhost({ bass: chip.bass, upper: chip.upper })}
       onClick={() => togglePin(chip, id)}
-      title={`${chip.symbol} (${chip.numeral}) – ${Math.round(chip.probability * 100)} % · Klick: anpinnen${useSettings.getState().harmonyAudition ? ' und anspielen' : ''}`}
+      title={`${chip.symbol} (${chip.numeral}), ${Math.round(chip.probability * 100)} %. Klick: anpinnen${useSettings.getState().harmonyAudition ? ' und anspielen' : ''}`}
       aria-pressed={pinned}
     >
       <span className="chip-symbol">{chip.symbol}</span>
@@ -76,7 +76,7 @@ function FreePlay({ onStage }: { onStage: boolean }) {
       {!onStage && (
         <p className="help chord-desc">
           {chord ? describeChord(chord) : 'Spiele mindestens drei Töne gleichzeitig.'}
-          {chord && !chordSounding && ' · zuletzt gespielt'}
+          {chord && !chordSounding && ', zuletzt gespielt'}
         </p>
       )}
 
@@ -95,7 +95,7 @@ function FreePlay({ onStage }: { onStage: boolean }) {
               {keySource === 'song' && <span className="muted"> (aus dem Stück)</span>}
             </strong>
           )}
-          {!key && <span className="muted">– spiel ein paar Takte</span>}
+          {!key && <span className="muted">(spiel ein paar Takte)</span>}
         </span>
         <select
           value={keyValue(s.harmonyKey)}
@@ -170,10 +170,10 @@ function InSong() {
       <div className="song-chords">
         <div>
           <div className="chips-head">Jetzt</div>
-          {curChip ? <Chip chip={curChip} id={`cur-${idx}`} /> : <span className="muted">–</span>}
+          {curChip ? <Chip chip={curChip} id={`cur-${idx}`} /> : <span className="muted">kein Akkord</span>}
         </div>
         <div>
-          <div className="chips-head">Als Nächstes{next ? ` · Takt ${next.measure + 1}` : ''}</div>
+          <div className="chips-head">Als Nächstes{next ? `, ab Takt ${next.measure + 1}` : ''}</div>
           {nextChip ? (
             <Chip chip={nextChip} id={`next-${nextIdx}`} />
           ) : (

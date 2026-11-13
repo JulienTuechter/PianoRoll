@@ -84,7 +84,7 @@ function Row({ entry, current }: { entry: LibraryEntry; current: boolean }) {
         ) : (
           <>
             <button
-              className="btn small"
+              className="btn small icon-sm"
               onClick={() => {
                 setTitle(entry.title);
                 setEditing(true);
@@ -92,15 +92,40 @@ function Row({ entry, current }: { entry: LibraryEntry; current: boolean }) {
               aria-label={`${entry.title} umbenennen`}
               title="Umbenennen"
             >
-              ✎
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M4 20h4L19 9l-4-4L4 16z" />
+                <path d="M13.5 6.5l4 4" />
+              </svg>
             </button>
             <button
-              className="btn small"
+              className="btn small icon-sm"
               onClick={() => setConfirmDelete(true)}
               aria-label={`${entry.title} löschen`}
               title="Löschen"
             >
-              🗑
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
+              </svg>
             </button>
           </>
         )}

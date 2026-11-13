@@ -35,7 +35,7 @@ export function StageOverlay() {
           </div>
           <LibraryList />
           <p className="muted small">
-            Spiel einfach los – diese Ansicht verschwindet beim ersten Ton. Die Bibliothek erreichst du
+            Spiel einfach los: diese Ansicht verschwindet beim ersten Ton. Die Bibliothek erreichst du
             jederzeit oben.
           </p>
         </div>

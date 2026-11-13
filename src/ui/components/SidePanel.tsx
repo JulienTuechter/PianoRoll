@@ -75,7 +75,7 @@ export function SidePanel() {
                     <span className="track-name">{t.name}</span>
                   </label>
                   <span className="track-meta">
-                    {t.noteCount} Noten{t.isPercussion ? ' · Drums' : ''}
+                    {t.noteCount} Noten{t.isPercussion ? ', Drums' : ''}
                   </span>
                   <div className="seg" role="group" aria-label={`Hand für ${t.name}`}>
                     {(['left', 'split', 'right'] as const).map((h) => (

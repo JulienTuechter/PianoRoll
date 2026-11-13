@@ -25,7 +25,7 @@ export function RecordingOverlay() {
         else {
           const elapsed = now - t0;
           const measure = Math.floor(elapsed / (beatMs * numerator)) + 1;
-          infoRef.current.textContent = `${formatTime(elapsed / 1000)} · Takt ${measure} · ${recorder?.noteCount ?? 0} Noten`;
+          infoRef.current.textContent = `${formatTime(elapsed / 1000)}, Takt ${measure}, ${recorder?.noteCount ?? 0} Noten`;
         }
       }
       raf = requestAnimationFrame(tick);
@@ -39,9 +39,9 @@ export function RecordingOverlay() {
     <>
       <div ref={countRef} className="countin" aria-hidden="true" />
       <div className="rec-badge" role="status">
-        <span className="rec-dot" /> REC <span ref={infoRef} className="rec-info" />
+        <span className="rec-dot" aria-hidden="true" /> Aufnahme <span ref={infoRef} className="rec-info" />
         <button className="btn small" onClick={stopRecording} title="Aufnahme beenden (Leertaste)">
-          ■ Stopp
+          Stopp
         </button>
       </div>
     </>

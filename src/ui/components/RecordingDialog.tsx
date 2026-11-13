@@ -122,10 +122,32 @@ export function RecordingDialog() {
       <h2>Aufnahme bearbeiten</h2>
       {take && result && (
         <>
-          <p className="muted">
-            {take.bpm} BPM · {take.numerator}/{take.denominator} · {formatTime(take.durationMs / 1000)} ·{' '}
-            {result.notes.length} Noten{result.key ? ` · erkannte Tonart ${keyLabel(result.key)}` : ''}
-          </p>
+          <dl className="meta-row">
+            <div>
+              <dt>Tempo</dt>
+              <dd>{take.bpm} BPM</dd>
+            </div>
+            <div>
+              <dt>Takt</dt>
+              <dd>
+                {take.numerator}/{take.denominator}
+              </dd>
+            </div>
+            <div>
+              <dt>Dauer</dt>
+              <dd>{formatTime(take.durationMs / 1000)}</dd>
+            </div>
+            <div>
+              <dt>Noten</dt>
+              <dd>{result.notes.length}</dd>
+            </div>
+            {result.key && (
+              <div>
+                <dt>Erkannte Tonart</dt>
+                <dd>{keyLabel(result.key)}</dd>
+              </div>
+            )}
+          </dl>
 
           <label className="field">
             Titel

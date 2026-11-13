@@ -173,7 +173,7 @@ export function NotationView() {
           setDrag(null);
         }}
         onPointerCancel={() => setDrag(null)}
-        title="Klick: zum Takt springen · Ziehen: Loop über mehrere Takte"
+        title="Klick: zum Takt springen. Ziehen: Loop über mehrere Takte"
       >
         <div ref={svgRef} className="notation-svg" />
         <div className="notation-overlay">
