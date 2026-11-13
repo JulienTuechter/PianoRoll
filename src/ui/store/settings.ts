@@ -4,6 +4,7 @@ import type { HandFilter } from '../../core/wait-mode-engine/wait-mode-engine';
 import { MIDDLE_C } from '../../core/note-event-model/types';
 import { libraryRepo } from '../library-repo';
 
+
 export type PlayMode = 'watch' | 'wait' | 'performance';
 /** Mittlerer Bereich: fallende Noten, Notenschrift oder beides übereinander */
 export type StageView = 'falling' | 'notation' | 'split';
