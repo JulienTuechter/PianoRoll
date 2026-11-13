@@ -145,6 +145,8 @@ export interface RisingFrame {
   /** Tiefer als der Split-Punkt = linke Handfarbe */
   splitPoint: number;
   showNoteNames: boolean;
+  /** Notennamen passend zur Tonart (z. B. Bb statt A# in b-Moll) */
+  spell: (pc: number) => string;
 }
 
 /**
@@ -210,7 +212,7 @@ export function drawRisingNotes(
     if (f.showNoteNames && h > 14 && w > 9) {
       ctx.font = nameFont;
       ctx.fillStyle = theme.noteText;
-      ctx.fillText(midiToName(n.midi).replace(/\d+$/, ''), x + w / 2, yTop + 3);
+      ctx.fillText(f.spell(n.midi % 12), x + w / 2, yTop + 3);
     }
   }
 }

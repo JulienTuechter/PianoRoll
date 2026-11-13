@@ -160,21 +160,31 @@ function drawGhost(
   hand: Hand,
   height: number,
   soft: boolean,
+  pressed: boolean,
 ): void {
   const color = hand === 'right' ? handColors.right : handColors.left;
-  if (!soft) {
-    // leichte Tönung der ganzen Taste
+  if (!soft && !pressed) {
+    // leichte Tönung der ganzen Taste (nicht auf gedrückten Tasten – deren Farbe zeigt den Anschlag)
     ctx.globalAlpha = 0.28;
     ctx.fillStyle = color;
     ctx.fillRect(k.x + 1, 2, k.w - 2, height - 3);
   }
-  ctx.globalAlpha = soft ? 0.75 : 1;
-  // Ring statt gefülltem Punkt (gefüllt = erwartete Taste)
+  // Ring statt gefülltem Punkt (gefüllt = erwartete Taste); bleibt auch beim Drücken sichtbar
   const r = Math.min(k.w * 0.34, 8);
+  const cx = k.x + k.w / 2;
+  if (pressed) {
+    // dunkler Rand für Kontrast auf der Anschlagsfarbe
+    ctx.strokeStyle = '#0e1014';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.arc(cx, y, r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = soft && !pressed ? 0.75 : 1;
   ctx.strokeStyle = color;
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.arc(k.x + k.w / 2, y, r, 0, Math.PI * 2);
+  ctx.arc(cx, y, r, 0, Math.PI * 2);
   ctx.stroke();
   ctx.globalAlpha = 1;
 }
@@ -234,7 +244,7 @@ export function drawKeyboard(
     const look = whiteLooks[i]!;
     if (f.scalePcs?.has(k.midi % 12)) drawScaleDot(ctx, k, scaleY);
     const gh = ghostHand.get(k.midi);
-    if (gh && !f.pressed.has(k.midi)) drawGhost(ctx, k, whiteMarkY, gh, height, f.ghostSoft);
+    if (gh) drawGhost(ctx, k, whiteMarkY, gh, height, f.ghostSoft, f.pressed.has(k.midi));
     if (look.expectHand) drawExpectMarker(ctx, k, whiteMarkY, look.expectHand, f.hint, f.nowMs);
     drawMark(ctx, k, whiteMarkY, look.mark);
   });
@@ -250,7 +260,7 @@ export function drawKeyboard(
     }
     if (f.scalePcs?.has(k.midi % 12)) drawScaleDot(ctx, k, bh - 6);
     const gh = ghostHand.get(k.midi);
-    if (gh && !f.pressed.has(k.midi)) drawGhost(ctx, k, blackMarkY, gh, bh, f.ghostSoft);
+    if (gh) drawGhost(ctx, k, blackMarkY, gh, bh, f.ghostSoft, f.pressed.has(k.midi));
     if (look.expectHand) drawExpectMarker(ctx, k, blackMarkY, look.expectHand, f.hint, f.nowMs);
     drawMark(ctx, k, blackMarkY, look.mark);
   }

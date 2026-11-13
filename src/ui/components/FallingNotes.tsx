@@ -4,8 +4,16 @@ import { freeTrail } from '../harmony-service';
 import { layoutForWidth } from '../canvas/layout-cache';
 import { useCanvasLoop } from '../hooks/useCanvasLoop';
 import { getWaitEngine, live, transport } from '../runtime';
+import { speller } from '../../core/key-detection/key';
 import { useApp } from '../store/app-store';
+import { useHarmony } from '../store/harmony-store';
 import { useSettings } from '../store/settings';
+
+let spellCache: { key: unknown; fn: (pc: number) => string } | null = null;
+function spellFor(key: Parameters<typeof speller>[0]): (pc: number) => string {
+  if (spellCache?.key !== key) spellCache = { key, fn: speller(key) };
+  return spellCache.fn;
+}
 
 let idCache: { group: unknown; ids: Set<string> } = { group: null, ids: new Set() };
 
@@ -21,6 +29,7 @@ export function FallingNotes() {
         marks: freeTrail.marks,
         splitPoint: s.splitPoint,
         showNoteNames: s.showNoteNames,
+        spell: spellFor(useHarmony.getState().key),
       });
       return;
     }
