@@ -13,21 +13,15 @@ import {
 import { freeBeat } from '../free-metronome';
 import { toggleRecording } from '../recording';
 import { useApp } from '../store/app-store';
+import { t as msg } from '../../i18n';
+import { useT } from '../i18n';
 import { useSettings, type PlayMode, type StageView } from '../store/settings';
 
-const VIEWS: { id: StageView; label: string; title: string }[] = [
-  { id: 'falling', label: 'Fallend', title: 'Nur fallende Noten' },
-  { id: 'notation', label: 'Noten', title: 'Nur Notenschrift' },
-  { id: 'split', label: 'Beides', title: 'Notenschrift oben, fallende Noten unten' },
-];
-
-const MODES: { id: PlayMode; label: string; title: string }[] = [
-  { id: 'watch', label: 'Anschauen', title: 'Stück läuft durch und wird vorgespielt' },
-  { id: 'wait', label: 'Warten', title: 'Stück wartet, bis du die richtigen Noten spielst' },
-  { id: 'performance', label: 'Performance', title: 'Echtzeit ohne Warten, mit Timing-Wertung' },
-];
+const VIEWS: StageView[] = ['falling', 'notation', 'split'];
+const MODES: PlayMode[] = ['watch', 'wait', 'performance'];
 
 export function TransportBar() {
+  const t = useT();
   const song = useApp((s) => s.song);
   const state = useApp((s) => s.transport);
   const rate = useApp((s) => s.rate);
@@ -56,7 +50,11 @@ export function TransportBar() {
       if (timeRef.current) {
         let measure = 0;
         for (const m of live.measures) if (m.startSec <= pos + 1e-6) measure = m.index + 1;
-        timeRef.current.textContent = `${formatTime(pos)} / ${formatTime(transport.duration)} · Takt ${measure || '–'}`;
+        timeRef.current.textContent = msg().transport.time(
+          formatTime(pos),
+          formatTime(transport.duration),
+          measure ? String(measure) : '–',
+        );
       }
       // Schlag-Impuls am Metronom-Knopf (freies Spiel)
       const mb = metroRef.current;
@@ -76,25 +74,23 @@ export function TransportBar() {
   return (
     <header className="transport">
       <div className="tz tz-nav">
-        <div className="brand" aria-label="Pianist">
-          Pianist
-        </div>
+        <div className="brand">Pianist</div>
         <button
           className="btn ghost"
           onClick={() => setApp({ libraryOpen: true })}
-          title="Bibliothek (Shift+B)"
+          title={t.transport.libraryTitle}
         >
-          <Icon name="library" /> Bibliothek
+          <Icon name="library" /> {t.transport.library}
         </button>
         <div className="song-title" title={song?.title}>
-          {song ? song.title : 'Freies Spiel'}
+          {song ? song.title : t.transport.freePlay}
         </div>
         {song && (
           <button
             className="btn icon close-song"
             onClick={closeSong}
-            title="Stück schließen, zurück zum freien Spiel"
-            aria-label="Stück schließen"
+            title={t.transport.closeSongTitle}
+            aria-label={t.transport.closeSong}
           >
             <Icon name="close" />
           </button>
@@ -103,16 +99,21 @@ export function TransportBar() {
 
       <div className="tz tz-transport transport-controls">
         {song && (
-          <button className="btn round" onClick={() => seek(0)} title="Zum Anfang" aria-label="Zum Anfang">
+          <button
+            className="btn round"
+            onClick={() => seek(0)}
+            title={t.transport.toStart}
+            aria-label={t.transport.toStart}
+          >
             <Icon name="start" />
           </button>
         )}
         <button
           className={`btn round rec${recording ? ' active' : ''}`}
           onClick={toggleRecording}
-          title={recording ? 'Aufnahme beenden (Leertaste)' : 'Aufnahme starten (mit Count-in und Metronom)'}
+          title={recording ? t.transport.recordStop : t.transport.recordStart}
           aria-pressed={recording !== null}
-          aria-label="Aufnahme"
+          aria-label={t.transport.record}
         >
           <Icon name={recording ? 'stop' : 'rec'} />
         </button>
@@ -120,8 +121,8 @@ export function TransportBar() {
           <button
             className="btn round play"
             onClick={togglePlay}
-            title="Play/Pause (Leertaste)"
-            aria-label={playing ? 'Pause' : 'Play'}
+            title={t.transport.playTitle}
+            aria-label={playing ? t.transport.pause : t.transport.play}
           >
             <Icon name={playing ? 'pause' : 'play'} />
           </button>
@@ -136,7 +137,7 @@ export function TransportBar() {
           defaultValue={0}
           disabled={!song}
           hidden={!song}
-          aria-label="Position"
+          aria-label={t.transport.position}
           onPointerDown={() => (dragging.current = true)}
           onPointerUp={() => (dragging.current = false)}
           onChange={(e) => seek(Number(e.target.value))}
@@ -147,9 +148,9 @@ export function TransportBar() {
           <button
             className={`btn round toggle${loopEnabled ? ' active' : ''}`}
             onClick={toggleLoop}
-            title="Loop an/aus (L). Bereich in der Taktleiste ziehen"
+            title={t.transport.loopTitle}
             aria-pressed={loopEnabled}
-            aria-label="Loop"
+            aria-label={t.transport.loop}
           >
             <Icon name="loop" />
           </button>
@@ -158,9 +159,9 @@ export function TransportBar() {
           className={`btn round toggle${metronome ? ' active' : ''}`}
           ref={metroRef}
           onClick={toggleMetronome}
-          title="Metronom an/aus (Shift+M)"
+          title={t.transport.metronomeTitle}
           aria-pressed={metronome}
-          aria-label="Metronom"
+          aria-label={t.transport.metronome}
         >
           <Icon name="metronome" />
         </button>
@@ -168,36 +169,36 @@ export function TransportBar() {
 
       <div className="tz tz-mode">
         {song && (
-          <div className="seg pill" role="group" aria-label="Ansicht">
+          <div className="seg pill" role="group" aria-label={t.transport.viewGroup}>
             {VIEWS.map((v) => (
               <button
-                key={v.id}
-                className={view === v.id ? 'on' : ''}
-                title={v.title}
-                onClick={() => update({ view: v.id })}
+                key={v}
+                className={view === v ? 'on' : ''}
+                title={t.transport.views[v].title}
+                onClick={() => update({ view: v })}
               >
-                {v.label}
+                {t.transport.views[v].label}
               </button>
             ))}
           </div>
         )}
 
-        <div className="seg pill" role="group" aria-label="Modus">
+        <div className="seg pill" role="group" aria-label={t.transport.modeGroup}>
           {MODES.map((m) => (
             <button
-              key={m.id}
-              className={mode === m.id ? 'on' : ''}
-              title={m.title}
-              onClick={() => update({ mode: m.id })}
+              key={m}
+              className={mode === m ? 'on' : ''}
+              title={t.transport.modes[m].title}
+              onClick={() => update({ mode: m })}
             >
-              {m.label}
+              {t.transport.modes[m].label}
             </button>
           ))}
         </div>
 
         {song && (
-          <label className="tempo" title="Tempo (Tonhöhe bleibt gleich)">
-            <span className="tempo-label">Tempo</span>
+          <label className="tempo" title={t.transport.tempoTitle}>
+            <span className="tempo-label">{t.common.tempo}</span>
             <input
               type="range"
               min={25}
@@ -207,15 +208,15 @@ export function TransportBar() {
               onChange={(e) => setRate(Number(e.target.value) / 100)}
               onKeyDown={(e) => e.preventDefault()}
             />
-            <span className="tempo-value">{Math.round(rate * 100)} %</span>
+            <span className="tempo-value">{t.pct(Math.round(rate * 100))}</span>
           </label>
         )}
 
         <button
           className="btn icon ghost"
           onClick={() => setApp({ settingsOpen: true })}
-          title="Einstellungen"
-          aria-label="Einstellungen"
+          title={t.transport.settings}
+          aria-label={t.transport.settings}
         >
           <Icon name="settings" />
         </button>
@@ -224,9 +225,9 @@ export function TransportBar() {
       {/* Klang-Status schwebend statt im Fluss: ein Textwechsel beim ersten Klick darf die Knöpfe nicht verschieben */}
       {audio !== 'ready' && (
         <span className={`audio-status${audio === 'loading' ? '' : ' warn'}`} role="status">
-          {audio === 'locked' && 'Klick irgendwo, um den Klang zu aktivieren'}
-          {audio === 'loading' && 'Lade Klavierklang …'}
-          {audio === 'fallback' && 'Synth-Klang (Samples nicht geladen)'}
+          {audio === 'locked' && t.transport.audioLocked}
+          {audio === 'loading' && t.transport.audioLoading}
+          {audio === 'fallback' && t.transport.audioFallback}
         </span>
       )}
     </header>

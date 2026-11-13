@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 import type { HandFilter } from '../../core/wait-mode-engine/wait-mode-engine';
 import { MIDDLE_C } from '../../core/note-event-model/types';
+import { detectLocale, type LocalePref } from '../../i18n';
 import { libraryRepo } from '../library-repo';
 
 export type PlayMode = 'watch' | 'wait' | 'performance';
@@ -9,13 +10,15 @@ export type PlayMode = 'watch' | 'wait' | 'performance';
 export type StageView = 'falling' | 'notation' | 'split';
 
 export interface Settings {
+  /** Sprache der Oberfläche; „auto“ = Browsersprache */
+  locale: LocalePref;
   midiDeviceId: string | null;
   /** Eigenes Spiel am Piano über die App wiedergeben (Doppelsound mit Piano-Lautsprechern!) */
   echo: boolean;
   echoVolume: number;
   /** Simulator (Computertastatur/Maus) hörbar */
   simulatorSound: boolean;
-  /** App-Klang: Vorspielen, Begleitung, später Metronom */
+  /** App-Klang: Vorspielen, Begleitung, Metronom */
   appSound: boolean;
   appVolume: number;
   /** Standard-Split-Punkt für neu geladene Stücke */
@@ -90,6 +93,7 @@ interface SettingsStore extends Settings {
 }
 
 export const defaultSettings: Settings = {
+  locale: 'auto',
   midiDeviceId: null,
   echo: false,
   echoVolume: 0.8,
@@ -99,7 +103,8 @@ export const defaultSettings: Settings = {
   splitPoint: MIDDLE_C,
   simulatorOctave: 4,
   simulatorVelocity: 0.7,
-  keyboardLabels: 'de',
+  // Tastenbeschriftung des Simulators passend zur Browsersprache (QWERTZ bzw. QWERTY)
+  keyboardLabels: detectLocale() === 'de' ? 'de' : 'en',
   showNoteNames: true,
   fallWindowSec: 3,
   latencyMs: 0,

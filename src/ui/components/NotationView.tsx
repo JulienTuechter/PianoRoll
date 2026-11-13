@@ -4,6 +4,7 @@ import { normalizeLoop, type LoopRange } from '../../core/practice-engine/loop';
 import { firstNoteIndexAtOrAfter } from '../../core/note-event-model/notes';
 import { cursorAt, renderScore, type ScoreLayout } from '../notation/render-score';
 import { live, seekToMeasure, setLoop, transport } from '../runtime';
+import { useT } from '../i18n';
 import { useApp } from '../store/app-store';
 import { useHarmony } from '../store/harmony-store';
 
@@ -12,6 +13,7 @@ import { useHarmony } from '../store/harmony-store';
  * Klick auf einen Takt springt dorthin, Ziehen über mehrere Takte wählt einen Loop.
  */
 export function NotationView() {
+  const t = useT();
   const song = useApp((s) => s.song);
   const loop = useApp((s) => s.loop);
   const loopEnabled = useApp((s) => s.loopEnabled);
@@ -173,7 +175,7 @@ export function NotationView() {
           setDrag(null);
         }}
         onPointerCancel={() => setDrag(null)}
-        title="Klick: zum Takt springen. Ziehen: Loop über mehrere Takte"
+        title={t.notation.title}
       >
         <div ref={svgRef} className="notation-svg" />
         <div className="notation-overlay">
@@ -187,8 +189,8 @@ export function NotationView() {
           <div ref={currentRef} className="notation-current" />
           <div ref={cursorRef} className="notation-cursor" />
         </div>
-        {!layout && !error && <div className="notation-loading">Notenschrift wird gesetzt …</div>}
-        {error && <div className="notation-loading">Notenschrift konnte nicht gesetzt werden: {error}</div>}
+        {!layout && !error && <div className="notation-loading">{t.notation.loading}</div>}
+        {error && <div className="notation-loading">{t.notation.failed(error)}</div>}
       </div>
     </div>
   );

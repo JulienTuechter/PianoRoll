@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
 import { loadFile } from '../runtime';
 import { useApp } from '../store/app-store';
+import { useT } from '../i18n';
 
 /** Fenster-weites Drag & Drop für MIDI-Dateien. */
 export function DropZone() {
+  const t = useT();
   const dragging = useApp((s) => s.dragging);
   const set = useApp((s) => s.set);
 
@@ -44,7 +46,7 @@ export function DropZone() {
   if (!dragging) return null;
   return (
     <div className="drop-overlay">
-      <div>MIDI-Datei loslassen zum Laden</div>
+      <div>{t.stage.dropFile}</div>
     </div>
   );
 }

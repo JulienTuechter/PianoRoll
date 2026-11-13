@@ -11,6 +11,7 @@ import { getEngine, getWaitEngine, hub, live, transport } from '../runtime';
 import { speller } from '../../core/key-detection/key';
 import { useHarmony } from '../store/harmony-store';
 import { useSettings } from '../store/settings';
+import { useT } from '../i18n';
 
 const active = new Map<number, Hand>();
 const approaching = new Map<number, { hand: Hand; prox: number; label: string }>();
@@ -35,6 +36,7 @@ function simulatorLabels(octave: number, layout: 'de' | 'en'): Map<number, strin
 
 /** Klaviatur-Canvas: zeigt gedrückte und laut Stück klingende Tasten, Maus-/Touch-Eingabe als Simulator. */
 export function PianoKeyboard() {
+  const t = useT();
   const pointerNotes = useRef(new Map<number, number>()); // pointerId → midi
 
   const draw = useCallback((ctx: CanvasRenderingContext2D, w: number, h: number) => {
@@ -123,7 +125,7 @@ export function PianoKeyboard() {
     <canvas
       ref={canvasRef}
       className="keyboard-canvas"
-      aria-label="Klaviatur"
+      aria-label={t.stage.keyboard}
       onPointerDown={(e) => {
         const { midi, velocity } = midiAt(e);
         if (midi === null) return;

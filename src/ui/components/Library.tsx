@@ -3,30 +3,38 @@ import { sortEntries } from '../../core/library/library';
 import type { LibraryEntry } from '../../core/library/types';
 import { pickMidiFile } from '../file-picker';
 import { formatTime } from '../format';
-import { closeSong, deleteLibrarySong, loadDemo, openFromLibrary, renameLibrarySong } from '../runtime';
+import {
+  closeSong,
+  deleteLibrarySong,
+  loadDemo,
+  openFromLibrary,
+  renameLibrarySong,
+  errorMessage,
+} from '../runtime';
+import type { Messages } from '../../i18n';
+import { useT } from '../i18n';
 import { useApp } from '../store/app-store';
 
 type SortKey = 'recent' | 'title' | 'added';
 
-function formatDate(ts: number | null): string {
+function formatDate(ts: number | null, t: Messages): string {
   if (ts === null) return '–';
   const d = new Date(ts);
   const today = new Date();
   if (d.toDateString() === today.toDateString())
-    return `heute ${d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`;
-  return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
+    return t.library.today(d.toLocaleTimeString(t.dateLocale, { hour: '2-digit', minute: '2-digit' }));
+  return d.toLocaleDateString(t.dateLocale, { day: '2-digit', month: '2-digit', year: '2-digit' });
 }
 
 function Row({ entry, current }: { entry: LibraryEntry; current: boolean }) {
+  const t = useT();
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(entry.title);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const set = useApp((s) => s.set);
 
   const open = () =>
-    void openFromLibrary(entry.id).catch((err: unknown) =>
-      set({ error: err instanceof Error ? err.message : String(err) }),
-    );
+    void openFromLibrary(entry.id).catch((err: unknown) => set({ error: errorMessage(err) }));
 
   return (
     <tr className={current ? 'current' : ''}>
@@ -54,31 +62,31 @@ function Row({ entry, current }: { entry: LibraryEntry; current: boolean }) {
                   setEditing(false);
                 }
               }}
-              aria-label="Neuer Titel"
+              aria-label={t.library.newTitle}
             />
           </form>
         ) : (
-          <button className="link" onClick={open} title="Öffnen">
+          <button className="link" onClick={open} title={t.library.open}>
             {entry.title}
-            {entry.source === 'demo' && <span className="tag">Demo</span>}
-            {entry.source === 'recording' && <span className="tag rec-tag">Aufnahme</span>}
+            {entry.source === 'demo' && <span className="tag">{t.library.demoTag}</span>}
+            {entry.source === 'recording' && <span className="tag rec-tag">{t.library.recordingTag}</span>}
           </button>
         )}
       </td>
       <td className="num">{formatTime(entry.durationSec)}</td>
       <td className="num">{Math.round(entry.bpm)}</td>
-      <td>{formatDate(entry.lastPracticedAt)}</td>
+      <td>{formatDate(entry.lastPracticedAt, t)}</td>
       <td className="num">
-        {entry.bestAccuracy === null ? '–' : `${Math.round(entry.bestAccuracy * 100)} %`}
+        {entry.bestAccuracy === null ? '–' : t.pct(Math.round(entry.bestAccuracy * 100))}
       </td>
       <td className="lib-actions">
         {confirmDelete ? (
           <>
             <button className="btn small danger" onClick={() => void deleteLibrarySong(entry.id)}>
-              Löschen
+              {t.library.delete}
             </button>
             <button className="btn small" onClick={() => setConfirmDelete(false)}>
-              Abbrechen
+              {t.common.cancel}
             </button>
           </>
         ) : (
@@ -89,8 +97,8 @@ function Row({ entry, current }: { entry: LibraryEntry; current: boolean }) {
                 setTitle(entry.title);
                 setEditing(true);
               }}
-              aria-label={`${entry.title} umbenennen`}
-              title="Umbenennen"
+              aria-label={t.library.renameLabel(entry.title)}
+              title={t.library.rename}
             >
               <svg
                 width="16"
@@ -110,8 +118,8 @@ function Row({ entry, current }: { entry: LibraryEntry; current: boolean }) {
             <button
               className="btn small icon-sm"
               onClick={() => setConfirmDelete(true)}
-              aria-label={`${entry.title} löschen`}
-              title="Löschen"
+              aria-label={t.library.deleteLabel(entry.title)}
+              title={t.library.delete}
             >
               <svg
                 width="16"
@@ -136,6 +144,7 @@ function Row({ entry, current }: { entry: LibraryEntry; current: boolean }) {
 
 /** Bibliotheksliste – im Dialog und als Startansicht ohne geladenes Stück. */
 export function LibraryList() {
+  const t = useT();
   const library = useApp((s) => s.library);
   const currentId = useApp((s) => s.song?.id ?? null);
   const [sort, setSort] = useState<SortKey>('recent');
@@ -145,37 +154,37 @@ export function LibraryList() {
     <div className="library">
       <div className="library-toolbar">
         <button className="btn primary" onClick={pickMidiFile}>
-          MIDI-Datei hinzufügen …
+          {t.library.addFile}
         </button>
         <button className="btn" onClick={() => void loadDemo()}>
-          Demo-Stück
+          {t.library.demo}
         </button>
         {currentId !== null && (
-          <button className="btn" onClick={closeSong} title="Aktuelles Stück schließen">
-            Frei spielen
+          <button className="btn" onClick={closeSong} title={t.library.closeCurrent}>
+            {t.library.freePlay}
           </button>
         )}
         <label className="sort">
-          Sortieren
+          {t.library.sort}
           <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
-            <option value="recent">Zuletzt geübt</option>
-            <option value="title">Titel</option>
-            <option value="added">Hinzugefügt</option>
+            <option value="recent">{t.library.sortRecent}</option>
+            <option value="title">{t.library.sortTitle}</option>
+            <option value="added">{t.library.sortAdded}</option>
           </select>
         </label>
       </div>
       {entries.length === 0 ? (
-        <p className="muted">Noch keine Stücke. Zieh eine MIDI-Datei hierher oder lade das Demo-Stück.</p>
+        <p className="muted">{t.library.empty}</p>
       ) : (
         <div className="table-wrap">
           <table className="lib-table">
             <thead>
               <tr>
-                <th>Titel</th>
-                <th className="num">Dauer</th>
+                <th>{t.common.title}</th>
+                <th className="num">{t.common.duration}</th>
                 <th className="num">BPM</th>
-                <th>Zuletzt geübt</th>
-                <th className="num">Beste</th>
+                <th>{t.library.colLastPracticed}</th>
+                <th className="num">{t.library.colBest}</th>
                 <th />
               </tr>
             </thead>
@@ -192,6 +201,7 @@ export function LibraryList() {
 }
 
 export function LibraryDialog() {
+  const t = useT();
   const open = useApp((s) => s.libraryOpen);
   const set = useApp((s) => s.set);
   const ref = useRef<HTMLDialogElement>(null);
@@ -205,11 +215,11 @@ export function LibraryDialog() {
 
   return (
     <dialog ref={ref} className="dialog wide" onClose={() => set({ libraryOpen: false })}>
-      <h2>Bibliothek</h2>
+      <h2>{t.library.heading}</h2>
       {open && <LibraryList />}
       <div className="dialog-actions">
         <button className="btn" onClick={() => set({ libraryOpen: false })}>
-          Schließen
+          {t.common.close}
         </button>
       </div>
     </dialog>

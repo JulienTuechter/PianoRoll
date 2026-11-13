@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { normalizeLoop, type LoopRange } from '../../core/practice-engine/loop';
 import { live, seekToMeasure, setLoop, transport } from '../runtime';
+import { useT } from '../i18n';
 import { useApp } from '../store/app-store';
 
 /**
@@ -8,6 +9,7 @@ import { useApp } from '../store/app-store';
  * Zeigt Position, Loop-Bereich und die Fehler-Heatmap des letzten Durchgangs.
  */
 export function MeasureTimeline() {
+  const t = useT();
   const song = useApp((s) => s.song);
   const loop = useApp((s) => s.loop);
   const loopEnabled = useApp((s) => s.loopEnabled);
@@ -46,7 +48,7 @@ export function MeasureTimeline() {
 
   const shown = drag ?? (loop ? normalizeLoop(loop, measures.length) : null);
   const endOf = (i: number) => measures[i + 1]?.startSec ?? total;
-  const label = loop ? `Takt ${loop.startMeasure + 1} bis ${loop.endMeasure + 1}` : null;
+  const label = loop ? t.common.measureRange(loop.startMeasure + 1, loop.endMeasure + 1) : null;
 
   return (
     <div className="timeline">
@@ -54,7 +56,7 @@ export function MeasureTimeline() {
         ref={barRef}
         className="timeline-bar"
         role="slider"
-        aria-label="Takte: klicken zum Springen, ziehen für Loop"
+        aria-label={t.timeline.label}
         aria-valuemin={1}
         aria-valuemax={measures.length}
         aria-valuenow={1}
@@ -88,7 +90,7 @@ export function MeasureTimeline() {
                 background:
                   err > 0 ? `var(--heat-${Math.min(5, 1 + Math.floor((err / maxErr) * 4.999))})` : undefined,
               }}
-              title={`Takt ${m.index + 1}${err ? `: ${err} Fehler` : ''}`}
+              title={t.timeline.cell(m.index + 1, err)}
             >
               {(m.index % 4 === 0 || measures.length <= 24) && <span>{m.index + 1}</span>}
             </div>
@@ -110,15 +112,15 @@ export function MeasureTimeline() {
           <button
             className={`btn small${loopEnabled ? ' active' : ''}`}
             onClick={() => useApp.getState().set({ loopEnabled: !loopEnabled })}
-            title="Loop an/aus (L)"
+            title={t.timeline.toggleLoop}
           >
             ⟲ {label}
           </button>
           <button
             className="btn small"
             onClick={() => setLoop(null)}
-            title="Loop-Auswahl entfernen"
-            aria-label="Loop entfernen"
+            title={t.timeline.clearLoop}
+            aria-label={t.timeline.clearLoopLabel}
           >
             ✕
           </button>

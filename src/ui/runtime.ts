@@ -16,7 +16,13 @@ import type { SongSource } from '../core/library/types';
 import { browserMidiEnvironment } from '../core/midi-input/browser-env';
 import { InputHub } from '../core/midi-input/input-hub';
 import { WebMidiConnection } from '../core/midi-input/web-midi';
-import { loadMidiFile, playableNotes, reassignHands, titleFromFileName } from '../core/midi-file-loader/load';
+import {
+  loadMidiFile,
+  MidiFileError,
+  playableNotes,
+  reassignHands,
+  titleFromFileName,
+} from '../core/midi-file-loader/load';
 import {
   buildMeasures,
   measureIndexAt,
@@ -45,6 +51,7 @@ import {
 import { PerformanceEngine } from '../core/practice-engine/performance-engine';
 import { countsOf, passSummary, type StatCounts } from '../core/scoring/scoring';
 import { performanceClock } from '../core/time/clock';
+import { t } from '../i18n';
 import {
   defaultWaitConfig,
   isPracticed,
@@ -487,7 +494,14 @@ export async function refreshLibrary(): Promise<void> {
 }
 
 function showError(err: unknown): void {
-  useApp.getState().set({ error: err instanceof Error ? err.message : String(err) });
+  useApp.getState().set({ error: errorMessage(err) });
+}
+
+/** Fehlertext in der aktuellen Sprache; Ladefehler kommen sprachneutral als Code aus dem Kern. */
+export function errorMessage(err: unknown): string {
+  if (err instanceof MidiFileError)
+    return err.code === 'empty' ? t().errors.midiEmpty : t().errors.midiInvalid(err.detail ?? '');
+  return err instanceof Error ? err.message : String(err);
 }
 
 /** Lädt Bytes, legt sie in der Bibliothek ab und öffnet das Stück (mit gespeicherten Korrekturen). */
@@ -523,7 +537,7 @@ export async function importBytes(
 
 export async function loadFile(file: File): Promise<void> {
   if (!/\.(mid|midi)$/i.test(file.name)) {
-    showError(`„${file.name}“ ist keine MIDI-Datei (.mid/.midi).`);
+    showError(t().errors.notMidi(file.name));
     return;
   }
   try {
@@ -536,7 +550,13 @@ export async function loadFile(file: File): Promise<void> {
 
 export async function loadDemo(): Promise<void> {
   try {
-    await importAndOpen(createDemoMidi(), 'demo.mid', 'demo', 'Demo – Erste Schritte');
+    const m = t();
+    await importAndOpen(
+      createDemoMidi({ right: m.common.rightHand, left: m.common.leftHand }),
+      'demo.mid',
+      'demo',
+      m.library.demoTitle,
+    );
     useApp.getState().set({ libraryOpen: false });
   } catch (err) {
     showError(err);
@@ -549,7 +569,7 @@ export async function openFromLibrary(id: string, parsed?: Song): Promise<void> 
   let song = parsed;
   if (!song) {
     const bytes = await libraryRepo.getBytes(id);
-    if (!bytes || !entry) throw new Error('Stück nicht in der Bibliothek gefunden.');
+    if (!bytes || !entry) throw new Error(t().errors.songMissing);
     song = loadMidiFile(bytes, { title: entry.title, splitPoint: useSettings.getState().splitPoint });
   }
   if (entry) {

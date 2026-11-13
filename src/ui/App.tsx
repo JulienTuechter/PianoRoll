@@ -12,6 +12,7 @@ import { SettingsDialog } from './components/SettingsDialog';
 import { SidePanel } from './components/SidePanel';
 import { TransportBar } from './components/TransportBar';
 import { useKeyboardInput } from './hooks/useKeyboardInput';
+import { useLocaleSync } from './i18n';
 import { startFreeMetronome } from './free-metronome';
 import { startHarmony } from './harmony-service';
 import { startRuntime } from './runtime';
@@ -24,6 +25,7 @@ export function App() {
   const onboardingDone = useSettings((s) => s.onboardingDone);
   const activeDeviceId = useApp((s) => s.midi.activeDeviceId);
 
+  useLocaleSync();
   useEffect(() => startRuntime(), []);
   useEffect(() => startHarmony(), []);
   useEffect(() => startFreeMetronome(), []);

@@ -13,6 +13,7 @@ import { useApp } from '../store/app-store';
 import { useHarmony } from '../store/harmony-store';
 import { useSettings } from '../store/settings';
 import { handColors } from '../theme';
+import { useT } from '../i18n';
 
 let spellCache: { key: unknown; fn: (pc: number) => string } | null = null;
 function spellFor(key: Parameters<typeof speller>[0]): (pc: number) => string {
@@ -36,6 +37,7 @@ function keyCenter(layout: KeyboardLayout, midi: number): { x: number; w: number
 }
 
 export function FallingNotes() {
+  const t = useT();
   const fx = useRef<FxState>({
     ps: new ParticleSystem(),
     lastMs: 0, // erster Frame: dt = 0
@@ -138,7 +140,7 @@ export function FallingNotes() {
     finishFx(ctx, f, dt, s.particles);
   }, []);
   const ref = useCanvasLoop(draw);
-  return <canvas ref={ref} className="falling-canvas" aria-label="Fallende Noten" />;
+  return <canvas ref={ref} className="falling-canvas" aria-label={t.stage.fallingNotes} />;
 }
 
 function finishFx(ctx: CanvasRenderingContext2D, f: FxState, dt: number, enabled: boolean): void {

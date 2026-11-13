@@ -1,12 +1,14 @@
 import { midiHelp } from '../midi-help';
 import { webMidi } from '../runtime';
+import { useT } from '../i18n';
 import { useApp } from '../store/app-store';
 import { useSettings } from '../store/settings';
 
 export function MidiStatusPanel({ compact = false }: { compact?: boolean }) {
+  const t = useT();
   const midi = useApp((s) => s.midi);
   const update = useSettings((s) => s.update);
-  const info = midiHelp(midi.status);
+  const info = midiHelp(midi.status, t);
   const active = midi.devices.find((d) => d.id === midi.activeDeviceId);
   const connected = midi.devices.filter((d) => d.connected);
 
@@ -19,7 +21,7 @@ export function MidiStatusPanel({ compact = false }: { compact?: boolean }) {
       {!compact && info.help && <p className="help">{info.help}</p>}
       {connected.length > 1 && (
         <label className="field">
-          Gerät
+          {t.midi.device}
           <select
             value={midi.activeDeviceId ?? ''}
             onChange={(e) => {
@@ -40,7 +42,7 @@ export function MidiStatusPanel({ compact = false }: { compact?: boolean }) {
           className="btn small"
           onClick={() => void webMidi.connect(useSettings.getState().midiDeviceId)}
         >
-          Erneut versuchen
+          {t.midi.retry}
         </button>
       )}
     </div>

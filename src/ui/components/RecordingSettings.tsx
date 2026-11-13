@@ -1,4 +1,5 @@
 import { toggleRecording } from '../recording';
+import { useT } from '../i18n';
 import { useApp } from '../store/app-store';
 import { useSettings } from '../store/settings';
 
@@ -11,13 +12,14 @@ const METERS = [
 
 /** Tempo, Taktart und Metronom für Aufnahmen (Count-in aus „Practice“). */
 export function RecordingSettings() {
+  const t = useT();
   const s = useSettings();
   const recording = useApp((a) => a.recording);
   return (
     <div className="practice">
       <div className="rec-settings">
         <label className="field">
-          Tempo (BPM, wie im freien Spiel)
+          {t.recording.tempoBpm}
           <input
             className="text-input"
             type="number"
@@ -29,7 +31,7 @@ export function RecordingSettings() {
           />
         </label>
         <label className="field">
-          Taktart
+          {t.common.meter}
           <select
             value={`${s.recNumerator}/${s.recDenominator}`}
             disabled={recording !== null}
@@ -52,14 +54,11 @@ export function RecordingSettings() {
           checked={s.recMetronome}
           onChange={(e) => s.update({ recMetronome: e.target.checked })}
         />
-        Metronom während der Aufnahme
+        {t.recording.metronome}
       </label>
-      <p className="help">
-        Count-in: {Math.max(1, s.countInBars)} {Math.max(1, s.countInBars) === 1 ? 'Takt' : 'Takte'} (unter
-        „Practice“). Ein geladenes Stück wird für die Aufnahme geschlossen.
-      </p>
+      <p className="help">{t.recording.countInHelp(t.common.bars(Math.max(1, s.countInBars)))}</p>
       <button className={`btn${recording ? ' active' : ' primary'}`} onClick={toggleRecording}>
-        {recording ? '■ Aufnahme beenden' : '● Aufnahme starten'}
+        {recording ? t.recording.stop : t.recording.start}
       </button>
     </div>
   );

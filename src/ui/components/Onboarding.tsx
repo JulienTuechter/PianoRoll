@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { midiToName } from '../../core/note-event-model/notes';
 import { hub } from '../runtime';
+import { useT } from '../i18n';
 import { useApp } from '../store/app-store';
 import { useSettings } from '../store/settings';
 import { MidiStatusPanel } from './MidiStatus';
 
 /** MIDI-Setup-Assistent beim ersten Start. */
 export function Onboarding() {
+  const t = useT();
   const done = useSettings((s) => s.onboardingDone);
   const update = useSettings((s) => s.update);
   const status = useApp((s) => s.midi.status.kind);
@@ -28,15 +30,15 @@ export function Onboarding() {
   }, [done]);
 
   const steps = [
-    { label: 'Piano einschalten', ok: true },
-    { label: 'USB-Kabel mit dem Computer verbinden', ok: status === 'ready' },
-    { label: 'Eine Taste drücken', ok: heard !== null },
+    { label: t.onboarding.stepPower, ok: true },
+    { label: t.onboarding.stepCable, ok: status === 'ready' },
+    { label: t.onboarding.stepKey, ok: heard !== null },
   ];
 
   return (
     <dialog ref={ref} className="dialog onboarding" onCancel={(e) => e.preventDefault()}>
-      <h2>Willkommen bei Pianist</h2>
-      <p>Lass uns dein Digitalpiano verbinden.</p>
+      <h2>{t.onboarding.heading}</h2>
+      <p>{t.onboarding.intro}</p>
       <ol className="steps">
         {steps.map((s, i) => (
           <li key={i} className={s.ok ? 'ok' : ''}>
@@ -64,17 +66,17 @@ export function Onboarding() {
         ))}
       </ol>
       <MidiStatusPanel />
-      {heard !== null && <p className="success">{midiToName(heard)} empfangen. Dein Piano ist bereit.</p>}
+      {heard !== null && <p className="success">{t.onboarding.received(midiToName(heard))}</p>}
       <div className="dialog-actions">
         <button className="btn" onClick={() => update({ onboardingDone: true })}>
-          Ohne Piano fortfahren (Simulator)
+          {t.onboarding.simulator}
         </button>
         <button
           className="btn primary"
           disabled={heard === null}
           onClick={() => update({ onboardingDone: true })}
         >
-          Los geht&apos;s
+          {t.onboarding.start}
         </button>
       </div>
     </dialog>

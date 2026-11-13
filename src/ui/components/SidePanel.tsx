@@ -1,6 +1,8 @@
-import type { HandAssignment } from '../../core/note-event-model/types';
 import { midiToName } from '../../core/note-event-model/notes';
+import { getLocale } from '../../i18n';
+import { keySignatureName } from '../../i18n/music';
 import { formatTime } from '../format';
+import { useT } from '../i18n';
 import { setSongSplitPoint, updateTracks } from '../runtime';
 import { useApp } from '../store/app-store';
 import { useSettings } from '../store/settings';
@@ -11,93 +13,97 @@ import { RecordingSettings } from './RecordingSettings';
 import { PracticePanel, PracticeTools } from './PracticePanel';
 import { Section } from './Section';
 
-const HAND_LABEL: Record<HandAssignment, string> = { left: 'Links', right: 'Rechts', split: 'Split' };
-
 export function SidePanel() {
+  const t = useT();
   const song = useApp((s) => s.song);
   const octave = useSettings((s) => s.simulatorOctave);
+  const labels = useSettings((s) => s.keyboardLabels);
+  // Erste Taste der unteren Reihe: QWERTZ „Y“, QWERTY „Z“
+  const lowerKey = (labels === 'off' ? getLocale() : labels) === 'de' ? 'Y' : 'Z';
 
   return (
     <aside className="side">
-      <Section id="harmony" title="Harmonie">
+      <Section id="harmony" title={t.side.sections.harmony}>
         <HarmonyPanel />
       </Section>
 
-      <Section id="practice-mode" title="Übung">
+      <Section id="practice-mode" title={t.side.sections.practice}>
         <PracticePanel />
       </Section>
 
-      <Section id="practice-tools" title="Tempo & Metronom">
+      <Section id="practice-tools" title={t.side.sections.tools}>
         <PracticeTools />
       </Section>
 
       {song && (
-        <Section id="song" title="Stück">
+        <Section id="song" title={t.side.sections.song}>
           <dl className="facts">
-            <dt>Dauer</dt>
+            <dt>{t.common.duration}</dt>
             <dd>{formatTime(song.durationSec)}</dd>
-            <dt>Tempo</dt>
+            <dt>{t.common.tempo}</dt>
             <dd>
-              {Math.round(song.tempos[0]?.bpm ?? 120)} BPM{song.tempos.length > 1 ? ' (variabel)' : ''}
+              {t.common.bpm(Math.round(song.tempos[0]?.bpm ?? 120))}
+              {song.tempos.length > 1 ? t.side.variable : ''}
             </dd>
-            <dt>Takt</dt>
+            <dt>{t.common.meter}</dt>
             <dd>
               {song.timeSignatures[0]?.numerator ?? 4}/{song.timeSignatures[0]?.denominator ?? 4}
             </dd>
             {song.keySignatures[0] && (
               <>
-                <dt>Tonart</dt>
+                <dt>{t.common.key}</dt>
                 <dd>
-                  {song.keySignatures[0].key}-{song.keySignatures[0].scale === 'minor' ? 'Moll' : 'Dur'}
+                  {keySignatureName(song.keySignatures[0].key, song.keySignatures[0].scale === 'minor', t)}
                 </dd>
               </>
             )}
           </dl>
 
-          <h3>Spuren &amp; Hände</h3>
+          <h3>{t.side.tracks}</h3>
           <ul className="tracks">
             {song.tracks
-              .filter((t) => t.noteCount > 0)
-              .map((t) => (
-                <li key={t.index} className={t.enabled ? '' : 'disabled'}>
-                  <label className="track-enable" title="Spur verwenden">
+              .filter((tr) => tr.noteCount > 0)
+              .map((tr) => (
+                <li key={tr.index} className={tr.enabled ? '' : 'disabled'}>
+                  <label className="track-enable" title={t.side.useTrack}>
                     <input
                       type="checkbox"
-                      checked={t.enabled}
+                      checked={tr.enabled}
                       onChange={(e) =>
                         updateTracks(
                           song.tracks.map((x) =>
-                            x.index === t.index ? { ...x, enabled: e.target.checked } : x,
+                            x.index === tr.index ? { ...x, enabled: e.target.checked } : x,
                           ),
                         )
                       }
                     />
-                    <span className="track-name">{t.name}</span>
+                    <span className="track-name">{tr.name}</span>
                   </label>
                   <span className="track-meta">
-                    {t.noteCount} Noten{t.isPercussion ? ', Drums' : ''}
+                    {t.common.noteCount(tr.noteCount)}
+                    {tr.isPercussion ? `, ${t.side.drums}` : ''}
                   </span>
-                  <div className="seg" role="group" aria-label={`Hand für ${t.name}`}>
+                  <div className="seg" role="group" aria-label={t.side.handFor(tr.name)}>
                     {(['left', 'split', 'right'] as const).map((h) => (
                       <button
                         key={h}
-                        className={t.handAssignment === h ? 'on' : ''}
+                        className={tr.handAssignment === h ? 'on' : ''}
                         onClick={() =>
                           updateTracks(
-                            song.tracks.map((x) => (x.index === t.index ? { ...x, handAssignment: h } : x)),
+                            song.tracks.map((x) => (x.index === tr.index ? { ...x, handAssignment: h } : x)),
                           )
                         }
                       >
-                        {HAND_LABEL[h]}
+                        {t.hands[h]}
                       </button>
                     ))}
                   </div>
                 </li>
               ))}
           </ul>
-          {song.tracks.some((t) => t.enabled && t.handAssignment === 'split') && (
+          {song.tracks.some((tr) => tr.enabled && tr.handAssignment === 'split') && (
             <label className="field">
-              Split-Punkt: {midiToName(song.splitPoint)} (tiefer = links)
+              {t.side.splitPoint(midiToName(song.splitPoint))}
               <input
                 type="range"
                 min={36}
@@ -110,25 +116,25 @@ export function SidePanel() {
           )}
           <ExportButtons />
           <div className="legend">
-            <span className="swatch left" /> Linke Hand <span className="swatch right" /> Rechte Hand
+            <span className="swatch left" /> {t.common.leftHand} <span className="swatch right" />{' '}
+            {t.common.rightHand}
           </div>
         </Section>
       )}
 
-      <Section id="recording" title="Aufnahme">
+      <Section id="recording" title={t.side.sections.recording}>
         <RecordingSettings />
       </Section>
 
-      <Section id="midi" title="MIDI">
+      <Section id="midi" title={t.side.sections.midi}>
         <MidiStatusPanel />
       </Section>
 
-      <Section id="simulator" title="Simulator" defaultOpen={false}>
+      <Section id="simulator" title={t.side.sections.simulator} defaultOpen={false}>
         <p className="help">
-          Untere Buchstabenreihe ab <kbd>Y</kbd> = {midiToName((octave + 1) * 12)}, obere Reihe ab{' '}
-          <kbd>Q</kbd> = {midiToName((octave + 2) * 12)}. Schwarze Tasten in der Reihe darüber.{' '}
-          <kbd>Shift</kbd> = Pedal, <kbd>-</kbd>/<kbd>+</kbd> = Oktave. Oder mit der Maus auf die Klaviatur
-          klicken.
+          {t.side.simLower} <kbd>{lowerKey}</kbd> = {midiToName((octave + 1) * 12)}, {t.side.simUpper}{' '}
+          <kbd>Q</kbd> = {midiToName((octave + 2) * 12)}. {t.side.simBlack} <kbd>Shift</kbd> ={' '}
+          {t.side.simPedal}, <kbd>-</kbd>/<kbd>+</kbd> = {t.side.simOctave}. {t.side.simMouse}
         </p>
       </Section>
     </aside>

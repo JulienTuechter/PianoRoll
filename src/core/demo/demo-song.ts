@@ -4,7 +4,10 @@ import { Midi } from '@tonejs/midi';
  * Kurzes eigenes Übungsstück (beide Hände), damit die App ohne eigene Datei ausprobiert werden kann.
  * Rechte Hand: Melodie, linke Hand: Bass + Akkorde I – vi – IV – V.
  */
-export function createDemoMidi(): Uint8Array {
+/** `names`: Spurnamen in der Sprache der Oberfläche (die Hand-Erkennung versteht Deutsch und Englisch). */
+export function createDemoMidi(
+  names: { right: string; left: string } = { right: 'Rechte Hand', left: 'Linke Hand' },
+): Uint8Array {
   const midi = new Midi();
   midi.name = 'Demo - Erste Schritte'; // MIDI-Metatexte sind Bytes, daher nur ASCII
   midi.header.setTempo(84);
@@ -13,9 +16,9 @@ export function createDemoMidi(): Uint8Array {
   const q = ppq;
 
   const rh = midi.addTrack();
-  rh.name = 'Rechte Hand';
+  rh.name = names.right;
   const lh = midi.addTrack();
-  lh.name = 'Linke Hand';
+  lh.name = names.left;
 
   // [midi, Viertel] – C-Dur, 8 Takte
   const melody: [number, number][] = [

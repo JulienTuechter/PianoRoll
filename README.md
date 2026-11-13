@@ -26,6 +26,7 @@ npm run dev      # http://localhost:5173 – Web MIDI braucht localhost oder HTT
 - **Aufnahme:** mit Count-in und Metronom, Quantisierung (1/4, 1/8, 1/16, Triolen, Swing, Mindestlänge, Überlappungen, Hände-Trennung), Notenvorschau.
 - **Export:** MIDI, MusicXML, SVG, PNG – für Aufnahmen und geladene Stücke.
 - **Bibliothek** in IndexedDB mit Fortschritt (zuletzt geübt, beste Genauigkeit); Aufnahmen landen ebenfalls dort.
+- **Sprachen:** Deutsch und Englisch (Einstellungen → Sprache; „Automatisch“ folgt der Browsersprache). Texte in `src/i18n/locales/`; `de.ts` ist die Quelle, jede weitere Sprache muss denselben Typ erfüllen.
 
 | Taste       | Funktion                         |
 | ----------- | -------------------------------- |

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { songHistogram } from '../../core/chord-detection/song-chords';
-import { keyLabel } from '../../core/key-detection/key';
 import { estimateKey } from '../../core/key-detection/krumhansl';
 import { buildMeasures, TempoMap } from '../../core/note-event-model/tempo-map';
 import { midiToName } from '../../core/note-event-model/notes';
@@ -10,17 +9,25 @@ import { formatTime } from '../format';
 import { renderScore } from '../notation/render-score';
 import { scoreFor } from '../notation/score-for-song';
 import { discardTake, startRecording } from '../recording';
-import { importBytes } from '../runtime';
+import { t as msg } from '../../i18n';
+import { keyName } from '../../i18n/music';
+import { useT } from '../i18n';
+import { importBytes, errorMessage } from '../runtime';
 import { useApp } from '../store/app-store';
 import { useSettings } from '../store/settings';
 
 function defaultTitle(startedAt: number): string {
   const d = new Date(startedAt);
-  return `Aufnahme ${d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })} ${d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`;
+  const m = msg();
+  return m.recording.defaultTitle(
+    d.toLocaleDateString(m.dateLocale, { day: '2-digit', month: '2-digit' }),
+    d.toLocaleTimeString(m.dateLocale, { hour: '2-digit', minute: '2-digit' }),
+  );
 }
 
 /** Aufnahme bearbeiten: Quantisierung einstellen, Notenvorschau prüfen, exportieren oder in die Bibliothek speichern. */
 export function RecordingDialog() {
+  const t = useT();
   const take = useApp((s) => s.take);
   const s = useSettings();
   const ref = useRef<HTMLDialogElement>(null);
@@ -58,7 +65,7 @@ export function RecordingDialog() {
       q.measureCount * q.measureTicks - 1,
     );
     return {
-      title: title || 'Aufnahme',
+      title: title || msg().recording.fallbackTitle,
       ppq: q.ppq,
       bpm: q.bpm,
       numerator: q.numerator,
@@ -86,7 +93,7 @@ export function RecordingDialog() {
     const t = window.setTimeout(() => {
       renderScore(el, result.score, Math.max(400, el.clientWidth))
         .then(() => !cancelled && setPreviewError(null))
-        .catch((e: unknown) => !cancelled && setPreviewError(e instanceof Error ? e.message : String(e)));
+        .catch((e: unknown) => !cancelled && setPreviewError(errorMessage(e)));
     }, 120);
     return () => {
       cancelled = true;
@@ -99,7 +106,7 @@ export function RecordingDialog() {
     try {
       await fn();
     } catch (e) {
-      useApp.getState().set({ error: e instanceof Error ? e.message : String(e) });
+      useApp.getState().set({ error: errorMessage(e) });
     } finally {
       setBusy(null);
     }
@@ -119,57 +126,57 @@ export function RecordingDialog() {
       className="dialog wide recording-dialog"
       onClose={() => useApp.getState().set({ take: null })}
     >
-      <h2>Aufnahme bearbeiten</h2>
+      <h2>{t.recording.editHeading}</h2>
       {take && result && (
         <>
           <dl className="meta-row">
             <div>
-              <dt>Tempo</dt>
-              <dd>{take.bpm} BPM</dd>
+              <dt>{t.common.tempo}</dt>
+              <dd>{t.common.bpm(take.bpm)}</dd>
             </div>
             <div>
-              <dt>Takt</dt>
+              <dt>{t.common.meter}</dt>
               <dd>
                 {take.numerator}/{take.denominator}
               </dd>
             </div>
             <div>
-              <dt>Dauer</dt>
+              <dt>{t.common.duration}</dt>
               <dd>{formatTime(take.durationMs / 1000)}</dd>
             </div>
             <div>
-              <dt>Noten</dt>
+              <dt>{t.common.notes}</dt>
               <dd>{result.notes.length}</dd>
             </div>
             {result.key && (
               <div>
-                <dt>Erkannte Tonart</dt>
-                <dd>{keyLabel(result.key)}</dd>
+                <dt>{t.recording.detectedKey}</dt>
+                <dd>{keyName(result.key, t)}</dd>
               </div>
             )}
           </dl>
 
           <label className="field">
-            Titel
+            {t.common.title}
             <input className="text-input" value={title} onChange={(e) => setTitle(e.target.value)} />
           </label>
 
           <fieldset>
-            <legend>Quantisierung</legend>
+            <legend>{t.recording.quantization}</legend>
             <div className="quant-grid">
               <label className="field">
-                Raster
+                {t.recording.grid}
                 <select
                   value={s.quantGrid}
                   onChange={(e) => s.update({ quantGrid: Number(e.target.value) as 4 | 8 | 16 })}
                 >
-                  <option value={4}>Viertel (1/4)</option>
-                  <option value={8}>Achtel (1/8)</option>
-                  <option value={16}>Sechzehntel (1/16)</option>
+                  <option value={4}>{t.recording.gridQuarter}</option>
+                  <option value={8}>{t.recording.gridEighth}</option>
+                  <option value={16}>{t.recording.gridSixteenth}</option>
                 </select>
               </label>
               <label className="field">
-                Mindestnotenlänge
+                {t.recording.minNote}
                 <select
                   value={s.quantMinNote}
                   onChange={(e) => s.update({ quantMinNote: Number(e.target.value) })}
@@ -181,7 +188,7 @@ export function RecordingDialog() {
                 </select>
               </label>
               <label className="field">
-                Swing-Toleranz: {s.quantSwing <= 0.5 ? 'gerade' : `${Math.round(s.quantSwing * 100)} %`}
+                {t.recording.swing(s.quantSwing <= 0.5 ? null : t.pct(Math.round(s.quantSwing * 100)))}
                 <input
                   type="range"
                   min={0.5}
@@ -192,7 +199,7 @@ export function RecordingDialog() {
                 />
               </label>
               <label className="field">
-                Hände-Trennung: {midiToName(s.splitPoint)}
+                {t.recording.handSplit(midiToName(s.splitPoint))}
                 <input
                   type="range"
                   min={36}
@@ -208,7 +215,7 @@ export function RecordingDialog() {
                 checked={s.quantTriplets}
                 onChange={(e) => s.update({ quantTriplets: e.target.checked })}
               />
-              Triolen erkennen
+              {t.recording.triplets}
             </label>
             <label className="check">
               <input
@@ -216,18 +223,18 @@ export function RecordingDialog() {
                 checked={s.quantResolveOverlaps}
                 onChange={(e) => s.update({ quantResolveOverlaps: e.target.checked })}
               />
-              Überlappungen auflösen (Legato am nächsten Anschlag abschneiden)
+              {t.recording.overlaps}
             </label>
           </fieldset>
 
           <div className="rec-preview">
             <div ref={previewRef} className="notation-paper rec-preview-paper" />
-            {previewError && <p className="warn-text">Vorschau fehlgeschlagen: {previewError}</p>}
+            {previewError && <p className="warn-text">{t.recording.previewFailed(previewError)}</p>}
           </div>
 
           <div className="dialog-actions">
             <button className="btn" onClick={discardTake}>
-              Verwerfen
+              {t.recording.discard}
             </button>
             <button
               className="btn"
@@ -236,10 +243,10 @@ export function RecordingDialog() {
                 void startRecording();
               }}
             >
-              Neu aufnehmen
+              {t.recording.again}
             </button>
             <span className="export-group">
-              Export:
+              {t.common.exportLabel}
               <button
                 className="btn small"
                 disabled={busy !== null}
@@ -270,7 +277,7 @@ export function RecordingDialog() {
               </button>
             </span>
             <button className="btn primary" disabled={busy !== null} onClick={() => void save()}>
-              In Bibliothek speichern &amp; üben
+              {t.recording.save}
             </button>
           </div>
         </>

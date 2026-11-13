@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { exportMidi, exportMusicXml, exportPng, exportSvg, type ExportSource } from '../export';
 import { scoreFor } from '../notation/score-for-song';
-import { live } from '../runtime';
+import { live, errorMessage } from '../runtime';
+import { useT } from '../i18n';
 import { useApp } from '../store/app-store';
 import { useHarmony } from '../store/harmony-store';
 
 /** Export des geladenen Stücks (MIDI, MusicXML, SVG, PNG). */
 export function ExportButtons() {
+  const t = useT();
   const song = useApp((s) => s.song);
   const songKey = useHarmony((s) => s.songKey);
   const [busy, setBusy] = useState(false);
@@ -30,7 +32,7 @@ export function ExportButtons() {
     try {
       await fn(source());
     } catch (e) {
-      useApp.getState().set({ error: e instanceof Error ? e.message : String(e) });
+      useApp.getState().set({ error: errorMessage(e) });
     } finally {
       setBusy(false);
     }
@@ -38,12 +40,12 @@ export function ExportButtons() {
 
   return (
     <div className="export-row">
-      <span className="muted small">Export:</span>
+      <span className="muted small">{t.common.exportLabel}</span>
       <button
         className="btn small"
         disabled={busy}
         onClick={() => void run(exportMidi)}
-        title="MIDI (Hände als zwei Spuren)"
+        title={t.exportUi.midiTitle}
       >
         MIDI
       </button>
@@ -51,7 +53,7 @@ export function ExportButtons() {
         className="btn small"
         disabled={busy}
         onClick={() => void run(exportMusicXml)}
-        title="MusicXML für Notenprogramme"
+        title={t.exportUi.musicXmlTitle}
       >
         MusicXML
       </button>
@@ -59,7 +61,7 @@ export function ExportButtons() {
         className="btn small"
         disabled={busy}
         onClick={() => void run(exportSvg)}
-        title="Notenbild als SVG"
+        title={t.exportUi.svgTitle}
       >
         SVG
       </button>
@@ -67,7 +69,7 @@ export function ExportButtons() {
         className="btn small"
         disabled={busy}
         onClick={() => void run(exportPng)}
-        title="Notenbild als PNG"
+        title={t.exportUi.pngTitle}
       >
         PNG
       </button>

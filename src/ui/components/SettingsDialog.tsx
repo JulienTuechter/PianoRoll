@@ -1,11 +1,17 @@
 import { useEffect, useRef } from 'react';
 import { midiToName } from '../../core/note-event-model/notes';
+import { LOCALES, type LocalePref } from '../../i18n';
+import { useT } from '../i18n';
 import { useApp } from '../store/app-store';
 import { DEFAULT_LEFT, DEFAULT_RIGHT, luminance } from '../theme';
 import { defaultSettings, useSettings } from '../store/settings';
 import { MidiStatusPanel } from './MidiStatus';
 
+/** Sprachnamen immer in der eigenen Sprache */
+const LANGUAGE_NAMES: Record<(typeof LOCALES)[number], string> = { de: 'Deutsch', en: 'English' };
+
 export function SettingsDialog() {
+  const t = useT();
   const open = useApp((s) => s.settingsOpen);
   const setApp = useApp((s) => s.set);
   const s = useSettings();
@@ -20,26 +26,41 @@ export function SettingsDialog() {
 
   return (
     <dialog ref={ref} className="dialog" onClose={() => setApp({ settingsOpen: false })}>
-      <h2>Einstellungen</h2>
+      <h2>{t.settings.heading}</h2>
 
       <fieldset>
-        <legend>MIDI-Gerät</legend>
+        <legend>{t.settings.language}</legend>
+        <label className="field">
+          <select
+            value={s.locale}
+            aria-label={t.settings.language}
+            onChange={(e) => s.update({ locale: e.target.value as LocalePref })}
+          >
+            <option value="auto">{t.settings.languageAuto}</option>
+            {LOCALES.map((l) => (
+              <option key={l} value={l} lang={l}>
+                {LANGUAGE_NAMES[l]}
+              </option>
+            ))}
+          </select>
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>{t.settings.midiDevice}</legend>
         <MidiStatusPanel />
       </fieldset>
 
       <fieldset>
-        <legend>Klang</legend>
+        <legend>{t.settings.sound}</legend>
         <label className="check">
           <input type="checkbox" checked={s.echo} onChange={(e) => s.update({ echo: e.target.checked })} />
-          Eigenes Spiel über die App wiedergeben (Echo)
+          {t.settings.echo}
         </label>
-        <p className="help">
-          Der Recital Pro hat eigene Lautsprecher. Mit Echo hörst du jede Note doppelt, also nur einschalten,
-          wenn der Piano-Lautsprecher aus ist (z. B. Kopfhörer am Computer).
-        </p>
+        <p className="help">{t.settings.echoHelp}</p>
         {s.echo && (
           <label className="field">
-            Echo-Lautstärke
+            {t.settings.echoVolume}
             <input
               type="range"
               min={0}
@@ -56,7 +77,7 @@ export function SettingsDialog() {
             checked={s.simulatorSound}
             onChange={(e) => s.update({ simulatorSound: e.target.checked })}
           />
-          Simulator (Computertastatur/Maus) hörbar
+          {t.settings.simulatorSound}
         </label>
         <label className="check">
           <input
@@ -64,10 +85,10 @@ export function SettingsDialog() {
             checked={s.appSound}
             onChange={(e) => s.update({ appSound: e.target.checked })}
           />
-          App-Klang (Vorspielen, Begleitung, später Metronom)
+          {t.settings.appSound}
         </label>
         <label className="field">
-          App-Lautstärke
+          {t.settings.appVolume}
           <input
             type="range"
             min={0}
@@ -80,14 +101,14 @@ export function SettingsDialog() {
       </fieldset>
 
       <fieldset>
-        <legend>Visuell</legend>
+        <legend>{t.settings.visual}</legend>
         <label className="check">
           <input
             type="checkbox"
             checked={s.beginnerMode}
             onChange={(e) => s.update({ beginnerMode: e.target.checked })}
           />
-          Anfängermodus: Führungsstrahl zur Taste, Zieltaste leuchtet vorher mit Notennamen auf
+          {t.settings.beginner}
         </label>
         <label className="check">
           <input
@@ -95,7 +116,7 @@ export function SettingsDialog() {
             checked={s.particles}
             onChange={(e) => s.update({ particles: e.target.checked })}
           />
-          Partikeleffekte: Funken, wenn Noten auf die Klaviatur treffen bzw. im freien Spiel aufsteigen
+          {t.settings.particles}
         </label>
         <label className="check">
           <input
@@ -103,10 +124,10 @@ export function SettingsDialog() {
             checked={s.showNoteNames}
             onChange={(e) => s.update({ showNoteNames: e.target.checked })}
           />
-          Notennamen auf fallenden Noten
+          {t.settings.noteNames}
         </label>
         <label className="field">
-          Vorschauzeit fallender Noten: {s.fallWindowSec.toFixed(1)} s
+          {t.settings.fallWindow(t.common.seconds(s.fallWindowSec))}
           <input
             type="range"
             min={1.5}
@@ -117,22 +138,22 @@ export function SettingsDialog() {
           />
         </label>
         <label className="field">
-          Tastenbeschriftung (Simulator)
+          {t.settings.keyLabels}
           <select
             value={s.keyboardLabels}
             onChange={(e) => s.update({ keyboardLabels: e.target.value as typeof s.keyboardLabels })}
           >
-            <option value="de">Deutsche Tastatur (QWERTZ)</option>
-            <option value="en">Englische Tastatur (QWERTY)</option>
-            <option value="off">Aus</option>
+            <option value="de">{t.settings.keyLabelsDe}</option>
+            <option value="en">{t.settings.keyLabelsEn}</option>
+            <option value="off">{t.common.off}</option>
           </select>
         </label>
       </fieldset>
 
       <fieldset>
-        <legend>Performance-Wertung &amp; Latenz</legend>
+        <legend>{t.settings.scoring}</legend>
         <label className="field">
-          Perfect bis {s.perfectMs} ms
+          {t.settings.perfectUpTo(s.perfectMs)}
           <input
             type="range"
             min={20}
@@ -146,7 +167,7 @@ export function SettingsDialog() {
           />
         </label>
         <label className="field">
-          Good bis {s.goodMs} ms (danach Miss)
+          {t.settings.goodUpTo(s.goodMs)}
           <input
             type="range"
             min={60}
@@ -160,7 +181,7 @@ export function SettingsDialog() {
           />
         </label>
         <label className="field">
-          Latenzausgleich: {s.latencyMs} ms
+          {t.settings.latency(s.latencyMs)}
           <input
             type="range"
             min={0}
@@ -170,14 +191,11 @@ export function SettingsDialog() {
             onChange={(e) => s.update({ latencyMs: Number(e.target.value) })}
           />
         </label>
-        <p className="help">
-          Wird vom Zeitpunkt jedes Anschlags abgezogen. Tipp: Zeigt das Ergebnis im Performance-Modus „im
-          Schnitt X ms zu spät“, obwohl du dich pünktlich fühlst, den Wert um etwa X erhöhen.
-        </p>
+        <p className="help">{t.settings.latencyHelp}</p>
       </fieldset>
 
       <fieldset>
-        <legend>Farben</legend>
+        <legend>{t.settings.colors}</legend>
         <div className="colors">
           <label>
             <input
@@ -185,7 +203,7 @@ export function SettingsDialog() {
               value={s.rightColor}
               onChange={(e) => s.update({ rightColor: e.target.value })}
             />{' '}
-            Rechte Hand
+            {t.common.rightHand}
           </label>
           <label>
             <input
@@ -193,33 +211,30 @@ export function SettingsDialog() {
               value={s.leftColor}
               onChange={(e) => s.update({ leftColor: e.target.value })}
             />{' '}
-            Linke Hand
+            {t.common.leftHand}
           </label>
           <button
             className="btn small"
             onClick={() => s.update({ rightColor: DEFAULT_RIGHT, leftColor: DEFAULT_LEFT })}
           >
-            Standard
+            {t.settings.colorsDefault}
           </button>
           <button
             className="btn small"
             onClick={() => s.update({ rightColor: '#F0E442', leftColor: '#7B3FA0' })}
           >
-            Gelb/Lila (hoher Kontrast)
+            {t.settings.colorsContrast}
           </button>
         </div>
         {Math.abs(luminance(s.rightColor) - luminance(s.leftColor)) < 0.12 && (
-          <p className="help warn-text">
-            Beide Farben sind ähnlich hell und für Farbenblinde schwer zu unterscheiden. Wähle eine hellere
-            und eine dunklere Farbe.
-          </p>
+          <p className="help warn-text">{t.settings.colorsWarn}</p>
         )}
       </fieldset>
 
       <fieldset>
-        <legend>Stücke</legend>
+        <legend>{t.settings.songs}</legend>
         <label className="field">
-          Standard-Split-Punkt für neue Stücke: {midiToName(s.splitPoint)}
+          {t.settings.defaultSplit(midiToName(s.splitPoint))}
           <input
             type="range"
             min={36}
@@ -228,15 +243,13 @@ export function SettingsDialog() {
             onChange={(e) => s.update({ splitPoint: Number(e.target.value) })}
           />
         </label>
-        <p className="help">
-          Gilt für Spuren mit Zuordnung „Split“. Pro Stück lässt sich der Punkt im Seitenpanel anpassen.
-        </p>
+        <p className="help">{t.settings.splitHelp}</p>
       </fieldset>
 
       <fieldset>
-        <legend>Simulator</legend>
+        <legend>{t.settings.simulator}</legend>
         <label className="field">
-          Anschlagstärke Computertastatur: {Math.round(s.simulatorVelocity * 127)}
+          {t.settings.simVelocity(Math.round(s.simulatorVelocity * 127))}
           <input
             type="range"
             min={0.1}
@@ -251,15 +264,22 @@ export function SettingsDialog() {
       <div className="dialog-actions">
         <button
           className="btn"
-          onClick={() => s.update({ ...defaultSettings, onboardingDone: true, midiDeviceId: s.midiDeviceId })}
+          onClick={() =>
+            s.update({
+              ...defaultSettings,
+              onboardingDone: true,
+              midiDeviceId: s.midiDeviceId,
+              locale: s.locale,
+            })
+          }
         >
-          Zurücksetzen
+          {t.settings.reset}
         </button>
         <button className="btn" onClick={() => s.update({ onboardingDone: false })}>
-          MIDI-Assistent erneut zeigen
+          {t.settings.showWizard}
         </button>
         <button className="btn primary" onClick={() => setApp({ settingsOpen: false })}>
-          Schließen
+          {t.common.close}
         </button>
       </div>
     </dialog>

@@ -1,7 +1,11 @@
 import type { MidiStatus as Status } from '../core/midi-input/web-midi';
+import { t, type Messages } from '../i18n';
 
 /** Verständliche Texte und Hilfe zu jedem MIDI-Zustand. */
-export function midiHelp(status: Status): {
+export function midiHelp(
+  status: Status,
+  m: Messages = t(),
+): {
   tone: 'ok' | 'warn' | 'error' | 'info';
   title: string;
   help?: string;
@@ -9,38 +13,18 @@ export function midiHelp(status: Status): {
   switch (status.kind) {
     case 'idle':
     case 'requesting':
-      return {
-        tone: 'info',
-        title: 'MIDI wird angefragt …',
-        help: 'Bitte den Berechtigungsdialog des Browsers bestätigen.',
-      };
+      return { tone: 'info', ...m.midi.requesting };
     case 'unsupported':
-      return {
-        tone: 'error',
-        title: 'Browser ohne Web MIDI',
-        help: 'Firefox (ab 108) und Brave unterstützen Web MIDI. In Brave muss es ggf. unter brave://settings/content/midiDevices erlaubt sein. Der Simulator funktioniert trotzdem.',
-      };
+      return { tone: 'error', ...m.midi.unsupported };
     case 'insecure':
-      return {
-        tone: 'error',
-        title: 'Unsichere Verbindung',
-        help: 'Web MIDI funktioniert nur über https:// oder http://localhost. Bitte die App über http://localhost:5173 öffnen.',
-      };
+      return { tone: 'error', ...m.midi.insecure };
     case 'denied':
-      return {
-        tone: 'error',
-        title: 'MIDI-Zugriff verweigert',
-        help: 'Firefox: auf das Berechtigungssymbol links in der Adressleiste klicken, MIDI-Zugriff erlauben (Firefox installiert dafür ein kleines „Site Permission Add-on“) und die Seite neu laden. Brave: Schloss-Symbol → Website-Einstellungen → MIDI-Geräte → Zulassen, dann neu laden.',
-      };
+      return { tone: 'error', ...m.midi.denied };
     case 'error':
-      return { tone: 'error', title: 'MIDI-Fehler', help: status.message };
+      return { tone: 'error', title: m.midi.error, help: status.message };
     case 'no-devices':
-      return {
-        tone: 'warn',
-        title: 'Kein MIDI-Gerät gefunden',
-        help: 'Piano einschalten und per USB-Kabel (USB-B-Buchse am Piano) mit dem Computer verbinden. Das Gerät erscheint automatisch.',
-      };
+      return { tone: 'warn', ...m.midi.noDevices };
     case 'ready':
-      return { tone: 'ok', title: 'Verbunden' };
+      return { tone: 'ok', title: m.midi.ready };
   }
 }

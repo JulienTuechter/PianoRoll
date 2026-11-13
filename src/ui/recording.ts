@@ -7,6 +7,7 @@ import { freeTrail } from './harmony-service';
 import { audio, hub, transport, unloadSong } from './runtime';
 import { useApp } from './store/app-store';
 import { useSettings } from './store/settings';
+import { t } from '../i18n';
 
 /** Für die Anzeige pro Frame (ohne React-Rerender) */
 export const recLive = {
@@ -94,7 +95,7 @@ export function stopRecording(): void {
   useApp.getState().set({
     recording: null,
     take: hasNotes ? take : null,
-    error: hasNotes ? null : 'Keine Noten aufgenommen – die Aufnahme wurde verworfen.',
+    error: hasNotes ? null : t().recording.nothingRecorded,
   });
 }
 
