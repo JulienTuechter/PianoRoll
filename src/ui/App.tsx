@@ -12,6 +12,7 @@ import { SettingsDialog } from './components/SettingsDialog';
 import { SidePanel } from './components/SidePanel';
 import { TransportBar } from './components/TransportBar';
 import { useKeyboardInput } from './hooks/useKeyboardInput';
+import { startFreeMetronome } from './free-metronome';
 import { startHarmony } from './harmony-service';
 import { startRuntime } from './runtime';
 import { useApp } from './store/app-store';
@@ -25,6 +26,7 @@ export function App() {
 
   useEffect(() => startRuntime(), []);
   useEffect(() => startHarmony(), []);
+  useEffect(() => startFreeMetronome(), []);
   // Shortcuts/Simulator nicht aktiv, während ein Dialog offen ist
   useKeyboardInput(ready && !dialogOpen && onboardingDone);
 

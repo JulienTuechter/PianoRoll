@@ -17,7 +17,7 @@ export function RecordingSettings() {
     <div className="practice">
       <div className="rec-settings">
         <label className="field">
-          Tempo (BPM)
+          Tempo (BPM, wie im freien Spiel)
           <input
             className="text-input"
             type="number"

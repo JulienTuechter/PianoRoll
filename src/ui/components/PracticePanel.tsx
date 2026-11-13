@@ -1,4 +1,5 @@
 import type { HandFilter } from '../../core/wait-mode-engine/wait-mode-engine';
+import { useApp } from '../store/app-store';
 import { useSettings } from '../store/settings';
 
 const HANDS: { id: HandFilter; label: string }[] = [
@@ -110,8 +111,42 @@ export function PracticePanel() {
 /** Metronom, Count-in, Auto-Tempo – in allen Modi verfügbar. */
 export function PracticeTools() {
   const s = useSettings();
+  const song = useApp((a) => a.song);
   return (
     <div className="practice">
+      {!song && (
+        <div className="rec-settings">
+          <label className="field">
+            Tempo (BPM)
+            <input
+              className="text-input"
+              type="number"
+              min={30}
+              max={240}
+              value={s.recBpm}
+              onChange={(e) =>
+                s.update({ recBpm: Math.min(240, Math.max(30, Number(e.target.value) || 90)) })
+              }
+            />
+          </label>
+          <label className="field">
+            Taktart
+            <select
+              value={`${s.recNumerator}/${s.recDenominator}`}
+              onChange={(e) => {
+                const [n, d] = e.target.value.split('/').map(Number);
+                s.update({ recNumerator: n ?? 4, recDenominator: d ?? 4 });
+              }}
+            >
+              {['4/4', '3/4', '2/4', '6/8'].map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
       <label className="check">
         <input
           type="checkbox"
@@ -120,6 +155,11 @@ export function PracticeTools() {
         />
         Metronom <kbd>Shift</kbd>+<kbd>M</kbd>
       </label>
+      <p className="help">
+        {song
+          ? 'Folgt dem Takt des Stücks (beim Abspielen).'
+          : 'Im freien Spiel nach Tempo und Taktart oben – gilt auch für Aufnahmen.'}
+      </p>
       <label className="field">
         Metronom-Lautstärke
         <input

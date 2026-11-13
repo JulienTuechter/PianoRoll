@@ -10,6 +10,7 @@ import {
   togglePlay,
   transport,
 } from '../runtime';
+import { freeBeat } from '../free-metronome';
 import { toggleRecording } from '../recording';
 import { useApp } from '../store/app-store';
 import { useSettings, type PlayMode, type StageView } from '../store/settings';
@@ -39,6 +40,7 @@ export function TransportBar() {
   const recording = useApp((s) => s.recording);
   const update = useSettings((s) => s.update);
   const sliderRef = useRef<HTMLInputElement>(null);
+  const metroRef = useRef<HTMLButtonElement>(null);
   const timeRef = useRef<HTMLSpanElement>(null);
   const dragging = useRef(false);
 
@@ -55,6 +57,13 @@ export function TransportBar() {
         let measure = 0;
         for (const m of live.measures) if (m.startSec <= pos + 1e-6) measure = m.index + 1;
         timeRef.current.textContent = `${formatTime(pos)} / ${formatTime(transport.duration)} · Takt ${measure || '–'}`;
+      }
+      // Schlag-Impuls am Metronom-Knopf (freies Spiel)
+      const mb = metroRef.current;
+      if (mb) {
+        const on = freeBeat.running && performance.now() - freeBeat.atMs < 110;
+        mb.classList.toggle('beat', on);
+        mb.classList.toggle('accent', on && freeBeat.index === 0);
       }
       raf = requestAnimationFrame(tick);
     };
@@ -165,6 +174,7 @@ export function TransportBar() {
       </button>
       <button
         className={`btn icon toggle${metronome ? ' active' : ''}`}
+        ref={metroRef}
         onClick={toggleMetronome}
         title="Metronom an/aus (Shift+M)"
         aria-pressed={metronome}
@@ -187,11 +197,12 @@ export function TransportBar() {
         <span className="tempo-value">{Math.round(rate * 100)} %</span>
       </label>
 
-      {audio === 'locked' && <span className="badge warn">Klick zum Aktivieren des Klangs</span>}
-      {audio === 'loading' && <span className="badge">Lade Klavierklang …</span>}
-      {audio === 'fallback' && (
-        <span className="badge warn" title="Samples nicht geladen">
-          Synth-Klang
+      {/* Klang-Status schwebend statt im Fluss: ein Textwechsel beim ersten Klick darf die Knöpfe nicht verschieben */}
+      {audio !== 'ready' && (
+        <span className={`audio-status${audio === 'loading' ? '' : ' warn'}`} role="status">
+          {audio === 'locked' && 'Klick irgendwo, um den Klang zu aktivieren'}
+          {audio === 'loading' && 'Lade Klavierklang …'}
+          {audio === 'fallback' && 'Synth-Klang (Samples nicht geladen)'}
         </span>
       )}
 
