@@ -75,76 +75,58 @@ export function TransportBar() {
 
   return (
     <header className="transport">
-      <div className="brand">Pianist</div>
-
-      <button className="btn" onClick={() => setApp({ libraryOpen: true })} title="Bibliothek (Shift+B)">
-        Bibliothek
-      </button>
-
-      <div className="song-title" title={song?.title}>
-        {song ? song.title : 'Freies Spiel'}
-      </div>
-      {song && (
-        <button
-          className="btn icon close-song"
-          onClick={closeSong}
-          title="Stück schließen – zurück zum freien Spiel"
-          aria-label="Stück schließen"
-        >
-          ✕
-        </button>
-      )}
-
-      {song && (
-        <div className="seg mode" role="group" aria-label="Ansicht">
-          {VIEWS.map((v) => (
-            <button
-              key={v.id}
-              className={view === v.id ? 'on' : ''}
-              title={v.title}
-              onClick={() => update({ view: v.id })}
-            >
-              {v.label}
-            </button>
-          ))}
+      <div className="tz tz-nav">
+        <div className="brand" aria-label="Pianist">
+          Pian<span>i</span>st
         </div>
-      )}
-
-      <div className="seg mode" role="group" aria-label="Modus">
-        {MODES.map((m) => (
+        <button
+          className="btn ghost"
+          onClick={() => setApp({ libraryOpen: true })}
+          title="Bibliothek (Shift+B)"
+        >
+          <Icon name="library" /> Bibliothek
+        </button>
+        <div className="song-title" title={song?.title}>
+          {song ? song.title : 'Freies Spiel'}
+        </div>
+        {song && (
           <button
-            key={m.id}
-            className={mode === m.id ? 'on' : ''}
-            title={m.title}
-            onClick={() => update({ mode: m.id })}
+            className="btn icon close-song"
+            onClick={closeSong}
+            title="Stück schließen – zurück zum freien Spiel"
+            aria-label="Stück schließen"
           >
-            {m.label}
+            <Icon name="close" />
           </button>
-        ))}
+        )}
       </div>
 
-      <div className="transport-controls">
-        <button className="btn icon" onClick={() => seek(0)} disabled={!song} title="Zum Anfang">
-          ⏮
-        </button>
+      <div className="tz tz-transport transport-controls">
+        {song && (
+          <button className="btn round" onClick={() => seek(0)} title="Zum Anfang" aria-label="Zum Anfang">
+            <Icon name="start" />
+          </button>
+        )}
         <button
-          className={`btn icon rec${recording ? ' active' : ''}`}
+          className={`btn round rec${recording ? ' active' : ''}`}
           onClick={toggleRecording}
           title={recording ? 'Aufnahme beenden (Leertaste)' : 'Aufnahme starten (mit Count-in und Metronom)'}
           aria-pressed={recording !== null}
           aria-label="Aufnahme"
         >
-          {recording ? '■' : '●'}
+          <Icon name={recording ? 'stop' : 'rec'} />
         </button>
-        <button
-          className="btn icon primary"
-          onClick={togglePlay}
-          disabled={!song}
-          title="Play/Pause (Leertaste)"
-          aria-label={playing ? 'Pause' : 'Play'}
-        >
-          {playing ? '⏸' : '▶'}
-        </button>
+        {song && (
+          <button
+            className="btn round play"
+            onClick={togglePlay}
+            title="Play/Pause (Leertaste)"
+            aria-label={playing ? 'Pause' : 'Play'}
+          >
+            <Icon name={playing ? 'pause' : 'play'} />
+          </button>
+        )}
+        {/* Ohne Stück gibt es nichts zu spulen: Regler bleibt im DOM (Ref), wird aber ausgeblendet */}
         <input
           ref={sliderRef}
           className="position"
@@ -153,49 +135,91 @@ export function TransportBar() {
           step={0.01}
           defaultValue={0}
           disabled={!song}
+          hidden={!song}
           aria-label="Position"
           onPointerDown={() => (dragging.current = true)}
           onPointerUp={() => (dragging.current = false)}
           onChange={(e) => seek(Number(e.target.value))}
           onKeyDown={(e) => e.preventDefault()}
         />
-        <span ref={timeRef} className="time" />
+        <span ref={timeRef} className="time lcd" hidden={!song} />
+        {song && (
+          <button
+            className={`btn round toggle${loopEnabled ? ' active' : ''}`}
+            onClick={toggleLoop}
+            title="Loop an/aus (L) – Bereich in der Taktleiste ziehen"
+            aria-pressed={loopEnabled}
+            aria-label="Loop"
+          >
+            <Icon name="loop" />
+          </button>
+        )}
+        <button
+          className={`btn round toggle${metronome ? ' active' : ''}`}
+          ref={metroRef}
+          onClick={toggleMetronome}
+          title="Metronom an/aus (Shift+M)"
+          aria-pressed={metronome}
+          aria-label="Metronom"
+        >
+          <Icon name="metronome" />
+        </button>
       </div>
 
-      <button
-        className={`btn icon toggle${loopEnabled ? ' active' : ''}`}
-        onClick={toggleLoop}
-        disabled={!song}
-        title="Loop an/aus (L) – Bereich in der Taktleiste ziehen"
-        aria-pressed={loopEnabled}
-        aria-label="Loop"
-      >
-        ⟲
-      </button>
-      <button
-        className={`btn icon toggle${metronome ? ' active' : ''}`}
-        ref={metroRef}
-        onClick={toggleMetronome}
-        title="Metronom an/aus (Shift+M)"
-        aria-pressed={metronome}
-        aria-label="Metronom"
-      >
-        ♩
-      </button>
+      <div className="tz tz-mode">
+        {song && (
+          <div className="seg pill" role="group" aria-label="Ansicht">
+            {VIEWS.map((v) => (
+              <button
+                key={v.id}
+                className={view === v.id ? 'on' : ''}
+                title={v.title}
+                onClick={() => update({ view: v.id })}
+              >
+                {v.label}
+              </button>
+            ))}
+          </div>
+        )}
 
-      <label className="tempo" title="Tempo (Tonhöhe bleibt gleich)">
-        Tempo
-        <input
-          type="range"
-          min={25}
-          max={150}
-          step={5}
-          value={Math.round(rate * 100)}
-          onChange={(e) => setRate(Number(e.target.value) / 100)}
-          onKeyDown={(e) => e.preventDefault()}
-        />
-        <span className="tempo-value">{Math.round(rate * 100)} %</span>
-      </label>
+        <div className="seg pill" role="group" aria-label="Modus">
+          {MODES.map((m) => (
+            <button
+              key={m.id}
+              className={mode === m.id ? 'on' : ''}
+              title={m.title}
+              onClick={() => update({ mode: m.id })}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+
+        {song && (
+          <label className="tempo" title="Tempo (Tonhöhe bleibt gleich)">
+            <span className="tempo-label">Tempo</span>
+            <input
+              type="range"
+              min={25}
+              max={150}
+              step={5}
+              value={Math.round(rate * 100)}
+              onChange={(e) => setRate(Number(e.target.value) / 100)}
+              onKeyDown={(e) => e.preventDefault()}
+            />
+            <span className="tempo-value">{Math.round(rate * 100)} %</span>
+          </label>
+        )}
+
+        <button
+          className="btn icon ghost"
+          onClick={() => setApp({ settingsOpen: true })}
+          title="Einstellungen"
+          aria-label="Einstellungen"
+        >
+          <Icon name="settings" />
+        </button>
+      </div>
 
       {/* Klang-Status schwebend statt im Fluss: ein Textwechsel beim ersten Klick darf die Knöpfe nicht verschieben */}
       {audio !== 'ready' && (
@@ -205,10 +229,92 @@ export function TransportBar() {
           {audio === 'fallback' && 'Synth-Klang (Samples nicht geladen)'}
         </span>
       )}
-
-      <button className="btn" onClick={() => setApp({ settingsOpen: true })}>
-        Einstellungen
-      </button>
     </header>
   );
+}
+
+type IconName =
+  'library' | 'close' | 'start' | 'rec' | 'stop' | 'play' | 'pause' | 'loop' | 'metronome' | 'settings';
+
+/** Kleine Strich-Icons statt Unicode-Glyphen (die je nach System-Font unterschiedlich aussehen). */
+function Icon({ name }: { name: IconName }) {
+  const common = {
+    width: 16,
+    height: 16,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    'aria-hidden': true,
+  };
+  switch (name) {
+    case 'library':
+      return (
+        <svg {...common}>
+          <path d="M4 4v16M9 4v16M14 5l5 14.5" />
+        </svg>
+      );
+    case 'close':
+      return (
+        <svg {...common}>
+          <path d="M6 6l12 12M18 6L6 18" />
+        </svg>
+      );
+    case 'start':
+      return (
+        <svg {...common}>
+          <path d="M6 5v14" />
+          <path d="M19 5L9 12l10 7z" fill="currentColor" />
+        </svg>
+      );
+    case 'rec':
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="6" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case 'stop':
+      return (
+        <svg {...common}>
+          <rect x="7" y="7" width="10" height="10" rx="1.5" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case 'play':
+      return (
+        <svg {...common}>
+          <path d="M8 5.5v13l11-6.5z" fill="currentColor" />
+        </svg>
+      );
+    case 'pause':
+      return (
+        <svg {...common}>
+          <path d="M9 5v14M15 5v14" strokeWidth={3} />
+        </svg>
+      );
+    case 'loop':
+      return (
+        <svg {...common}>
+          <path d="M17 2l3 3-3 3" />
+          <path d="M4 11V9a4 4 0 0 1 4-4h12" />
+          <path d="M7 22l-3-3 3-3" />
+          <path d="M20 13v2a4 4 0 0 1-4 4H4" />
+        </svg>
+      );
+    case 'metronome':
+      return (
+        <svg {...common}>
+          <path d="M9 3h6l4 18H5z" />
+          <path d="M12 16l5-9" />
+        </svg>
+      );
+    case 'settings':
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
+        </svg>
+      );
+  }
 }

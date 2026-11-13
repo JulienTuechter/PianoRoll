@@ -227,7 +227,7 @@ export function drawRisingNotes(
     if (y < 0 || y > height) continue;
     ctx.fillStyle = theme.measureLine;
     ctx.fillRect(0, y, width, 1);
-    ctx.fillStyle = '#c9ccd3';
+    ctx.fillStyle = '#cdbf9f';
     ctx.fillText(m.label, 6, y - 3);
   }
 

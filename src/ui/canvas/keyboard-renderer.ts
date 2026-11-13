@@ -192,7 +192,7 @@ function drawGhost(
 }
 
 function drawScaleDot(ctx: CanvasRenderingContext2D, k: KeyRect, y: number): void {
-  ctx.fillStyle = k.black ? 'rgba(255,255,255,0.45)' : 'rgba(14,16,20,0.28)';
+  ctx.fillStyle = k.black ? 'rgba(255,245,225,0.45)' : 'rgba(40,28,14,0.3)';
   ctx.beginPath();
   ctx.arc(k.x + k.w / 2, y, Math.min(k.w * 0.12, 3), 0, Math.PI * 2);
   ctx.fill();
@@ -274,7 +274,7 @@ export function drawKeyboard(
     for (const [midi, label] of f.labels) {
       const k = layout.byMidi[midi];
       if (!k) continue;
-      ctx.fillStyle = k.black ? '#c7cbd3' : '#4b5160';
+      ctx.fillStyle = k.black ? '#d6cbb6' : '#5a4e3c';
       ctx.fillText(label, k.x + k.w / 2, k.black ? 14 : height - 24);
     }
   }

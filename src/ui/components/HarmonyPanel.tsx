@@ -60,20 +60,25 @@ function toChip(seg: ChordSegment, key: MusicalKey): SuggestionChip | null {
 }
 
 /** A) Freispiel */
-function FreePlay() {
+function FreePlay({ onStage }: { onStage: boolean }) {
   const { chord, chordSounding, chordNumeral, key, keySource, keyConfidence, suggestions } = useHarmony();
   const s = useSettings();
 
   return (
     <div className="harmony-free">
-      <div className={`chord-now${chordSounding ? ' sounding' : ''}`}>
-        <span className="chord-symbol">{chord ? chord.symbol : '–'}</span>
-        {chord && chordNumeral && <span className="chord-numeral">{chordNumeral}</span>}
-      </div>
-      <p className="help chord-desc">
-        {chord ? describeChord(chord) : 'Spiele mindestens drei Töne gleichzeitig.'}
-        {chord && !chordSounding && ' · zuletzt gespielt'}
-      </p>
+      {/* Ohne Stück steht der Akkord groß auf der Bühne (Harmonie-Leiste) – hier nicht doppelt zeigen */}
+      {!onStage && (
+        <div className={`chord-now${chordSounding ? ' sounding' : ''}`}>
+          <span className="chord-symbol">{chord ? chord.symbol : '–'}</span>
+          {chord && chordNumeral && <span className="chord-numeral">{chordNumeral}</span>}
+        </div>
+      )}
+      {!onStage && (
+        <p className="help chord-desc">
+          {chord ? describeChord(chord) : 'Spiele mindestens drei Töne gleichzeitig.'}
+          {chord && !chordSounding && ' · zuletzt gespielt'}
+        </p>
+      )}
 
       <label className="field">
         <span>
@@ -113,7 +118,7 @@ function FreePlay() {
         </select>
       </label>
 
-      {suggestions.length > 0 && (
+      {!onStage && suggestions.length > 0 && (
         <>
           <div className="chips-head">Als Nächstes {chord ? `nach ${chord.symbol}` : 'in der Tonart'}</div>
           <div
@@ -258,7 +263,7 @@ export function HarmonyPanel() {
       {s.harmonyFree && song && playing && (
         <p className="help">Freispiel-Vorschläge erscheinen, wenn das Stück pausiert.</p>
       )}
-      {freeVisible && <FreePlay />}
+      {freeVisible && <FreePlay onStage={!song} />}
       {songVisible && (
         <>
           {freeVisible && <hr className="sep" />}

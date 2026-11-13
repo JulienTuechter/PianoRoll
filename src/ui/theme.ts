@@ -1,11 +1,11 @@
-/** Farben für Canvas-Renderer (CSS-Variablen gelten nur fürs DOM). Okabe-Ito-basiert, farbenblind-freundlich. */
+/** Farben für Canvas-Renderer (CSS-Variablen gelten nur fürs DOM). Design „Flügel“ (warmes Ebenholz, Elfenbein); Feedback-/Handfarben Okabe-Ito-basiert, farbenblind-freundlich. */
 export const theme = {
-  bg: '#0e1014',
-  laneBlack: '#12151b',
-  laneLine: '#1b1f27',
-  measureLine: '#2c323e',
-  measureLabel: '#5b6475',
-  nowLine: '#d8dde6',
+  bg: '#0f0d0c',
+  laneBlack: '#14110f',
+  laneLine: '#211c18',
+  measureLine: '#33291f',
+  measureLabel: '#7d6a50',
+  nowLine: '#6e1f25',
   /** Eigener Tastendruck */
   pressed: '#CC79A7',
   /** Feedback: richtig / falsch / Timing (zusätzlich Symbole, da Farbe allein nicht farbenblind-sicher ist) */
@@ -15,13 +15,13 @@ export const theme = {
   waitGlow: '#ffffff',
   loop: '#b48cff',
   sustained: '#7a4a66',
-  whiteKey: '#eceef2',
-  whiteKeyShade: '#c9ccd3',
-  blackKey: '#16181d',
-  blackKeyTop: '#2b2f37',
-  keyBorder: '#3a3f4a',
-  noteText: '#0e1014',
-  keyLabel: '#6b7280',
+  whiteKey: '#f3ecdc',
+  whiteKeyShade: '#cdbf9f',
+  blackKey: '#171412',
+  blackKeyTop: '#353029',
+  keyBorder: '#463d33',
+  noteText: '#0f0d0c',
+  keyLabel: '#8a7c63',
 } as const;
 
 export const DEFAULT_RIGHT = '#56B4E9';

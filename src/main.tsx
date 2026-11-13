@@ -1,6 +1,8 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './ui/App';
+import '@fontsource-variable/fraunces';
+import '@fontsource-variable/instrument-sans';
 import './ui/styles.css';
 
 const root = document.getElementById('root');

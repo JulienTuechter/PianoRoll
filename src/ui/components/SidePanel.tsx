@@ -19,7 +19,7 @@ export function SidePanel() {
 
   return (
     <aside className="side">
-      <Section id="harmony" title="Harmony Assist">
+      <Section id="harmony" title="Harmonie">
         <HarmonyPanel />
       </Section>
 
@@ -27,7 +27,7 @@ export function SidePanel() {
         <PracticePanel />
       </Section>
 
-      <Section id="practice-tools" title="Practice">
+      <Section id="practice-tools" title="Tempo & Metronom">
         <PracticeTools />
       </Section>
 

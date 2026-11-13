@@ -1,25 +1,31 @@
 :root {
   color-scheme: dark;
-  --bg: #0e1014;
-  --surface: #161a21;
-  --surface-2: #1e232c;
-  --border: #2a303b;
-  --text: #e8ebf0;
-  --muted: #9aa3b2;
-  --accent: #56b4e9;
+  /* Design „Flügel“: Ebenholz, Messing, Filz, Elfenbein */
+  --bg: #0f0d0c;
+  --surface: #171412;
+  --surface-2: #211d19;
+  --surface-3: #2a251f;
+  --inset: #0a0908;
+  --border: #2e2822;
+  --border-strong: #463d33;
+  --text: #efe8dc;
+  --muted: #a69c8e;
+  --accent: #d4a65a;
+  --accent-strong: #e6bd78;
+  --on-accent: #1a1206;
+  --felt: #9b2f36;
   --left: #d55e00;
   --right: #56b4e9;
   --ok: #3fb97a;
   --warn: #e6b400;
   --error: #ff5c5c;
-  --heat-0: #252b36;
+  --loop: #b48cff;
+  --heat-0: #2a251f;
   --radius: 8px;
-  font-family:
-    'Inter',
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    sans-serif;
+  --font-display: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
+  --font-body: 'Instrument Sans Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', 'JetBrains Mono', Menlo, Consolas, monospace;
+  font-family: var(--font-body);
   font-size: 14px;
   line-height: 1.45;
   color: var(--text);
@@ -66,21 +72,41 @@ kbd {
   height: 100%;
 }
 
-/* Transport */
+/* Transport: drei Zonen – Navigation · Transport · Modus/Einstellungen */
 .transport {
   flex: none;
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  gap: 10px 18px;
   padding: 8px 14px;
-  background: var(--surface);
+  background: linear-gradient(#1b1815, #151210);
   border-bottom: 1px solid var(--border);
   min-width: 0;
 }
+.tz {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.tz-nav {
+  flex: 0 1 auto;
+}
+.tz-mode {
+  flex: none;
+  gap: 10px;
+}
 .brand {
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  font-size: 16px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 21px;
+  letter-spacing: 0.005em;
+  margin-right: 6px;
+  line-height: 1;
+}
+.brand span {
+  color: var(--accent);
 }
 .song-title {
   font-weight: 600;
@@ -93,6 +119,7 @@ kbd {
 .transport-controls {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   flex: 1;
   min-width: 200px;
@@ -100,12 +127,23 @@ kbd {
 .position {
   flex: 1;
   min-width: 80px;
+  max-width: 520px;
 }
 .time {
   font-variant-numeric: tabular-nums;
   color: var(--muted);
   white-space: nowrap;
   font-size: 13px;
+}
+.time.lcd {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  color: var(--accent);
+  background: var(--inset);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 10px;
 }
 .tempo {
   display: flex;
@@ -114,12 +152,12 @@ kbd {
   color: var(--muted);
 }
 .tempo input {
-  width: 110px;
+  width: 96px;
 }
 .tempo-value {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  min-width: 48px;
+  min-width: 42px;
   text-align: right;
   color: var(--text);
 }
@@ -133,8 +171,8 @@ kbd {
   white-space: nowrap;
 }
 .btn:hover:not(:disabled) {
-  border-color: #3d4554;
-  background: #252b36;
+  border-color: var(--border-strong);
+  background: var(--surface-3);
 }
 .btn:disabled {
   opacity: 0.4;
@@ -142,12 +180,12 @@ kbd {
 }
 .btn.primary {
   background: var(--accent);
-  color: #08121a;
+  color: var(--on-accent);
   border-color: var(--accent);
   font-weight: 700;
 }
 .btn.primary:hover:not(:disabled) {
-  background: #7cc6f0;
+  background: var(--accent-strong);
 }
 .btn.icon {
   width: 36px;
@@ -305,7 +343,7 @@ kbd {
 }
 .seg button.on {
   background: var(--accent);
-  color: #08121a;
+  color: var(--on-accent);
   font-weight: 700;
 }
 
@@ -470,7 +508,7 @@ select {
 .drop-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(14, 16, 20, 0.85);
+  background: rgba(15, 13, 12, 0.85);
   display: grid;
   place-items: center;
   z-index: 10;
@@ -558,7 +596,7 @@ select {
   left: 10px;
   display: flex;
   gap: 4px;
-  background: rgba(14, 16, 20, 0.82);
+  background: rgba(15, 13, 12, 0.82);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 6px 4px;
@@ -593,7 +631,7 @@ select {
   bottom: 14px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(14, 16, 20, 0.88);
+  background: rgba(15, 13, 12, 0.88);
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 6px 16px;
@@ -614,7 +652,7 @@ select {
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(14, 16, 20, 0.72);
+  background: rgba(15, 13, 12, 0.72);
   overflow-y: auto;
   padding: 24px;
 }
@@ -741,9 +779,9 @@ select {
   font-size: 18px;
 }
 .btn.active {
-  background: rgba(180, 140, 255, 0.18);
-  border-color: #b48cff;
-  color: #d9c6ff;
+  background: rgba(212, 166, 90, 0.16);
+  border-color: var(--accent);
+  color: var(--accent-strong);
 }
 
 .timeline {
@@ -818,7 +856,7 @@ select {
   position: absolute;
   top: 10px;
   right: 10px;
-  background: rgba(14, 16, 20, 0.85);
+  background: rgba(15, 13, 12, 0.85);
   border: 1px solid #b48cff;
   border-radius: var(--radius);
   padding: 6px 12px;
@@ -1084,7 +1122,7 @@ select {
   gap: 18px;
   max-width: calc(100% - 24px);
   padding: 10px 16px;
-  background: rgba(14, 16, 20, 0.85);
+  background: rgba(15, 13, 12, 0.85);
   border: 1px solid var(--border);
   border-radius: 12px;
   backdrop-filter: blur(4px);
@@ -1151,7 +1189,7 @@ select {
   overflow-y: auto;
   overflow-x: hidden;
   padding: 12px 16px;
-  background: #1a1d24;
+  background: #1a1714;
 }
 /* Platz für die Spielanzeige über dem Notenblatt, wenn keine fallenden Noten sichtbar sind */
 .stage.view-notation .notation-scroll {
@@ -1264,7 +1302,7 @@ select {
   align-items: center;
   gap: 8px;
   padding: 6px 10px;
-  background: rgba(14, 16, 20, 0.88);
+  background: rgba(15, 13, 12, 0.88);
   border: 1px solid #ff4d4d;
   border-radius: var(--radius);
   font-weight: 700;
@@ -1345,11 +1383,11 @@ select {
 
 /* Metronom-Schlag */
 .btn.toggle.beat {
-  background: rgba(180, 140, 255, 0.45);
+  background: rgba(212, 166, 90, 0.45);
 }
 .btn.toggle.beat.accent {
-  background: #b48cff;
-  color: #14101f;
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
 /* Klang-Status: außerhalb des Leistenlayouts (verhindert Verschieben der Knöpfe beim ersten Klick) */
@@ -1361,7 +1399,7 @@ select {
   z-index: 15;
   padding: 6px 14px;
   border-radius: 999px;
-  background: rgba(14, 16, 20, 0.92);
+  background: rgba(15, 13, 12, 0.92);
   border: 1px solid var(--border);
   color: var(--muted);
   font-size: 13px;
@@ -1371,4 +1409,349 @@ select {
 .audio-status.warn {
   color: var(--warn);
   border-color: rgba(230, 180, 0, 0.5);
+}
+
+/* ================================================================
+   Design „Flügel“ – Ergänzungen
+   ================================================================ */
+::selection {
+  background: rgba(212, 166, 90, 0.35);
+}
+h1,
+h2 {
+  text-wrap: balance;
+}
+.dialog h2,
+.stage-empty-inner h2,
+.results h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 24px;
+  letter-spacing: 0.005em;
+}
+.dialog {
+  background: linear-gradient(#1b1815, var(--surface) 120px);
+  border-color: var(--border-strong);
+  border-radius: 14px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+}
+.dialog::backdrop {
+  background: rgba(8, 6, 5, 0.7);
+  backdrop-filter: blur(3px);
+}
+.dialog fieldset {
+  background: rgba(255, 255, 255, 0.015);
+}
+.dialog legend,
+.panel h2 {
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  font-size: 11px;
+}
+
+/* Knöpfe */
+.btn {
+  transition:
+    background-color 0.12s,
+    border-color 0.12s,
+    color 0.12s;
+}
+.btn.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn.ghost:hover:not(:disabled) {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text);
+}
+.btn.icon svg,
+.btn.round svg {
+  display: block;
+}
+.btn.round {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  background: var(--surface-2);
+}
+.btn.round:hover:not(:disabled) {
+  color: var(--text);
+}
+.btn.round.play {
+  width: 42px;
+  height: 42px;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  box-shadow: 0 0 0 4px rgba(212, 166, 90, 0.12);
+}
+.btn.round.play:hover:not(:disabled) {
+  background: var(--accent-strong);
+  color: var(--on-accent);
+}
+.btn.round.rec {
+  color: #e0565b;
+}
+.btn.round.rec.active {
+  color: #fff;
+}
+.btn.round.toggle.active {
+  color: var(--accent-strong);
+}
+.btn.close-song {
+  border-radius: 50%;
+  background: transparent;
+  border-color: transparent;
+}
+
+/* Pillen-Umschalter (Modus, Ansicht) */
+.seg.pill {
+  background: var(--inset);
+  border-color: var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+}
+.seg.pill button {
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.seg.pill button + button {
+  border-left: none;
+}
+.seg.pill button:hover:not(.on) {
+  color: var(--text);
+}
+.seg.pill button.on {
+  background: var(--surface-3);
+  color: #f6e8cc;
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px rgba(212, 166, 90, 0.45);
+}
+
+/* Schieberegler in Messing */
+input[type='range'] {
+  accent-color: var(--accent);
+}
+
+/* Ein/Aus-Schalter statt Häkchen */
+.check input[type='checkbox'],
+.track-enable input[type='checkbox'] {
+  appearance: none;
+  flex: none;
+  width: 30px;
+  height: 18px;
+  margin: 1px 0 0;
+  border-radius: 999px;
+  background: var(--surface-3);
+  border: 1px solid var(--border-strong);
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.check input[type='checkbox']::after,
+.track-enable input[type='checkbox']::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition:
+    transform 0.15s,
+    background-color 0.15s;
+}
+.check input[type='checkbox']:checked,
+.track-enable input[type='checkbox']:checked {
+  background: rgba(212, 166, 90, 0.3);
+  border-color: var(--accent);
+}
+.check input[type='checkbox']:checked::after,
+.track-enable input[type='checkbox']:checked::after {
+  transform: translateX(12px);
+  background: var(--accent-strong);
+}
+.check {
+  align-items: flex-start;
+  gap: 10px;
+}
+
+/* Seitenleiste */
+.side {
+  background: var(--surface);
+}
+.chord-symbol,
+.chip-symbol {
+  font-family: var(--font-display);
+}
+.chord-symbol {
+  font-weight: 600;
+}
+.chord-chip {
+  background: var(--surface-2);
+}
+.chord-chip.pinned {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* Harmonie-Leiste: der Akkord ist der Blickfang des freien Spiels */
+.harmony-bar {
+  flex-direction: column;
+  gap: 6px;
+  top: 18px;
+  padding: 14px 22px 14px;
+  border-radius: 16px;
+  background: rgba(23, 20, 18, 0.78);
+  border-color: var(--border);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  text-align: center;
+}
+.hb-chord {
+  justify-content: center;
+  gap: 10px;
+  min-width: 0;
+  opacity: 0.55;
+  transition: opacity 0.2s;
+}
+.harmony-bar.sounding .hb-chord {
+  opacity: 1;
+}
+.hb-symbol {
+  font-family: var(--font-display);
+  font-size: 56px;
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.harmony-bar .chord-numeral {
+  font-size: 22px;
+  color: var(--accent);
+}
+.hb-meta {
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.hb-meta strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.hb-next {
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+  max-width: 100%;
+}
+.hb-label {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.harmony-bar .chips {
+  justify-content: center;
+  max-width: 100%;
+}
+.harmony-bar .chip-symbol {
+  font-size: 17px;
+}
+
+/* Filzstreifen zwischen Bühne und Klaviatur */
+.keyboard-wrap {
+  border-top: 5px solid var(--felt);
+  box-shadow: 0 -6px 18px rgba(155, 47, 54, 0.28);
+  background: #0a0908;
+}
+.keyboard-wrap::before {
+  content: '';
+  position: absolute;
+  inset: -5px 0 auto;
+  height: 5px;
+  background: linear-gradient(rgba(255, 255, 255, 0.12), transparent 60%, rgba(0, 0, 0, 0.35));
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Bühne & Overlays */
+.stage-empty-inner {
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+.hud,
+.waiting-pill,
+.loop-badge {
+  background: rgba(23, 20, 18, 0.86);
+}
+.hud-value {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+.countin {
+  font-family: var(--font-display);
+  font-weight: 500;
+  color: rgba(246, 232, 204, 0.9);
+}
+.score-big {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+.timeline {
+  background: var(--surface);
+}
+.timeline-bar {
+  background: var(--inset);
+}
+.timeline-cursor {
+  background: var(--accent);
+}
+.lib-table tr.current td {
+  background: rgba(212, 166, 90, 0.08);
+}
+.lib-title input {
+  border-color: var(--accent);
+}
+kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+/* Schmale Fenster: Zonen umbrechen, Transport bekommt eine eigene Zeile */
+@media (max-width: 1180px) {
+  .transport {
+    flex-wrap: wrap;
+  }
+  .tz-transport {
+    order: 3;
+    flex-basis: 100%;
+  }
+}
+@media (max-width: 700px) {
+  .hb-symbol {
+    font-size: 40px;
+  }
+  .tempo-label {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .hb-chord,
+  .check input[type='checkbox'],
+  .check input[type='checkbox']::after {
+    transition: none;
+  }
 }
