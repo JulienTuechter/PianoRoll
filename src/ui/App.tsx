@@ -12,6 +12,7 @@ import { SidePanel } from './components/SidePanel';
 import { StageOverlay } from './components/StageOverlay';
 import { TransportBar } from './components/TransportBar';
 import { useKeyboardInput } from './hooks/useKeyboardInput';
+import { startHarmony } from './harmony-service';
 import { startRuntime } from './runtime';
 import { useApp } from './store/app-store';
 import { useSettings } from './store/settings';
@@ -23,6 +24,7 @@ export function App() {
   const activeDeviceId = useApp((s) => s.midi.activeDeviceId);
 
   useEffect(() => startRuntime(), []);
+  useEffect(() => startHarmony(), []);
   // Shortcuts/Simulator nicht aktiv, während ein Dialog offen ist
   useKeyboardInput(ready && !dialogOpen && onboardingDone);
 

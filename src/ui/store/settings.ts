@@ -51,6 +51,17 @@ export interface Settings {
   // Farben
   rightColor: string;
   leftColor: string;
+  // Harmony Assist
+  /** A: Freispiel – Akkord, Tonart, Folgeakkorde */
+  harmonyFree: boolean;
+  /** B: Akkorde im Stück (nächster Akkord, Alternativen) */
+  harmonySong: boolean;
+  /** Skalentöne der Tonart auf der Klaviatur markieren */
+  harmonyScaleTones: boolean;
+  /** Manuell gewählte Tonart (null = automatisch) */
+  harmonyKey: { tonicPc: number; mode: 'major' | 'minor' } | null;
+  /** Vorschlag beim Anklicken anspielen */
+  harmonyAudition: boolean;
 }
 
 interface SettingsStore extends Settings {
@@ -90,6 +101,11 @@ export const defaultSettings: Settings = {
   goodMs: 120,
   rightColor: '#56B4E9',
   leftColor: '#D55E00',
+  harmonyFree: true,
+  harmonySong: true,
+  harmonyScaleTones: false,
+  harmonyKey: null,
+  harmonyAudition: true,
 };
 
 function safeLocalStorage(): Storage | null {
@@ -132,7 +148,7 @@ export const useSettings = create<SettingsStore>()(
     }),
     {
       name: 'pianist-settings',
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => idbStorage),
       // Neue Felder bekommen Standardwerte; unbekannte alte Felder werden ignoriert
       migrate: (persisted) => ({ ...defaultSettings, ...(persisted as Partial<Settings>) }),

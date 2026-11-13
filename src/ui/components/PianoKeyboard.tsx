@@ -6,6 +6,7 @@ import { hitTestKey } from '../canvas/keyboard-layout';
 import { drawKeyboard } from '../canvas/keyboard-renderer';
 import { layoutForWidth } from '../canvas/layout-cache';
 import { useCanvasLoop } from '../hooks/useCanvasLoop';
+import { harmonyLive } from '../harmony-service';
 import { getEngine, getWaitEngine, hub, live, transport } from '../runtime';
 import { useSettings } from '../store/settings';
 
@@ -60,6 +61,8 @@ export function PianoKeyboard() {
       flashes: live.flashes,
       hint: wait?.hint ?? false,
       nowMs: performance.now(),
+      ghost: harmonyLive.ghost,
+      scalePcs: harmonyLive.scalePcs,
       labels: s.keyboardLabels === 'off' ? null : simulatorLabels(s.simulatorOctave, s.keyboardLabels),
     });
   }, []);

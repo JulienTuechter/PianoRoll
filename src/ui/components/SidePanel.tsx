@@ -5,7 +5,9 @@ import { setSongSplitPoint, updateTracks } from '../runtime';
 import { useApp } from '../store/app-store';
 import { useSettings } from '../store/settings';
 import { MidiStatusPanel } from './MidiStatus';
+import { HarmonyPanel } from './HarmonyPanel';
 import { PracticePanel, PracticeTools } from './PracticePanel';
+import { Section } from './Section';
 
 const HAND_LABEL: Record<HandAssignment, string> = { left: 'Links', right: 'Rechts', split: 'Split' };
 
@@ -15,19 +17,20 @@ export function SidePanel() {
 
   return (
     <aside className="side">
-      <section className="panel">
-        <h2>Übung</h2>
-        <PracticePanel />
-      </section>
+      <Section id="harmony" title="Harmony Assist">
+        <HarmonyPanel />
+      </Section>
 
-      <section className="panel">
-        <h2>Practice</h2>
+      <Section id="practice-mode" title="Übung">
+        <PracticePanel />
+      </Section>
+
+      <Section id="practice-tools" title="Practice">
         <PracticeTools />
-      </section>
+      </Section>
 
       {song && (
-        <section className="panel">
-          <h2>Stück</h2>
+        <Section id="song" title="Stück">
           <dl className="facts">
             <dt>Dauer</dt>
             <dd>{formatTime(song.durationSec)}</dd>
@@ -106,23 +109,21 @@ export function SidePanel() {
           <div className="legend">
             <span className="swatch left" /> Linke Hand <span className="swatch right" /> Rechte Hand
           </div>
-        </section>
+        </Section>
       )}
 
-      <section className="panel">
-        <h2>MIDI</h2>
+      <Section id="midi" title="MIDI">
         <MidiStatusPanel />
-      </section>
+      </Section>
 
-      <section className="panel">
-        <h2>Simulator</h2>
+      <Section id="simulator" title="Simulator" defaultOpen={false}>
         <p className="help">
           Untere Buchstabenreihe ab <kbd>Y</kbd> = {midiToName((octave + 1) * 12)}, obere Reihe ab{' '}
           <kbd>Q</kbd> = {midiToName((octave + 2) * 12)}. Schwarze Tasten in der Reihe darüber.{' '}
           <kbd>Shift</kbd> = Pedal, <kbd>-</kbd>/<kbd>+</kbd> = Oktave. Oder mit der Maus auf die Klaviatur
           klicken.
         </p>
-      </section>
+      </Section>
     </aside>
   );
 }

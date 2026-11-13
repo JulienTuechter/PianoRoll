@@ -24,6 +24,10 @@ export interface KeyboardFrame {
   flashes: ReadonlyMap<number, KeyFlash>;
   hint: boolean;
   nowMs: number;
+  /** Harmony Assist: vorgeschlagener Akkord (Bass = linke Hand, upper = rechte Hand) */
+  ghost: { bass: number; upper: readonly number[] } | null;
+  /** Harmony Assist: Tonhöhenklassen der Tonleiter */
+  scalePcs: ReadonlySet<number> | null;
 }
 
 function roundRectBottom(
@@ -147,6 +151,29 @@ function drawExpectMarker(
   ctx.globalAlpha = 1;
 }
 
+function drawGhost(ctx: CanvasRenderingContext2D, k: KeyRect, y: number, hand: Hand, height: number): void {
+  const color = hand === 'right' ? handColors.right : handColors.left;
+  // leichte Tönung der ganzen Taste
+  ctx.globalAlpha = 0.28;
+  ctx.fillStyle = color;
+  ctx.fillRect(k.x + 1, 2, k.w - 2, height - 3);
+  ctx.globalAlpha = 1;
+  // Ring statt gefülltem Punkt (gefüllt = erwartete Taste)
+  const r = Math.min(k.w * 0.34, 8);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(k.x + k.w / 2, y, r, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
+function drawScaleDot(ctx: CanvasRenderingContext2D, k: KeyRect, y: number): void {
+  ctx.fillStyle = k.black ? 'rgba(255,255,255,0.45)' : 'rgba(14,16,20,0.28)';
+  ctx.beginPath();
+  ctx.arc(k.x + k.w / 2, y, Math.min(k.w * 0.12, 3), 0, Math.PI * 2);
+  ctx.fill();
+}
+
 export function drawKeyboard(
   ctx: CanvasRenderingContext2D,
   layout: KeyboardLayout,
@@ -183,8 +210,19 @@ export function drawKeyboard(
     }
   }
 
+  const ghostHand = new Map<number, Hand>();
+  if (f.ghost) {
+    ghostHand.set(f.ghost.bass, 'left');
+    for (const m of f.ghost.upper) ghostHand.set(m, 'right');
+  }
+  // direkt unter den schwarzen Tasten – kollidiert weder mit Markierungen noch mit Beschriftungen
+  const scaleY = bh + 7;
+
   layout.whites.forEach((k, i) => {
     const look = whiteLooks[i]!;
+    if (f.scalePcs?.has(k.midi % 12)) drawScaleDot(ctx, k, scaleY);
+    const gh = ghostHand.get(k.midi);
+    if (gh && !f.pressed.has(k.midi)) drawGhost(ctx, k, whiteMarkY, gh, height);
     if (look.expectHand) drawExpectMarker(ctx, k, whiteMarkY, look.expectHand, f.hint, f.nowMs);
     drawMark(ctx, k, whiteMarkY, look.mark);
   });
@@ -198,6 +236,9 @@ export function drawKeyboard(
       ctx.fillStyle = theme.blackKeyTop;
       ctx.fillRect(k.x + k.w * 0.18, bh - 8, k.w * 0.64, 5);
     }
+    if (f.scalePcs?.has(k.midi % 12)) drawScaleDot(ctx, k, bh - 6);
+    const gh = ghostHand.get(k.midi);
+    if (gh && !f.pressed.has(k.midi)) drawGhost(ctx, k, blackMarkY, gh, bh);
     if (look.expectHand) drawExpectMarker(ctx, k, blackMarkY, look.expectHand, f.hint, f.nowMs);
     drawMark(ctx, k, blackMarkY, look.mark);
   }
