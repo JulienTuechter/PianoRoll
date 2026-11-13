@@ -1,3 +1,5 @@
+import { Note } from 'tonal';
+
 export type Mode = 'major' | 'minor';
 
 export interface MusicalKey {
@@ -33,9 +35,19 @@ export function pcName(pitchClass: number, flats: boolean): string {
   return (flats ? FLAT_NAMES : SHARP_NAMES)[pc(pitchClass)] ?? 'C';
 }
 
+/**
+ * Intervall zur Tonika je Halbtonabstand – für Dur und Moll gleich:
+ * leitereigene Töne über ihre Stufe, leiterfremde als ♭2, ♭3/♮3, ♯4, ♭6/♮6, ♭7/♮7.
+ * Beispiele: Bb in G-Dur (♭3), F# in C-Dur (♯4), G# in a-Moll (Leitton), E# in F#-Dur.
+ */
+const DEGREE_INTERVALS = ['1P', '2m', '2M', '3m', '3M', '4P', '4A', '5P', '6m', '6M', '7m', '7M'] as const;
+
+/** Schreibweise von Tonhöhenklassen passend zur Tonart (ohne Tonart: Kreuze). */
 export function speller(k: MusicalKey | null): (pitchClass: number) => string {
-  const flats = keyUsesFlats(k);
-  return (p) => pcName(p, flats);
+  if (!k) return (p) => pcName(p, false);
+  const tonic = keyTonicName(k);
+  const names = DEGREE_INTERVALS.map((iv) => Note.pitchClass(Note.transpose(tonic, iv)) || 'C');
+  return (p) => names[pc(p - k.tonicPc)] ?? pcName(p, false);
 }
 
 /** Deutsche Bezeichnung: „C-Dur“, „a-Moll“ (Moll klein geschrieben). */

@@ -178,7 +178,9 @@ function InSong() {
       </div>
       {curAlt.length > 0 && (
         <>
-          <div className="chips-head tip">Tipp: Statt {curChip?.symbol} würde hier auch passen</div>
+          <div className="chips-head tip">
+            {curChip ? `Tipp: Statt ${curChip.symbol} würde hier auch passen` : 'Tipp: Hier würde passen'}
+          </div>
           <div className="chips">
             {curAlt.map((c) => (
               <Chip key={`ca-${idx}-${c.symbol}`} chip={c} id={`ca-${idx}-${c.symbol}`} />

@@ -35,6 +35,23 @@ describe('Akkordanalyse im Stück', () => {
     ]);
   });
 
+  it('erkennt Akkorde trotz dominantem langen Basston (gebrochener Dreiklang in Achteln)', () => {
+    const n = (midi: number, s: number, d: number): NoteEvent => ({
+      id: `${midi}-${s}`,
+      midi,
+      startTick: 0,
+      startSec: s,
+      durationSec: d,
+      velocity: 1,
+      hand: 'right',
+      track: 0,
+    });
+    // G2 über den ganzen Takt, darüber G B D C B A in Achteln
+    const notes = [n(43, 0, 1.8), ...[67, 71, 74, 72, 71, 69].map((m, i) => n(m, i * 0.3, 0.3))];
+    const { weights, lowest } = windowWeights(notes, { startSec: 0, endSec: 1.8 });
+    expect(chordFromWeights(weights, lowest === null ? null : lowest % 12, spell)?.symbol).toBe('G');
+  });
+
   it('verwirft schwache Durchgangstöne', () => {
     const n = (midi: number, s: number, d: number): NoteEvent => ({
       id: `${midi}`,

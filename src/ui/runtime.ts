@@ -82,6 +82,8 @@ export const live = {
   flashes: new Map<number, KeyFlash>(),
   countIn: null as CountIn | null,
   loop: null as LoopBounds | null,
+  /** Tempo-Map des aktuellen Stücks (Sekunden ↔ Ticks, z. B. für den Noten-Cursor) */
+  tempoMap: null as TempoMap | null,
 };
 
 export function getEngine(): PlayEngine | null {
@@ -428,6 +430,7 @@ export function setSong(song: Song, keepPosition = false): void {
   live.notes = notes;
   live.maxDurationSec = notes.reduce((m, n) => Math.max(m, n.durationSec), 0);
   tempoMap = new TempoMap(song.ppq, song.tempos);
+  live.tempoMap = tempoMap;
   live.measures = buildMeasures(
     song.ppq,
     song.timeSignatures,
@@ -459,6 +462,7 @@ export function unloadSong(): void {
   live.beats = [];
   live.maxDurationSec = 0;
   tempoMap = null;
+  live.tempoMap = null;
   useApp.getState().set({ song: null, loop: null, loopEnabled: false });
   rebuildSession();
   useSettings.getState().update({ lastSongId: null });

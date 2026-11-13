@@ -7,6 +7,8 @@ export interface NoteEvent {
   startTick: number;
   startSec: number;
   durationSec: number;
+  /** Dauer in Ticks (aus MIDI-Dateien); fehlt sie, wird über die Tempo-Map umgerechnet */
+  durationTicks?: number;
   /** 0..1 */
   velocity: number;
   hand: Hand;

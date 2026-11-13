@@ -68,9 +68,12 @@ export function chordFromWeights(
 ): DetectedChord | null {
   const max = Math.max(...weights);
   if (max <= 0) return null;
-  const strong = weights
+  // Auswahl auf gestauchten Gewichten: ein langer Basston soll kurze Akkordtöne nicht unter die Schwelle drücken
+  const soft = weights.map((w) => Math.sqrt(Math.max(0, w)));
+  const softMax = Math.sqrt(max);
+  const strong = soft
     .map((w, p) => ({ w, p }))
-    .filter((x) => x.w >= max * 0.15)
+    .filter((x) => x.w > 0 && x.w >= softMax * 0.15)
     .sort((a, b) => b.w - a.w)
     .slice(0, 5)
     .map((x) => x.p);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { allKeys, keyLabel, keyUsesFlats, parseKey } from './key';
+import { allKeys, keyLabel, keyUsesFlats, parseKey, speller } from './key';
 import { estimateKey, KeyTracker } from './krumhansl';
 
 function hist(pcs: Record<number, number>): number[] {
@@ -20,6 +20,20 @@ describe('Tonart-Helfer', () => {
     expect(allKeys()).toHaveLength(24);
     expect(parseKey('Bb', 'major')).toEqual({ tonicPc: 10, mode: 'major' });
     expect(parseKey('x', 'major')).toBeNull();
+  });
+});
+
+describe('Schreibweise nach Tonart', () => {
+  const names = (k: Parameters<typeof speller>[0]) =>
+    Array.from({ length: 12 }, (_, p) => speller(k)(p)).join(' ');
+  it('benennt leitereigene und leiterfremde Töne nach Stufe', () => {
+    expect(names({ tonicPc: 0, mode: 'major' })).toBe('C Db D Eb E F F# G Ab A Bb B');
+    expect(speller({ tonicPc: 7, mode: 'major' })(10)).toBe('Bb'); // ♭3 in G-Dur
+    expect(speller({ tonicPc: 7, mode: 'major' })(1)).toBe('C#'); // ♯4 in G-Dur
+    expect(speller({ tonicPc: 9, mode: 'minor' })(8)).toBe('G#'); // Leitton a-Moll
+    expect(speller({ tonicPc: 6, mode: 'major' })(5)).toBe('E#'); // F#-Dur
+    expect(speller({ tonicPc: 5, mode: 'major' })(10)).toBe('Bb');
+    expect(speller(null)(10)).toBe('A#');
   });
 });
 

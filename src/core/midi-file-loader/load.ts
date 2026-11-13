@@ -99,6 +99,7 @@ export function loadMidiFile(data: ArrayBuffer | Uint8Array, options: LoadOption
         id: `${trackIndex}-${i}`,
         midi: n.midi,
         startTick: n.ticks,
+        durationTicks: n.durationTicks,
         startSec,
         durationSec: Math.max(0.01, endSec - startSec),
         velocity: n.velocity,

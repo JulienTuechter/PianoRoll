@@ -1,15 +1,14 @@
 import { useEffect } from 'react';
 import { DropZone } from './components/DropZone';
 import { ErrorToast } from './components/ErrorToast';
-import { FallingNotes } from './components/FallingNotes';
 import { LibraryDialog } from './components/Library';
+import { Stage } from './components/Stage';
 import { MeasureTimeline } from './components/MeasureTimeline';
 import { Onboarding } from './components/Onboarding';
 import { PianoKeyboard } from './components/PianoKeyboard';
 import { ResultsDialog } from './components/ResultsDialog';
 import { SettingsDialog } from './components/SettingsDialog';
 import { SidePanel } from './components/SidePanel';
-import { StageOverlay } from './components/StageOverlay';
 import { TransportBar } from './components/TransportBar';
 import { useKeyboardInput } from './hooks/useKeyboardInput';
 import { startHarmony } from './harmony-service';
@@ -41,10 +40,7 @@ export function App() {
       <main className="main">
         {/* Falling Notes und Klaviatur teilen sich exakt dieselbe Breite */}
         <div className="stage-col">
-          <div className="stage">
-            <FallingNotes />
-            <StageOverlay />
-          </div>
+          <Stage />
           <div className="keyboard-wrap">
             <PianoKeyboard />
           </div>

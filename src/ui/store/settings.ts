@@ -5,6 +5,8 @@ import { MIDDLE_C } from '../../core/note-event-model/types';
 import { libraryRepo } from '../library-repo';
 
 export type PlayMode = 'watch' | 'wait' | 'performance';
+/** Mittlerer Bereich: fallende Noten, Notenschrift oder beides übereinander */
+export type StageView = 'falling' | 'notation' | 'split';
 
 export interface Settings {
   midiDeviceId: string | null;
@@ -64,6 +66,7 @@ export interface Settings {
   harmonyAudition: boolean;
   /** Wahrscheinlichsten Folgeakkord im Freispiel automatisch auf der Klaviatur zeigen */
   harmonyAutoGhost: boolean;
+  view: StageView;
 }
 
 interface SettingsStore extends Settings {
@@ -109,6 +112,7 @@ export const defaultSettings: Settings = {
   harmonyKey: null,
   harmonyAudition: true,
   harmonyAutoGhost: true,
+  view: 'split',
 };
 
 function safeLocalStorage(): Storage | null {
@@ -151,7 +155,7 @@ export const useSettings = create<SettingsStore>()(
     }),
     {
       name: 'pianist-settings',
-      version: 5,
+      version: 6,
       storage: createJSONStorage(() => idbStorage),
       // Neue Felder bekommen Standardwerte; unbekannte alte Felder werden ignoriert
       migrate: (persisted) => ({ ...defaultSettings, ...(persisted as Partial<Settings>) }),

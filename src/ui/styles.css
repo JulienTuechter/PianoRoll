@@ -1124,3 +1124,118 @@ select {
   flex-wrap: nowrap;
   overflow-x: auto;
 }
+
+/* Phase 5: Notenschrift */
+.stage {
+  display: flex;
+  flex-direction: column;
+}
+.falling-pane,
+.notation-pane {
+  position: relative;
+  min-height: 0;
+}
+.falling-pane {
+  flex: 1;
+}
+.stage.view-notation .notation-pane {
+  flex: 1;
+}
+.stage.view-split .notation-pane {
+  flex: 0 0 48%;
+  border-bottom: 2px solid var(--border);
+}
+.notation-scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px 16px;
+  background: #1a1d24;
+}
+/* Platz für die Spielanzeige über dem Notenblatt, wenn keine fallenden Noten sichtbar sind */
+.stage.view-notation .notation-scroll {
+  padding-top: 76px;
+}
+.notation-paper {
+  position: relative;
+  background: #fbfaf6;
+  border-radius: 6px;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+  min-height: 120px;
+}
+.notation-svg svg {
+  display: block;
+}
+.notation-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.notation-cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  background: #1f6fd1;
+  box-shadow: 0 0 6px rgba(31, 111, 209, 0.6);
+  display: none;
+  will-change: transform;
+}
+.notation-current {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: rgba(31, 111, 209, 0.06);
+  border-radius: 4px;
+  display: none;
+}
+.notation-loop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: rgba(150, 100, 255, 0.08);
+  border-top: 3px solid rgba(150, 100, 255, 0.4);
+  border-bottom: 3px solid rgba(150, 100, 255, 0.4);
+}
+.notation-loop.on {
+  background: rgba(150, 100, 255, 0.16);
+  border-color: #8a5cf6;
+}
+/* Klingende Noten: VexFlow 5 zeichnet Glyphen als Text bzw. Pfade */
+.vf-playing,
+.vf-playing * {
+  fill: #1f6fd1 !important;
+  stroke: #1f6fd1 !important;
+}
+.notation-loading {
+  padding: 40px;
+  text-align: center;
+  color: #555;
+}
+
+/* Transportleiste: bei wenig Platz umbrechen statt Knopfgruppen zu stauchen */
+.transport {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+.transport > .btn,
+.transport > .seg,
+.transport > .badge,
+.transport > .tempo,
+.transport > .brand {
+  flex: none;
+}
+.transport .seg button {
+  white-space: nowrap;
+}
+.song-title {
+  flex: 0 1 auto;
+  min-width: 60px;
+}
+.transport-controls {
+  flex: 1 1 260px;
+}

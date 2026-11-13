@@ -2,7 +2,13 @@ import { useEffect, useRef } from 'react';
 import { formatTime } from '../format';
 import { live, seek, setRate, toggleLoop, toggleMetronome, togglePlay, transport } from '../runtime';
 import { useApp } from '../store/app-store';
-import { useSettings, type PlayMode } from '../store/settings';
+import { useSettings, type PlayMode, type StageView } from '../store/settings';
+
+const VIEWS: { id: StageView; label: string; title: string }[] = [
+  { id: 'falling', label: 'Fallend', title: 'Nur fallende Noten' },
+  { id: 'notation', label: 'Noten', title: 'Nur Notenschrift' },
+  { id: 'split', label: 'Beides', title: 'Notenschrift oben, fallende Noten unten' },
+];
 
 const MODES: { id: PlayMode; label: string; title: string }[] = [
   { id: 'watch', label: 'Anschauen', title: 'Stück läuft durch und wird vorgespielt' },
@@ -17,6 +23,7 @@ export function TransportBar() {
   const audio = useApp((s) => s.audio);
   const setApp = useApp((s) => s.set);
   const mode = useSettings((s) => s.mode);
+  const view = useSettings((s) => s.view);
   const metronome = useSettings((s) => s.metronome);
   const loopEnabled = useApp((s) => s.loopEnabled);
   const update = useSettings((s) => s.update);
@@ -57,6 +64,21 @@ export function TransportBar() {
       <div className="song-title" title={song?.title}>
         {song ? song.title : 'Kein Stück geladen'}
       </div>
+
+      {song && (
+        <div className="seg mode" role="group" aria-label="Ansicht">
+          {VIEWS.map((v) => (
+            <button
+              key={v.id}
+              className={view === v.id ? 'on' : ''}
+              title={v.title}
+              onClick={() => update({ view: v.id })}
+            >
+              {v.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="seg mode" role="group" aria-label="Modus">
         {MODES.map((m) => (
