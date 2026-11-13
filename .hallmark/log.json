@@ -1,0 +1,31 @@
+[
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "kiln",
+  "axes": "dark/high-contrast-serif/warm",
+  "hero": "none (app)",
+  "nav": "kept three-zone top bar; transport on its own row with a song under 1500px",
+  "footer": "none",
+  "imagery": "none",
+  "photos": [],
+  "entry": "src/ui/styles.css",
+  "fingerprint": "app-kiln-ember-now",
+  "sections": [
+   "top bar",
+   "timeline",
+   "stage (falling, notation, split)",
+   "start view",
+   "side panel",
+   "dialogs"
+  ],
+  "signature": "ember marks now (strike line, notation cursor, sounding notes, timeline cursor, Play); the chord as a statement on the ground",
+  "waived": [
+   "24b"
+  ],
+  "prompt": "practise piano on a MIDI keyboard by playing along with falling notes, notation and chord names",
+  "date": "2026-11-13"
+ }
+]
