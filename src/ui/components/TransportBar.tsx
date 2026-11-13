@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { formatTime } from '../format';
 import { live, seek, setRate, toggleLoop, toggleMetronome, togglePlay, transport } from '../runtime';
+import { toggleRecording } from '../recording';
 import { useApp } from '../store/app-store';
 import { useSettings, type PlayMode, type StageView } from '../store/settings';
 
@@ -26,6 +27,7 @@ export function TransportBar() {
   const view = useSettings((s) => s.view);
   const metronome = useSettings((s) => s.metronome);
   const loopEnabled = useApp((s) => s.loopEnabled);
+  const recording = useApp((s) => s.recording);
   const update = useSettings((s) => s.update);
   const sliderRef = useRef<HTMLInputElement>(null);
   const timeRef = useRef<HTMLSpanElement>(null);
@@ -96,6 +98,15 @@ export function TransportBar() {
       <div className="transport-controls">
         <button className="btn icon" onClick={() => seek(0)} disabled={!song} title="Zum Anfang">
           ⏮
+        </button>
+        <button
+          className={`btn icon rec${recording ? ' active' : ''}`}
+          onClick={toggleRecording}
+          title={recording ? 'Aufnahme beenden (Leertaste)' : 'Aufnahme starten (mit Count-in und Metronom)'}
+          aria-pressed={recording !== null}
+          aria-label="Aufnahme"
+        >
+          {recording ? '■' : '●'}
         </button>
         <button
           className="btn icon primary"

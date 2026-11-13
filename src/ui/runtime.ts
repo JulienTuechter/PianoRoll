@@ -500,6 +500,17 @@ async function importAndOpen(
   await openFromLibrary(parsed.id, parsed);
 }
 
+/** Bytes (z. B. eine gespeicherte Aufnahme) in die Bibliothek übernehmen und öffnen. */
+export async function importBytes(
+  bytes: Uint8Array,
+  fileName: string,
+  source: SongSource,
+  title: string,
+): Promise<void> {
+  await importAndOpen(bytes, fileName, source, title);
+  useApp.getState().set({ libraryOpen: false });
+}
+
 export async function loadFile(file: File): Promise<void> {
   if (!/\.(mid|midi)$/i.test(file.name)) {
     showError(`„${file.name}“ ist keine MIDI-Datei (.mid/.midi).`);

@@ -16,10 +16,31 @@ npm run dev      # http://localhost:5173 – Web MIDI braucht localhost oder HTT
 | `npm run build`                   | Typecheck + Produktions-Build |
 | `npm run lint` / `npm run format` | ESLint / Prettier             |
 
+## Funktionen
+
+- **Piano anschließen** über Web MIDI (Firefox, Brave), Hot-Plug, Velocity, Sustain-Pedal. Ohne Piano: Simulator (Tastatur/Maus).
+- **Modi:** Anschauen, Warten (Zeit hält bis zur richtigen Note/zum Akkord), Performance (Echtzeit mit Perfect/Good/Miss und Timing-Verteilung).
+- **Practice:** Tempo 25–150 %, Loop (Taktleiste oder Notenbild ziehen), Metronom, Count-in, Auto-Tempo.
+- **Ansichten:** fallende Noten, Notenschrift (VexFlow) mit mitlaufendem Cursor, oder beides. Freies Spiel: aufsteigende Noten.
+- **Harmony Assist:** Akkord, Tonart (Krumhansl-Schmuckler), Folgeakkorde mit Stufen, Ghost-Notes; im Stück nächster Akkord und Alternativen.
+- **Aufnahme:** mit Count-in und Metronom, Quantisierung (1/4, 1/8, 1/16, Triolen, Swing, Mindestlänge, Überlappungen, Hände-Trennung), Notenvorschau.
+- **Export:** MIDI, MusicXML, SVG, PNG – für Aufnahmen und geladene Stücke.
+- **Bibliothek** in IndexedDB mit Fortschritt (zuletzt geübt, beste Genauigkeit); Aufnahmen landen ebenfalls dort.
+
+| Taste       | Funktion                         |
+| ----------- | -------------------------------- |
+| Leertaste   | Play/Pause (bei Aufnahme: Stopp) |
+| ← / →       | Takt zurück/vor                  |
+| `L`         | Loop an/aus                      |
+| `Shift`+`M` | Metronom an/aus                  |
+| `Shift`+`B` | Bibliothek                       |
+
 ## Struktur
 
-- `src/core` – reine Logik ohne UI (MIDI-Input, Datei-Loader, Notenmodell, Transport, Audio). Darf kein React importieren (per ESLint erzwungen).
-- `src/ui` – React-Komponenten, Zustand-Stores, Canvas-Renderer.
+- `src/core` – reine Logik ohne UI, vollständig getestet: MIDI-Input, Datei-Loader, Notenmodell, Transport, Wait-/Performance-Engine, Scoring, Akkord- und Tonarterkennung, Harmonie-Vorschläge, Notation-Builder, Recorder, Quantizer, MIDI-/MusicXML-Export, Audio. Darf kein React importieren (per ESLint erzwungen).
+- `src/ui` – React-Komponenten, Zustand-Stores, Canvas-Renderer, VexFlow-Rendering.
+
+**Bekannte Einschränkung:** Die Notenschrift setzt pro Hand eine Stimme (gleichzeitige Töne als Akkord, gehaltene Töne enden beim nächsten Anschlag derselben Hand).
 
 ## Simulator
 

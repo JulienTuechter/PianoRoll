@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { keyCodeToMidi, MAX_SIM_OCTAVE, MIN_SIM_OCTAVE } from '../../core/input/keyboard-map';
 import { hub, seekMeasure, toggleLoop, toggleMetronome, togglePlay } from '../runtime';
+import { isRecording, stopRecording } from '../recording';
 import { useApp } from '../store/app-store';
 import { useSettings } from '../store/settings';
 
@@ -25,7 +26,10 @@ export function useKeyboardInput(enabled: boolean) {
 
       if (e.code === 'Space') {
         e.preventDefault();
-        if (!e.repeat) togglePlay();
+        if (!e.repeat) {
+          if (isRecording()) stopRecording();
+          else togglePlay();
+        }
         return;
       }
       if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {

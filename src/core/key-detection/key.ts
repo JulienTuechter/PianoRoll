@@ -76,3 +76,39 @@ export function parseKey(name: string, mode: Mode): MusicalKey | null {
   const acc = m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0;
   return { tonicPc: pc(base + acc), mode };
 }
+
+const MAJOR_FIFTHS: Record<string, number> = {
+  C: 0,
+  G: 1,
+  D: 2,
+  A: 3,
+  E: 4,
+  B: 5,
+  'F#': 6,
+  Db: -5,
+  Ab: -4,
+  Eb: -3,
+  Bb: -2,
+  F: -1,
+};
+const MINOR_FIFTHS: Record<string, number> = {
+  A: 0,
+  E: 1,
+  B: 2,
+  'F#': 3,
+  'C#': 4,
+  'G#': 5,
+  D: -1,
+  G: -2,
+  C: -3,
+  F: -4,
+  Bb: -5,
+  Eb: -6,
+};
+
+/** Anzahl Vorzeichen (+ Kreuze, − Bs) der Tonart, wie in MIDI/MusicXML. */
+export function keyFifths(k: MusicalKey | null): number {
+  if (!k) return 0;
+  const name = keyTonicName(k);
+  return (k.mode === 'major' ? MAJOR_FIFTHS[name] : MINOR_FIFTHS[name]) ?? 0;
+}

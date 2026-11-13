@@ -67,6 +67,17 @@ export interface Settings {
   /** Wahrscheinlichsten Folgeakkord im Freispiel automatisch auf der Klaviatur zeigen */
   harmonyAutoGhost: boolean;
   view: StageView;
+  // Aufnahme
+  recBpm: number;
+  recNumerator: number;
+  recDenominator: number;
+  recMetronome: boolean;
+  // Quantisierung
+  quantGrid: 4 | 8 | 16;
+  quantTriplets: boolean;
+  quantSwing: number;
+  quantMinNote: number;
+  quantResolveOverlaps: boolean;
 }
 
 interface SettingsStore extends Settings {
@@ -113,6 +124,15 @@ export const defaultSettings: Settings = {
   harmonyAudition: true,
   harmonyAutoGhost: true,
   view: 'split',
+  recBpm: 90,
+  recNumerator: 4,
+  recDenominator: 4,
+  recMetronome: true,
+  quantGrid: 16,
+  quantTriplets: false,
+  quantSwing: 0.5,
+  quantMinNote: 16,
+  quantResolveOverlaps: true,
 };
 
 function safeLocalStorage(): Storage | null {
@@ -155,7 +175,7 @@ export const useSettings = create<SettingsStore>()(
     }),
     {
       name: 'pianist-settings',
-      version: 6,
+      version: 7,
       storage: createJSONStorage(() => idbStorage),
       // Neue Felder bekommen Standardwerte; unbekannte alte Felder werden ignoriert
       migrate: (persisted) => ({ ...defaultSettings, ...(persisted as Partial<Settings>) }),

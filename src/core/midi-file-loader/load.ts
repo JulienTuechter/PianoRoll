@@ -1,4 +1,5 @@
 import { Midi } from '@tonejs/midi';
+import { keyTonicName, parseKey } from '../key-detection/key';
 import { TempoMap } from '../note-event-model/tempo-map';
 import type {
   KeySignatureChange,
@@ -63,7 +64,13 @@ export function loadMidiFile(data: ArrayBuffer | Uint8Array, options: LoadOption
   // Ungültige Vorzeichenangaben (key undefined) werden verworfen
   const keySignatures: KeySignatureChange[] = midi.header.keySignatures
     .filter((k) => typeof k.key === 'string' && k.key.length > 0)
-    .map((k) => ({ tick: k.ticks, key: k.key, scale: k.scale === 'minor' ? 'minor' : 'major' }));
+    .map((k) => {
+      // @tonejs/midi liefert bei Moll den Namen der Dur-Paralleltonart (d-Moll → "F" + minor) → Moll-Tonika bestimmen
+      if (k.scale !== 'minor') return { tick: k.ticks, key: k.key, scale: 'major' as const };
+      const major = parseKey(k.key, 'major');
+      const minor = major ? { tonicPc: (major.tonicPc + 9) % 12, mode: 'minor' as const } : null;
+      return { tick: k.ticks, key: minor ? keyTonicName(minor) : k.key, scale: 'minor' as const };
+    });
 
   const summaries: TrackSummary[] = midi.tracks.map((t, index) => ({
     index,

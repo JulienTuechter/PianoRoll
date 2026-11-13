@@ -1239,3 +1239,95 @@ select {
 .transport-controls {
   flex: 1 1 260px;
 }
+
+/* Phase 6: Aufnahme & Export */
+.btn.rec {
+  color: #ff5c5c;
+  font-size: 16px;
+}
+.btn.rec.active {
+  background: #ff4d4d;
+  color: #fff;
+  border-color: #ff4d4d;
+  animation: rec-pulse 1.2s ease-in-out infinite;
+}
+@keyframes rec-pulse {
+  50% {
+    box-shadow: 0 0 0 6px rgba(255, 77, 77, 0.25);
+  }
+}
+.rec-badge {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: rgba(14, 16, 20, 0.88);
+  border: 1px solid #ff4d4d;
+  border-radius: var(--radius);
+  font-weight: 700;
+  color: #ff7676;
+}
+.rec-info {
+  color: var(--text);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.rec-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff4d4d;
+  animation: rec-pulse 1.2s ease-in-out infinite;
+}
+.rec-tag {
+  background: rgba(255, 77, 77, 0.15);
+  color: #ff9a9a;
+}
+.rec-settings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.text-input {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  width: 100%;
+}
+.quant-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 16px;
+}
+.recording-dialog {
+  width: min(1100px, calc(100vw - 32px));
+}
+.rec-preview {
+  max-height: 45vh;
+  overflow-y: auto;
+  margin-top: 8px;
+  border-radius: 6px;
+}
+.rec-preview-paper {
+  cursor: default;
+  padding: 0;
+}
+.export-group,
+.export-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.export-row {
+  margin-top: 12px;
+}
+.export-group {
+  margin-right: auto;
+  color: var(--muted);
+  font-size: 13px;
+}

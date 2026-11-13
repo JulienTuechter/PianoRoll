@@ -6,6 +6,7 @@ import { Stage } from './components/Stage';
 import { MeasureTimeline } from './components/MeasureTimeline';
 import { Onboarding } from './components/Onboarding';
 import { PianoKeyboard } from './components/PianoKeyboard';
+import { RecordingDialog } from './components/RecordingDialog';
 import { ResultsDialog } from './components/ResultsDialog';
 import { SettingsDialog } from './components/SettingsDialog';
 import { SidePanel } from './components/SidePanel';
@@ -17,7 +18,7 @@ import { useApp } from './store/app-store';
 import { useSettings } from './store/settings';
 
 export function App() {
-  const dialogOpen = useApp((s) => s.settingsOpen || s.libraryOpen || s.resultsOpen);
+  const dialogOpen = useApp((s) => s.settingsOpen || s.libraryOpen || s.resultsOpen || s.take !== null);
   const ready = useApp((s) => s.ready);
   const onboardingDone = useSettings((s) => s.onboardingDone);
   const activeDeviceId = useApp((s) => s.midi.activeDeviceId);
@@ -52,6 +53,7 @@ export function App() {
       <SettingsDialog />
       <LibraryDialog />
       <ResultsDialog />
+      <RecordingDialog />
       {ready && <Onboarding />}
     </div>
   );

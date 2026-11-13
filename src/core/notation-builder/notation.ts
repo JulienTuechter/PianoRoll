@@ -19,6 +19,8 @@ export interface NotationEvent {
   wholeMeasureRest: boolean;
   /** Mit dem nächsten Ereignis derselben Notenzeile per Haltebogen verbunden */
   tieNext: boolean;
+  /** Triole: Gruppen-ID (Tick des Schlagbeginns) – Ereignisse mit gleicher ID bilden eine „3“ */
+  tuplet: number | null;
   /** IDs der zugrunde liegenden NoteEvents (für Hervorhebung beim Abspielen) */
   noteIds: string[];
 }
@@ -102,6 +104,8 @@ export function splitDuration(
   length: number,
   ppq: number,
   meter: { numerator: number; denominator: number } = { numerator: 4, denominator: 4 },
+  /** Noten: ungepunktete Werte, die auf einem Schlag beginnen, dürfen die Taktmitte überbrücken (Synkope ♩ 𝅗𝅥 ♩) */
+  allowSyncopation = false,
 ): { value: NoteValue; dots: number; ticks: number }[] {
   const table = valueTable(ppq);
   const beat = (ppq * 4) / meter.denominator;
@@ -109,7 +113,9 @@ export function splitDuration(
   const half = meter.numerator >= 4 && meter.numerator % 2 === 0 ? measure / 2 : null;
   const allowed = (v: ValueDef, pos: number) => {
     if (pos % Math.min(v.align, beat) !== 0) return false;
-    if (half !== null && pos !== 0 && pos < half && pos + v.ticks > half) return false;
+    if (half !== null && pos !== 0 && pos < half && pos + v.ticks > half) {
+      if (!(allowSyncopation && v.dots === 0 && pos % beat === 0)) return false;
+    }
     return true;
   };
   const memo = new Map<number, ValueDef[] | null>();
@@ -150,11 +156,18 @@ export function chordsForStaff(
   secToTick?: (sec: number) => number,
 ): Chord[] {
   const byStart = new Map<number, Chord>();
+  // Triolenraster nur, wenn ein Wert dort klar besser und fast exakt liegt (keine Schein-Triolen aus ungenauen Dateien)
+  const tripletGrid = ppq / 6;
+  const snapTick = (t: number) => {
+    const s = Math.round(t / gridTicks) * gridTicks;
+    const tr = Math.round(t / tripletGrid) * tripletGrid;
+    return Math.abs(t - tr) < Math.abs(t - s) && Math.abs(t - tr) <= ppq / 24 ? tr : s;
+  };
   for (const n of notes) {
-    const start = Math.round(n.startTick / gridTicks) * gridTicks;
+    const start = snapTick(n.startTick);
     const durTicks =
       n.durationTicks ?? (secToTick ? secToTick(n.startSec + n.durationSec) - secToTick(n.startSec) : ppq);
-    let end = Math.round((n.startTick + durTicks) / gridTicks) * gridTicks;
+    let end = snapTick(n.startTick + durTicks);
     if (end <= start) end = start + gridTicks;
     const c = byStart.get(start);
     if (c) {
@@ -166,6 +179,47 @@ export function chordsForStaff(
   // Eine Stimme: Akkord endet spätestens beim nächsten Anschlag
   for (let i = 0; i < chords.length - 1; i++) chords[i]!.end = Math.min(chords[i]!.end, chords[i + 1]!.start);
   return chords;
+}
+
+type Piece = { value: NoteValue; dots: number; ticks: number; tuplet: number | null };
+
+/**
+ * Schläge mit Triolen: Ein Anfang oder Ende liegt auf dem Triolenraster (ppq/6), aber nicht auf dem
+ * geraden Raster (ppq/8). Rückgabe: Indizes der Schläge im Takt.
+ */
+export function tripletBeats(
+  boundaries: readonly number[],
+  mStart: number,
+  mEnd: number,
+  ppq: number,
+  beat: number,
+): Set<number> {
+  const out = new Set<number>();
+  const straight = ppq / 8;
+  const trip = ppq / 6;
+  for (const b of boundaries) {
+    if (b <= mStart || b >= mEnd) continue;
+    const rel = b - mStart;
+    if (rel % straight !== 0 && rel % trip === 0) out.add(Math.floor(rel / beat));
+  }
+  return out;
+}
+
+/** Zerlegung innerhalb eines Triolenschlags: Viertel-, Achtel- und Sechzehnteltriolen. */
+function tripletPieces(from: number, to: number, beatStart: number, ppq: number): Piece[] {
+  const u = ppq / 3;
+  const out: Piece[] = [];
+  let t = from;
+  while (to - t > 0) {
+    const rel = t - beatStart;
+    let p: Piece;
+    if (to - t >= 2 * u && rel % u === 0) p = { value: '4', dots: 0, ticks: 2 * u, tuplet: beatStart };
+    else if (to - t >= u && rel % u === 0) p = { value: '8', dots: 0, ticks: u, tuplet: beatStart };
+    else p = { value: '16', dots: 0, ticks: Math.min(u / 2, to - t), tuplet: beatStart };
+    out.push(p);
+    t += p.ticks;
+  }
+  return out;
 }
 
 function buildStaffMeasures(
@@ -181,8 +235,46 @@ function buildStaffMeasures(
     const mStart = m.startTick;
     const mEnd = measureEnds[mi]!;
     const events = result[mi]!;
+    const beat = (ppq * 4) / m.denominator;
+    const inMeasure = chords.filter((c) => c.start < mEnd && c.end > mStart);
+    const triplets = tripletBeats(
+      inMeasure.flatMap((c) => [c.start, c.end]),
+      mStart,
+      mEnd,
+      ppq,
+      beat,
+    );
+
+    /** Bereich in Notenwerte zerlegen – gerade Abschnitte über splitDuration, Triolenschläge einzeln */
+    const pieces = (from: number, to: number, isNote: boolean): Piece[] => {
+      const out: Piece[] = [];
+      let t = from;
+      while (t < to) {
+        const bi = Math.floor((t - mStart) / beat);
+        const beatStart = mStart + bi * beat;
+        if (triplets.has(bi)) {
+          const segEnd = Math.min(to, beatStart + beat);
+          out.push(...tripletPieces(t, segEnd, beatStart, ppq));
+          t = segEnd;
+          continue;
+        }
+        let runEnd = to;
+        for (let k = bi + 1; mStart + k * beat < to; k++) {
+          if (triplets.has(k)) {
+            runEnd = mStart + k * beat;
+            break;
+          }
+        }
+        out.push(
+          ...splitDuration(t - mStart, runEnd - t, ppq, m, isNote).map((p) => ({ ...p, tuplet: null })),
+        );
+        t = runEnd;
+      }
+      return out;
+    };
+
     const pushRest = (from: number, to: number) => {
-      for (const p of splitDuration(from - mStart, to - from, ppq, m)) {
+      for (const p of pieces(from, to, false)) {
         events.push({
           startTick: from,
           durationTicks: p.ticks,
@@ -193,6 +285,7 @@ function buildStaffMeasures(
           dots: p.dots,
           wholeMeasureRest: false,
           tieNext: false,
+          tuplet: p.tuplet,
           noteIds: [],
         });
         from += p.ticks;
@@ -212,7 +305,7 @@ function buildStaffMeasures(
       if (segStart > cursor) pushRest(cursor, segStart);
       const midis = [...new Set(c.notes.map((n) => n.midi))].sort((a, b) => a - b);
       const keys = midis.map((x) => vexKey(x, spell));
-      const parts = splitDuration(segStart - mStart, segEnd - segStart, ppq, m);
+      const parts = pieces(segStart, segEnd, true);
       let t = segStart;
       parts.forEach((p, pi) => {
         events.push({
@@ -226,6 +319,7 @@ function buildStaffMeasures(
           wholeMeasureRest: false,
           // Bogen innerhalb des Takts oder in den nächsten Takt
           tieNext: pi < parts.length - 1 || c.end > mEnd,
+          tuplet: p.tuplet,
           noteIds: c.notes.map((n) => n.id),
         });
         t += p.ticks;
@@ -244,6 +338,7 @@ function buildStaffMeasures(
         dots: 0,
         wholeMeasureRest: true,
         tieNext: false,
+        tuplet: null,
         noteIds: [],
       });
     } else if (cursor < mEnd) pushRest(cursor, mEnd);

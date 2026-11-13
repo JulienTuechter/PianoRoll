@@ -61,6 +61,7 @@ function Row({ entry, current }: { entry: LibraryEntry; current: boolean }) {
           <button className="link" onClick={open} title="Öffnen">
             {entry.title}
             {entry.source === 'demo' && <span className="tag">Demo</span>}
+            {entry.source === 'recording' && <span className="tag rec-tag">Aufnahme</span>}
           </button>
         )}
       </td>

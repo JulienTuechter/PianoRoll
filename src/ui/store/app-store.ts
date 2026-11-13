@@ -4,6 +4,7 @@ import type { WebMidiState } from '../../core/midi-input/web-midi';
 import type { Song } from '../../core/note-event-model/types';
 import type { TransportState } from '../../core/playback/transport';
 import type { LoopRange } from '../../core/practice-engine/loop';
+import type { Recording } from '../../core/recorder/recorder';
 import type { PassSummary, RunResult } from '../../core/scoring/scoring';
 
 export type AudioState = 'locked' | 'loading' | 'ready' | 'fallback';
@@ -29,6 +30,10 @@ interface AppState {
   lastPass: (PassSummary & { index: number; cleanStreak: number; tempoUp: number | null }) | null;
   /** Bibliotheks-Startansicht weggeklickt bzw. frei losgespielt (nur für diese Sitzung) */
   freePlay: boolean;
+  /** Läuft gerade eine Aufnahme? */
+  recording: 'countin' | 'recording' | null;
+  /** Letzte Aufnahme, die im Editor bearbeitet wird */
+  take: Recording | null;
   set(partial: Partial<Omit<AppState, 'set'>>): void;
 }
 
@@ -50,5 +55,7 @@ export const useApp = create<AppState>()((set) => ({
   loopEnabled: false,
   lastPass: null,
   freePlay: false,
+  recording: null,
+  take: null,
   set: (partial) => set(partial),
 }));

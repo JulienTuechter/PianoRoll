@@ -5,7 +5,9 @@ import { setSongSplitPoint, updateTracks } from '../runtime';
 import { useApp } from '../store/app-store';
 import { useSettings } from '../store/settings';
 import { MidiStatusPanel } from './MidiStatus';
+import { ExportButtons } from './ExportButtons';
 import { HarmonyPanel } from './HarmonyPanel';
+import { RecordingSettings } from './RecordingSettings';
 import { PracticePanel, PracticeTools } from './PracticePanel';
 import { Section } from './Section';
 
@@ -106,11 +108,16 @@ export function SidePanel() {
               />
             </label>
           )}
+          <ExportButtons />
           <div className="legend">
             <span className="swatch left" /> Linke Hand <span className="swatch right" /> Rechte Hand
           </div>
         </Section>
       )}
+
+      <Section id="recording" title="Aufnahme">
+        <RecordingSettings />
+      </Section>
 
       <Section id="midi" title="MIDI">
         <MidiStatusPanel />

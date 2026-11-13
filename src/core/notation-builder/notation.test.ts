@@ -49,8 +49,15 @@ describe('Notenwerte zerlegen', () => {
     expect(splitDuration(0, 1200, PPQ).map((p) => p.value)).toEqual(['2', '8']);
     // 3/4: Halbe auf Schlag 2 bleibt eine Halbe
     expect(splitDuration(480, 960, PPQ, { numerator: 3, denominator: 4 }).map((p) => p.value)).toEqual(['2']);
-    // 4/4: Halbe auf Schlag 2 würde die Taktmitte überbinden → zwei Viertel
+    // 4/4: Pausen überbrücken die Taktmitte nicht → zwei Viertel; Noten dürfen synkopieren (♩ 𝅗𝅥 ♩)
     expect(splitDuration(480, 960, PPQ).map((p) => p.value)).toEqual(['4', '4']);
+    expect(splitDuration(480, 960, PPQ, { numerator: 4, denominator: 4 }, true).map((p) => p.value)).toEqual([
+      '2',
+    ]);
+    // punktierte Werte nie über die Taktmitte, auch nicht bei Noten
+    expect(splitDuration(480, 1440, PPQ, { numerator: 4, denominator: 4 }, true).map((p) => p.value)).toEqual(
+      ['2', '4'],
+    );
   });
 });
 
@@ -116,6 +123,37 @@ describe('buildNotation', () => {
     const score = buildNotation([], ms, PPQ, { key: null });
     expect(score.measures.map((m) => m.timeSigChange)).toEqual([true, true, false]);
     expect(score.measures[1]!.endTick - score.measures[1]!.startTick).toBe(1440);
+  });
+
+  it('setzt Achteltriolen als Gruppe und gemischte Triolen (Viertel + Achtel)', () => {
+    const u = PPQ / 3;
+    const notes = [
+      n(60, 0, u),
+      n(62, u, u),
+      n(64, 2 * u, u),
+      n(65, 480, 2 * u),
+      n(67, 480 + 2 * u, u),
+      n(69, 960, 960),
+    ];
+    const score = buildNotation(notes, measures44(1), PPQ, { key: null });
+    const t = score.measures[0]!.treble;
+    expect(t.map((e) => `${e.value}${e.tuplet !== null ? 't' + e.tuplet : ''}`)).toEqual([
+      '8t0',
+      '8t0',
+      '8t0',
+      '4t480',
+      '8t480',
+      '2',
+    ]);
+    expect(t.reduce((s, e) => s + e.durationTicks, 0)).toBe(1920);
+  });
+
+  it('setzt Pausen in Triolenschlägen ebenfalls als Triolen', () => {
+    const u = PPQ / 3;
+    const score = buildNotation([n(60, u, u)], measures44(1), PPQ, { key: null });
+    expect(
+      score.measures[0]!.treble.map((e) => `${e.rest ? 'r' : 'n'}${e.value}${e.tuplet !== null ? 't' : ''}`),
+    ).toEqual(['r8t', 'n8t', 'r8t', 'r4', 'r2']);
   });
 
   it('setzt das Demo-Stück korrekt (Takt 1: E F G, Bass C + Akkord)', () => {

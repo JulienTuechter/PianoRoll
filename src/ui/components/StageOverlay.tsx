@@ -2,6 +2,7 @@ import { useApp } from '../store/app-store';
 import { HarmonyBar } from './HarmonyBar';
 import { LibraryList } from './Library';
 import { PlayHud } from './PlayHud';
+import { RecordingOverlay } from './RecordingOverlay';
 
 /**
  * Über dem Notenbereich: ohne Stück die Bibliothek als Startansicht (verschwindet beim ersten Anschlag
@@ -12,8 +13,16 @@ export function StageOverlay() {
   const ready = useApp((s) => s.ready);
   const freePlay = useApp((s) => s.freePlay);
   const set = useApp((s) => s.set);
+  const recording = useApp((s) => s.recording);
   if (!ready) return null;
   if (!song) {
+    if (recording)
+      return (
+        <>
+          <HarmonyBar />
+          <RecordingOverlay />
+        </>
+      );
     if (freePlay) return <HarmonyBar />;
     return (
       <div className="stage-empty">

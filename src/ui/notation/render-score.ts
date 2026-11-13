@@ -76,6 +76,7 @@ export async function renderScore(
     StaveConnector,
     Dot,
     BarlineType,
+    Tuplet,
   } = VF;
 
   // Zeilen packen
@@ -159,6 +160,26 @@ export async function renderScore(
       };
       const tNotes = m.treble.map((e) => make(e, 'treble'));
       const bNotes = m.bass.map((e) => make(e, 'bass'));
+      // Triolen: aufeinanderfolgende Ereignisse derselben Gruppe → „3 im Raum von 2“ (vor dem Formatieren!)
+      const tuplets: InstanceType<typeof Tuplet>[] = [];
+      const groupTuplets = (events: NotationEvent[], notes: InstanceType<typeof StaveNote>[]) => {
+        let i = 0;
+        while (i < events.length) {
+          const g = events[i]!.tuplet;
+          if (g === null) {
+            i++;
+            continue;
+          }
+          let j = i;
+          while (j < events.length && events[j]!.tuplet === g) j++;
+          tuplets.push(
+            new Tuplet(notes.slice(i, j), { numNotes: 3, notesOccupied: 2, bracketed: true, ratioed: false }),
+          );
+          i = j;
+        }
+      };
+      groupTuplets(m.treble, tNotes);
+      groupTuplets(m.bass, bNotes);
       const tv = new Voice({ numBeats: m.numerator, beatValue: m.denominator })
         .setMode(Voice.Mode.SOFT)
         .addTickables(tNotes);
@@ -178,6 +199,7 @@ export async function renderScore(
       tv.draw(ctx, ts);
       bv.draw(ctx, bs);
       for (const b of beams) b.setContext(ctx).draw();
+      for (const t of tuplets) t.setContext(ctx).draw();
 
       const collect = (
         events: NotationEvent[],
