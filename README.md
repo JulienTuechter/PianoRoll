@@ -22,6 +22,7 @@ npm run dev      # http://localhost:5173 – Web MIDI braucht localhost oder HTT
 - **Modi:** Anschauen, Warten (Zeit hält bis zur richtigen Note/zum Akkord), Performance (Echtzeit mit Perfect/Good/Miss und Timing-Verteilung).
 - **Practice:** Tempo 25–150 %, Loop (Taktleiste oder Notenbild ziehen), Metronom, Count-in, Auto-Tempo.
 - **Ansichten:** fallende Noten, Notenschrift (VexFlow) mit mitlaufendem Cursor, oder beides. Freies Spiel: aufsteigende Noten.
+- **Bühne:** WebGL (PixiJS, nachgeladen) hinter der Schnittstelle `NoteRenderer`, Canvas-2D-Fallback ohne WebGL. Leuchtende Notenkapseln mit Bloom, glühende Treffer-Linie, Funken je nach Anschlagstärke, Tastenlicht in Notenfarbe. Treffer = Funkenschauer, falsche Taste = rotes Flackern. Farbe nach Hand oder Tonhöhe, Qualität Niedrig/Mittel/Hoch, `prefers-reduced-motion` schaltet Funken und Flackern ab. Beim Spielen blenden die Bedienelemente aus.
 - **Harmony Assist:** Akkord, Tonart (Krumhansl-Schmuckler), Folgeakkorde mit Stufen, Ghost-Notes; im Stück nächster Akkord und Alternativen.
 - **Aufnahme:** mit Count-in und Metronom, Quantisierung (1/4, 1/8, 1/16, Triolen, Swing, Mindestlänge, Überlappungen, Hände-Trennung), Notenvorschau.
 - **Export:** MIDI, MusicXML, SVG, PNG – für Aufnahmen und geladene Stücke.

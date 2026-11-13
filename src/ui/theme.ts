@@ -24,6 +24,8 @@ export const theme = {
   keyBorder: '#322621',
   noteText: '#0b0605',
   keyLabel: '#7f6e60',
+  /** Akkord-Marken im freien Spiel */
+  markLabel: '#cabba5',
 } as const;
 
 export const DEFAULT_RIGHT = '#56B4E9';

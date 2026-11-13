@@ -84,9 +84,16 @@ export interface Settings {
   // Visuell
   /** Anfängermodus: Führungsstrahl zur Taste, Zieltaste leuchtet vorher auf (mit Notennamen) */
   beginnerMode: boolean;
-  /** Funkeneffekte, wenn Balken auf die Klaviatur treffen bzw. aufsteigen */
-  particles: boolean;
+  /** Bühne: Qualitätsstufe (Partikelzahl, Bloom) */
+  visualQuality: VisualQuality;
+  /** Notenfarbe nach Hand oder nach Tonhöhe (links kühl, rechts warm) */
+  noteColorMode: NoteColorMode;
+  /** Seitenleiste über der Bühne sichtbar */
+  sidePanelOpen: boolean;
 }
+
+export type VisualQuality = 'low' | 'medium' | 'high';
+export type NoteColorMode = 'hand' | 'pitch';
 
 interface SettingsStore extends Settings {
   update(partial: Partial<Settings>): void;
@@ -144,7 +151,10 @@ export const defaultSettings: Settings = {
   quantMinNote: 16,
   quantResolveOverlaps: true,
   beginnerMode: false,
-  particles: false,
+  visualQuality: 'medium',
+  noteColorMode: 'hand',
+  // Auf schmalen Bildschirmen verdeckt die Leiste sonst die halbe Bühne
+  sidePanelOpen: typeof window === 'undefined' || window.innerWidth > 900,
 };
 
 function safeLocalStorage(): Storage | null {

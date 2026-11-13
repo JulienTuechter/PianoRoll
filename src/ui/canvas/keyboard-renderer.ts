@@ -198,6 +198,21 @@ function drawScaleDot(ctx: CanvasRenderingContext2D, k: KeyRect, y: number): voi
   ctx.fill();
 }
 
+/** Gemeinsame Maße für Grundbild und Beschriftung */
+function metrics(layout: KeyboardLayout, height: number) {
+  const bh = height * BLACK_HEIGHT_RATIO;
+  return {
+    r: Math.min(4, layout.whiteWidth * 0.2),
+    bh,
+    // Markierung mittig zwischen Unterkante der schwarzen Tasten und Tastenbeschriftung
+    whiteMarkY: (bh + (height - 36)) / 2,
+    blackMarkY: bh - Math.max(14, bh * 0.2),
+    // direkt unter den schwarzen Tasten – kollidiert weder mit Markierungen noch mit Beschriftungen
+    scaleY: bh + 7,
+  };
+}
+
+/** Klaviatur komplett (Canvas-2D-Fallback): Tastenkörper, Anschlagslinie und Beschriftung. */
 export function drawKeyboard(
   ctx: CanvasRenderingContext2D,
   layout: KeyboardLayout,
@@ -205,17 +220,9 @@ export function drawKeyboard(
   f: KeyboardFrame,
 ): void {
   ctx.clearRect(0, 0, layout.width, height);
-  const r = Math.min(4, layout.whiteWidth * 0.2);
-  const bh = height * BLACK_HEIGHT_RATIO;
-  // Markierung mittig zwischen Unterkante der schwarzen Tasten und Tastenbeschriftung
-  const whiteMarkY = (bh + (height - 36)) / 2;
-  const blackMarkY = bh - Math.max(14, bh * 0.2);
-
-  const whiteLooks: KeyLook[] = [];
+  const { r, bh } = metrics(layout, height);
   for (const k of layout.whites) {
-    const look = lookFor(k.midi, false, f);
-    whiteLooks.push(look);
-    ctx.fillStyle = look.fill;
+    ctx.fillStyle = lookFor(k.midi, false, f).fill;
     roundRectBottom(ctx, k.x + 0.5, 0, k.w - 1, height - 1, r);
     ctx.fill();
     ctx.fillStyle = theme.whiteKeyShade;
@@ -223,35 +230,7 @@ export function drawKeyboard(
     ctx.fillRect(k.x + 0.5, height - 6, k.w - 1, 5);
     ctx.globalAlpha = 1;
   }
-
-  ctx.font = `${Math.max(8, Math.min(11, layout.whiteWidth * 0.45))}px system-ui, sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'alphabetic';
-  for (const k of layout.whites) {
-    if (k.midi % 12 === 0) {
-      ctx.fillStyle = theme.keyLabel;
-      ctx.fillText(`C${Math.floor(k.midi / 12) - 1}`, k.x + k.w / 2, height - 9);
-    }
-  }
-
-  const ghostHand = new Map<number, Hand>();
-  if (f.ghost) {
-    ghostHand.set(f.ghost.bass, 'left');
-    for (const m of f.ghost.upper) ghostHand.set(m, 'right');
-  }
-  // direkt unter den schwarzen Tasten – kollidiert weder mit Markierungen noch mit Beschriftungen
-  const scaleY = bh + 7;
-
-  layout.whites.forEach((k, i) => {
-    const look = whiteLooks[i]!;
-    if (f.scalePcs?.has(k.midi % 12)) drawScaleDot(ctx, k, scaleY);
-    const gh = ghostHand.get(k.midi);
-    if (gh) drawGhost(ctx, k, whiteMarkY, gh, height, f.ghostSoft, f.pressed.has(k.midi));
-    if (look.expectHand && !f.approaching?.has(k.midi))
-      drawExpectMarker(ctx, k, whiteMarkY, look.expectHand, f.hint, f.nowMs);
-    drawMark(ctx, k, whiteMarkY, look.mark);
-  });
-
+  drawKeyboardAnnotations(ctx, layout, height, f, 'white');
   for (const k of layout.blacks) {
     const look = lookFor(k.midi, true, f);
     ctx.fillStyle = look.fill;
@@ -261,28 +240,75 @@ export function drawKeyboard(
       ctx.fillStyle = theme.blackKeyTop;
       ctx.fillRect(k.x + k.w * 0.18, bh - 8, k.w * 0.64, 5);
     }
-    if (f.scalePcs?.has(k.midi % 12)) drawScaleDot(ctx, k, bh - 6);
-    const gh = ghostHand.get(k.midi);
-    if (gh) drawGhost(ctx, k, blackMarkY, gh, bh, f.ghostSoft, f.pressed.has(k.midi));
-    if (look.expectHand && !f.approaching?.has(k.midi))
-      drawExpectMarker(ctx, k, blackMarkY, look.expectHand, f.hint, f.nowMs);
-    drawMark(ctx, k, blackMarkY, look.mark);
+  }
+  drawKeyboardAnnotations(ctx, layout, height, f, 'black');
+  ctx.fillStyle = theme.nowLine;
+  ctx.fillRect(0, 0, layout.width, 2);
+}
+
+/**
+ * Alles auf den Tasten außer den Tastenkörpern: Oktavbeschriftung, Skalenpunkte, Vorschlagsringe,
+ * erwartete Tasten, Bewertungszeichen (✓ ✗ ↑ ↓, farbenblind-sicher), Simulator-Buchstaben, Anfängermodus.
+ * `part` trennt weiße und schwarze Tasten (der Fallback zeichnet dazwischen die schwarzen Tastenkörper).
+ */
+export function drawKeyboardAnnotations(
+  ctx: CanvasRenderingContext2D,
+  layout: KeyboardLayout,
+  height: number,
+  f: KeyboardFrame,
+  part: 'white' | 'black' | 'all' = 'all',
+): void {
+  const { bh, whiteMarkY, blackMarkY, scaleY } = metrics(layout, height);
+  const ghostHand = new Map<number, Hand>();
+  if (f.ghost) {
+    ghostHand.set(f.ghost.bass, 'left');
+    for (const m of f.ghost.upper) ghostHand.set(m, 'right');
   }
 
-  if (f.labels) {
-    ctx.font = `bold ${Math.max(8, Math.min(12, layout.whiteWidth * 0.5))}px system-ui, sans-serif`;
-    for (const [midi, label] of f.labels) {
-      const k = layout.byMidi[midi];
-      if (!k) continue;
-      ctx.fillStyle = k.black ? '#d6cbb6' : '#5a4e3c';
-      ctx.fillText(label, k.x + k.w / 2, k.black ? 14 : height - 24);
+  if (part !== 'black') {
+    ctx.font = `${Math.max(8, Math.min(11, layout.whiteWidth * 0.45))}px system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = theme.keyLabel;
+    for (const k of layout.whites)
+      if (k.midi % 12 === 0) ctx.fillText(`C${Math.floor(k.midi / 12) - 1}`, k.x + k.w / 2, height - 9);
+
+    for (const k of layout.whites) {
+      const look = lookFor(k.midi, false, f);
+      if (f.scalePcs?.has(k.midi % 12)) drawScaleDot(ctx, k, scaleY);
+      const gh = ghostHand.get(k.midi);
+      if (gh) drawGhost(ctx, k, whiteMarkY, gh, height, f.ghostSoft, f.pressed.has(k.midi));
+      if (look.expectHand && !f.approaching?.has(k.midi))
+        drawExpectMarker(ctx, k, whiteMarkY, look.expectHand, f.hint, f.nowMs);
+      drawMark(ctx, k, whiteMarkY, look.mark);
     }
   }
 
-  if (f.approaching) drawApproaching(ctx, layout, height, bh, f.approaching);
+  if (part !== 'white') {
+    for (const k of layout.blacks) {
+      const look = lookFor(k.midi, true, f);
+      if (f.scalePcs?.has(k.midi % 12)) drawScaleDot(ctx, k, bh - 6);
+      const gh = ghostHand.get(k.midi);
+      if (gh) drawGhost(ctx, k, blackMarkY, gh, bh, f.ghostSoft, f.pressed.has(k.midi));
+      if (look.expectHand && !f.approaching?.has(k.midi))
+        drawExpectMarker(ctx, k, blackMarkY, look.expectHand, f.hint, f.nowMs);
+      drawMark(ctx, k, blackMarkY, look.mark);
+    }
 
-  ctx.fillStyle = theme.nowLine;
-  ctx.fillRect(0, 0, layout.width, 2);
+    if (f.labels) {
+      ctx.font = `bold ${Math.max(8, Math.min(12, layout.whiteWidth * 0.5))}px system-ui, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'alphabetic';
+      for (const [midi, label] of f.labels) {
+        const k = layout.byMidi[midi];
+        if (!k) continue;
+        ctx.fillStyle = k.black ? '#d6cbb6' : '#5a4e3c';
+        ctx.fillText(label, k.x + k.w / 2, k.black ? 14 : height - 24);
+      }
+    }
+
+    if (f.approaching) drawApproaching(ctx, layout, height, bh, f.approaching);
+  }
 }
 
 /** Anfängermodus: Zieltaste leuchtet in Handfarbe auf (stärker, je näher die Note) und zeigt den Notennamen. */

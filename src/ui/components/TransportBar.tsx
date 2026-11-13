@@ -33,6 +33,7 @@ export function TransportBar() {
   const loopEnabled = useApp((s) => s.loopEnabled);
   const recording = useApp((s) => s.recording);
   const update = useSettings((s) => s.update);
+  const panelOpen = useSettings((s) => s.sidePanelOpen);
   const sliderRef = useRef<HTMLInputElement>(null);
   const metroRef = useRef<HTMLButtonElement>(null);
   const timeRef = useRef<HTMLSpanElement>(null);
@@ -213,6 +214,15 @@ export function TransportBar() {
         )}
 
         <button
+          className={`btn icon ghost${panelOpen ? ' active' : ''}`}
+          onClick={() => update({ sidePanelOpen: !panelOpen })}
+          title={t.transport.panel}
+          aria-label={t.transport.panel}
+          aria-pressed={panelOpen}
+        >
+          <Icon name="panel" />
+        </button>
+        <button
           className="btn icon ghost"
           onClick={() => setApp({ settingsOpen: true })}
           title={t.transport.settings}
@@ -235,7 +245,17 @@ export function TransportBar() {
 }
 
 type IconName =
-  'library' | 'close' | 'start' | 'rec' | 'stop' | 'play' | 'pause' | 'loop' | 'metronome' | 'settings';
+  | 'library'
+  | 'close'
+  | 'start'
+  | 'rec'
+  | 'stop'
+  | 'play'
+  | 'pause'
+  | 'loop'
+  | 'metronome'
+  | 'panel'
+  | 'settings';
 
 /** Kleine Strich-Icons statt Unicode-Glyphen (die je nach System-Font unterschiedlich aussehen). */
 function Icon({ name }: { name: IconName }) {
@@ -308,6 +328,13 @@ function Icon({ name }: { name: IconName }) {
         <svg {...common} aria-hidden="true">
           <path d="M9 3h6l4 18H5z" />
           <path d="M12 16l5-9" />
+        </svg>
+      );
+    case 'panel':
+      return (
+        <svg {...common} aria-hidden="true">
+          <rect x="3" y="4" width="18" height="16" rx="2" />
+          <path d="M15 4v16" />
         </svg>
       );
     case 'settings':

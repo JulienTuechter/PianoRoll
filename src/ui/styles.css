@@ -7,7 +7,6 @@
 /* Hallmark · answered F4 · one primary (Play, or the dialog's ember button); recording, delete and the metronome beat fill as live state, not as actions */
 /* Hallmark · answered F6 · the chord numeral is a roman numeral (I, IV, V7), not a figure that compares */
 /* Hallmark · dismissed 49 · every .btn label is white-space: nowrap in this stylesheet; the linter reads the markup alone */
-/* Hallmark · answered F25 · the side panel is hidden under 900px as before; a phone menu for it needs new logic and goes to the owner */
 /* Hallmark · role colours beyond the ramp (hand colours, own key press, right/wrong/timing, recording) are functional and colour-blind tuned, declared below as tokens */
 @import url('./tokens.css');
 @import url('./base.css');
@@ -40,6 +39,11 @@
   --left: #d55e00;
   --right: #56b4e9;
   --control: 36px;
+  /* Bühne: Höhe der Klaviatur, Bedienelemente fast schwarz und halbtransparent */
+  --kb-h: clamp(110px, 18vh, 180px);
+  --panel-w: 320px;
+  --color-chrome: oklch(9% 0.01 40 / 0.78);
+  --color-chrome-panel: oklch(12% 0.012 40 / 0.86);
   --control-s: 32px;
 }
 
@@ -119,7 +123,7 @@ kbd {
   min-height: 60px;
   min-width: 0;
   padding: var(--space-xs) var(--space-lg);
-  background: var(--color-paper-2);
+  background: var(--color-chrome);
   border-bottom: var(--rule-hair) solid var(--color-rule);
 }
 .tz {
@@ -624,7 +628,7 @@ input[type='range']:disabled {
   align-items: center;
   gap: var(--space-sm);
   padding: var(--space-xs) var(--space-lg);
-  background: var(--color-paper);
+  background: var(--color-chrome);
   border-bottom: var(--rule-hair) solid var(--color-rule);
 }
 .timeline-bar {
@@ -676,47 +680,52 @@ input[type='range']:disabled {
   gap: var(--space-2xs);
 }
 
-/* ── Main: stage on the left, panel on the right ─────────────────── */
+/* ── Main: the stage takes the full width, the panel is a drawer over it ── */
 .main {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  position: relative;
   flex: 1;
   min-height: 0;
 }
 .stage-col {
+  position: relative;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) clamp(110px, 18vh, 180px);
+  grid-template-rows: minmax(0, 1fr) var(--kb-h);
+  height: 100%;
   min-width: 0;
   min-height: 0;
+  background: var(--color-paper);
+}
+/* Die Bühne (WebGL bzw. Canvas 2D) liegt unter Notenbereich und Klaviatur; Eingaben gehen an die Elemente darüber */
+.scene {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.scene-canvas,
+.scene-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
 }
 .stage,
 .keyboard-wrap {
   position: relative;
+  z-index: 1;
   min-height: 0;
 }
-.falling-canvas,
-.keyboard-canvas {
+.keyboard-input {
   position: absolute;
   inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-.keyboard-canvas {
-  background: var(--color-paper-deep);
   touch-action: none;
   cursor: pointer;
-}
-/* The strike line: where the falling notes meet the keys. Ember, a fill, no glow. */
-.keyboard-wrap {
-  border-top: 2px solid var(--color-accent);
-  background: var(--color-paper-deep);
 }
 
 .stage {
   display: flex;
   flex-direction: column;
-  background: var(--color-paper);
 }
 .falling-pane,
 .notation-pane {
@@ -1023,10 +1032,51 @@ input[type='range']:disabled {
 }
 
 /* ── Side panel: the second neutral, sections parted by hairlines ── */
+/* Seitenleiste: Schublade über dem Notenbereich, die Klaviatur bleibt frei */
 .side {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: var(--kb-h);
+  z-index: 2;
+  width: min(var(--panel-w), 100%);
   overflow-y: auto;
   border-left: var(--rule-hair) solid var(--color-rule);
-  background: var(--color-paper-2);
+  background: var(--color-chrome-panel);
+}
+.app:not(.panel-open) .side {
+  display: none;
+}
+/* Inhalte rechts nicht unter der offenen Leiste verstecken */
+.app.panel-open .loop-badge {
+  right: calc(var(--panel-w) + var(--space-md));
+}
+.app.panel-open .stage-empty {
+  padding-right: calc(var(--panel-w) + var(--space-xl));
+}
+.app.panel-open .notation-scroll {
+  padding-right: calc(var(--panel-w) + var(--space-lg));
+}
+
+/* ── Spielmodus: Bedienelemente blenden aus, solange gespielt wird und die Maus ruht ── */
+.transport,
+.timeline,
+.side {
+  transition: opacity var(--dur-long) var(--ease-out);
+}
+.app.immersive .transport,
+.app.immersive .timeline,
+.app.immersive .side {
+  opacity: 0;
+}
+.app.immersive .transport:is(:hover, :focus-within),
+.app.immersive .timeline:is(:hover, :focus-within),
+.app.immersive .side:is(:hover, :focus-within) {
+  opacity: 1;
+}
+.app.immersive .stage-col,
+.app.immersive .keyboard-input {
+  cursor: none;
 }
 .panel {
   padding: 0 var(--space-lg) var(--space-md);
@@ -1719,11 +1769,9 @@ input[type='range']:disabled {
   }
 }
 @media (max-width: 900px) {
-  .main {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .side {
-    display: none;
+  .app.panel-open .stage-empty,
+  .app.panel-open .notation-scroll {
+    padding-right: var(--space-md);
   }
   .tempo input {
     width: 72px;

@@ -4,14 +4,19 @@ import { LOCALES, type LocalePref } from '../../i18n';
 import { useT } from '../i18n';
 import { useApp } from '../store/app-store';
 import { DEFAULT_LEFT, DEFAULT_RIGHT, luminance } from '../theme';
-import { defaultSettings, useSettings } from '../store/settings';
+import { defaultSettings, useSettings, type VisualQuality } from '../store/settings';
+import { prefersReducedMotion } from '../scene/scene-model';
 import { MidiStatusPanel } from './MidiStatus';
 
 /** Sprachnamen immer in der eigenen Sprache */
 const LANGUAGE_NAMES: Record<(typeof LOCALES)[number], string> = { de: 'Deutsch', en: 'English' };
 
+const QUALITIES: VisualQuality[] = ['low', 'medium', 'high'];
+const QUALITY_LABEL = { low: 'qualityLow', medium: 'qualityMedium', high: 'qualityHigh' } as const;
+
 export function SettingsDialog() {
   const t = useT();
+  const reducedMotion = prefersReducedMotion();
   const open = useApp((s) => s.settingsOpen);
   const setApp = useApp((s) => s.set);
   const s = useSettings();
@@ -102,6 +107,42 @@ export function SettingsDialog() {
 
       <fieldset>
         <legend>{t.settings.visual}</legend>
+        <div className="field">
+          {t.settings.quality}
+          <div className="seg" role="group" aria-label={t.settings.quality}>
+            {QUALITIES.map((q) => (
+              <button
+                key={q}
+                className={s.visualQuality === q ? 'on' : ''}
+                aria-pressed={s.visualQuality === q}
+                onClick={() => s.update({ visualQuality: q })}
+              >
+                {t.settings[QUALITY_LABEL[q]]}
+              </button>
+            ))}
+          </div>
+        </div>
+        <p className="help">{reducedMotion ? t.settings.reducedMotion : t.settings.qualityHelp}</p>
+        <div className="field">
+          {t.settings.colorMode}
+          <div className="seg" role="group" aria-label={t.settings.colorMode}>
+            <button
+              className={s.noteColorMode === 'hand' ? 'on' : ''}
+              aria-pressed={s.noteColorMode === 'hand'}
+              onClick={() => s.update({ noteColorMode: 'hand' })}
+            >
+              {t.settings.colorByHand}
+            </button>
+            <button
+              className={s.noteColorMode === 'pitch' ? 'on' : ''}
+              aria-pressed={s.noteColorMode === 'pitch'}
+              onClick={() => s.update({ noteColorMode: 'pitch' })}
+              title={t.settings.colorByPitchTitle}
+            >
+              {t.settings.colorByPitch}
+            </button>
+          </div>
+        </div>
         <label className="check">
           <input
             type="checkbox"
@@ -109,14 +150,6 @@ export function SettingsDialog() {
             onChange={(e) => s.update({ beginnerMode: e.target.checked })}
           />
           {t.settings.beginner}
-        </label>
-        <label className="check">
-          <input
-            type="checkbox"
-            checked={s.particles}
-            onChange={(e) => s.update({ particles: e.target.checked })}
-          />
-          {t.settings.particles}
         </label>
         <label className="check">
           <input
