@@ -1,0 +1,153 @@
+import { create } from 'zustand';
+import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
+import type { HandFilter } from '../../core/wait-mode-engine/wait-mode-engine';
+import { MIDDLE_C } from '../../core/note-event-model/types';
+import { libraryRepo } from '../library-repo';
+
+export type PlayMode = 'watch' | 'wait' | 'performance';
+
+export interface Settings {
+  midiDeviceId: string | null;
+  /** Eigenes Spiel am Piano über die App wiedergeben (Doppelsound mit Piano-Lautsprechern!) */
+  echo: boolean;
+  echoVolume: number;
+  /** Simulator (Computertastatur/Maus) hörbar */
+  simulatorSound: boolean;
+  /** App-Klang: Vorspielen, Begleitung, später Metronom */
+  appSound: boolean;
+  appVolume: number;
+  /** Standard-Split-Punkt für neu geladene Stücke */
+  splitPoint: number;
+  simulatorOctave: number;
+  simulatorVelocity: number;
+  keyboardLabels: 'off' | 'de' | 'en';
+  showNoteNames: boolean;
+  fallWindowSec: number;
+  latencyMs: number;
+  onboardingDone: boolean;
+  // Übung
+  mode: PlayMode;
+  waitHands: HandFilter;
+  /** Nicht geübte Hand spielt automatisch mit */
+  accompaniment: boolean;
+  /** true = falsche Noten zählen als Fehler */
+  strict: boolean;
+  chordToleranceMs: number;
+  /** 0 = aus */
+  hintAfterErrors: number;
+  lastSongId: string | null;
+  // Practice
+  metronome: boolean;
+  metronomeVolume: number;
+  /** 0 = kein Count-in */
+  countInBars: number;
+  autoTempo: boolean;
+  autoTempoPasses: number;
+  autoTempoStepPercent: number;
+  autoTempoMaxPercent: number;
+  // Performance-Wertung
+  perfectMs: number;
+  goodMs: number;
+  // Farben
+  rightColor: string;
+  leftColor: string;
+}
+
+interface SettingsStore extends Settings {
+  update(partial: Partial<Settings>): void;
+}
+
+export const defaultSettings: Settings = {
+  midiDeviceId: null,
+  echo: false,
+  echoVolume: 0.8,
+  simulatorSound: true,
+  appSound: true,
+  appVolume: 0.7,
+  splitPoint: MIDDLE_C,
+  simulatorOctave: 4,
+  simulatorVelocity: 0.7,
+  keyboardLabels: 'de',
+  showNoteNames: true,
+  fallWindowSec: 3,
+  latencyMs: 0,
+  onboardingDone: false,
+  mode: 'wait',
+  waitHands: 'both',
+  accompaniment: true,
+  strict: false,
+  chordToleranceMs: 150,
+  hintAfterErrors: 3,
+  lastSongId: null,
+  metronome: false,
+  metronomeVolume: 0.6,
+  countInBars: 1,
+  autoTempo: false,
+  autoTempoPasses: 3,
+  autoTempoStepPercent: 5,
+  autoTempoMaxPercent: 100,
+  perfectMs: 50,
+  goodMs: 120,
+  rightColor: '#56B4E9',
+  leftColor: '#D55E00',
+};
+
+function safeLocalStorage(): Storage | null {
+  try {
+    return typeof localStorage !== 'undefined' ? localStorage : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Einstellungen in IndexedDB; beim ersten Start werden alte Werte aus localStorage (Phase 1) übernommen. */
+const idbStorage: StateStorage = {
+  getItem: async (name) => {
+    try {
+      const v = await libraryRepo.getSetting<string>(name);
+      if (typeof v === 'string') return v;
+    } catch (err) {
+      console.warn('Einstellungen konnten nicht aus IndexedDB gelesen werden', err);
+    }
+    return safeLocalStorage()?.getItem(name) ?? null;
+  },
+  setItem: async (name, value) => {
+    try {
+      await libraryRepo.setSetting(name, value);
+      safeLocalStorage()?.removeItem(name);
+    } catch (err) {
+      console.warn('Einstellungen konnten nicht gespeichert werden', err);
+    }
+  },
+  removeItem: async (name) => {
+    await libraryRepo.setSetting(name, null);
+  },
+};
+
+export const useSettings = create<SettingsStore>()(
+  persist(
+    (set) => ({
+      ...defaultSettings,
+      update: (partial) => set(partial),
+    }),
+    {
+      name: 'pianist-settings',
+      version: 3,
+      storage: createJSONStorage(() => idbStorage),
+      // Neue Felder bekommen Standardwerte; unbekannte alte Felder werden ignoriert
+      migrate: (persisted) => ({ ...defaultSettings, ...(persisted as Partial<Settings>) }),
+      partialize: ({ update: _update, ...rest }) => rest,
+    },
+  ),
+);
+
+/** Wartet, bis die Einstellungen aus IndexedDB geladen sind. */
+export function settingsHydrated(): Promise<void> {
+  if (useSettings.persist.hasHydrated()) return Promise.resolve();
+  return new Promise((resolve) => {
+    const off = useSettings.persist.onFinishHydration(() => {
+      off();
+      resolve();
+    });
+  });
+}
