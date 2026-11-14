@@ -30,6 +30,8 @@ export interface FallingFrame {
   /** Anfängermodus: Führungsstrahlen von kommenden Noten zur Taste */
   beginner: boolean;
   color?: NoteColorFn;
+  /** Ohne Animation: Warte-Leiste leuchtet ruhig statt zu pulsieren */
+  still?: boolean;
 }
 
 /** Ist die Note in diesem Frame sichtbar (Count-in, Loop) und wie stark gedimmt? */
@@ -139,7 +141,7 @@ export function drawFallingNotes(
 
   if (f.waiting) {
     ctx.fillStyle = theme.waitGlow;
-    ctx.globalAlpha = 0.25 + 0.15 * Math.sin(performance.now() / 200);
+    ctx.globalAlpha = f.still ? 0.35 : 0.25 + 0.15 * Math.sin(performance.now() / 200);
     ctx.fillRect(0, height - 3, width, 3);
     ctx.globalAlpha = 1;
   }

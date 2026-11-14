@@ -107,6 +107,16 @@ export function SettingsDialog() {
 
       <fieldset>
         <legend>{t.settings.visual}</legend>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={s.animations}
+            onChange={(e) => s.update({ animations: e.target.checked })}
+          />
+          {t.settings.animations}
+        </label>
+        <p className="help">{t.settings.animationsHelp}</p>
+        {s.animations && reducedMotion && <p className="help">{t.settings.reducedMotion}</p>}
         <div className="field">
           {t.settings.quality}
           <div className="seg" role="group" aria-label={t.settings.quality}>
@@ -115,6 +125,7 @@ export function SettingsDialog() {
                 key={q}
                 className={s.visualQuality === q ? 'on' : ''}
                 aria-pressed={s.visualQuality === q}
+                disabled={!s.animations}
                 onClick={() => s.update({ visualQuality: q })}
               >
                 {t.settings[QUALITY_LABEL[q]]}
@@ -122,7 +133,7 @@ export function SettingsDialog() {
             ))}
           </div>
         </div>
-        <p className="help">{reducedMotion ? t.settings.reducedMotion : t.settings.qualityHelp}</p>
+        <p className="help">{t.settings.qualityHelp}</p>
         <div className="field">
           {t.settings.colorMode}
           <div className="seg" role="group" aria-label={t.settings.colorMode}>

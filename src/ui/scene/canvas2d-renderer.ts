@@ -1,5 +1,6 @@
 /**
- * Canvas-2D-Fallback der Bühne: gilt, bis PixiJS geladen ist, und dauerhaft ohne WebGL.
+ * Canvas-2D-Bühne: schlichte fallende Noten, wenn Animationen aus sind, sonst Fallback,
+ * bis PixiJS geladen ist, und dauerhaft ohne WebGL.
  * Zeichnet mit den bewährten 2D-Funktionen, kennt Farbmodus, Funken und Qualitätsstufen, aber keinen Bloom.
  */
 import { drawFallingNotes, drawRisingNotes } from '../canvas/falling-notes-renderer';
@@ -53,13 +54,14 @@ export class Canvas2DRenderer implements NoteRenderer {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     if (fallHeight > 0) {
-      if (f.falling.kind === 'song') drawFallingNotes(ctx, f.layout, fallHeight, f.falling.frame);
+      if (f.falling.kind === 'song')
+        drawFallingNotes(ctx, f.layout, fallHeight, { ...f.falling.frame, still: f.reducedMotion });
       else drawRisingNotes(ctx, f.layout, fallHeight, f.falling.frame);
     }
 
     ctx.save();
     ctx.translate(0, fallHeight);
-    drawKeyboard(ctx, f.layout, keyboardHeight, f.keyboard);
+    drawKeyboard(ctx, f.layout, keyboardHeight, { ...f.keyboard, still: f.reducedMotion });
     // Falsche Taste: kurzes rotes Flackern
     for (const e of f.events) if (e.kind === 'wrong') this.wrongUntil.set(e.midi, f.nowMs + 260);
     for (const [midi, until] of this.wrongUntil) {

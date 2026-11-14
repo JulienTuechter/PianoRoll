@@ -273,7 +273,7 @@ export class SceneModel {
       held: this.held,
       events: this.events,
       quality: s.visualQuality,
-      reducedMotion: this.reducedMotion,
+      reducedMotion: this.reducedMotion || !s.animations,
     };
   }
 }

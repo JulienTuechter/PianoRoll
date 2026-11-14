@@ -86,6 +86,8 @@ export interface Settings {
   beginnerMode: boolean;
   /** Bühne: Qualitätsstufe (Partikelzahl, Bloom) */
   visualQuality: VisualQuality;
+  /** Bühnen-Animationen: Funken, Flackern, Pulsieren (aus = ruhiges Leuchten) */
+  animations: boolean;
   /** Notenfarbe nach Hand oder nach Tonhöhe (links kühl, rechts warm) */
   noteColorMode: NoteColorMode;
   /** Seitenleiste über der Bühne sichtbar */
@@ -152,6 +154,7 @@ export const defaultSettings: Settings = {
   quantResolveOverlaps: true,
   beginnerMode: false,
   visualQuality: 'medium',
+  animations: false,
   noteColorMode: 'hand',
   // Auf schmalen Bildschirmen verdeckt die Leiste sonst die halbe Bühne
   sidePanelOpen: typeof window === 'undefined' || window.innerWidth > 900,

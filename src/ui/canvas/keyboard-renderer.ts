@@ -23,6 +23,8 @@ export interface KeyboardFrame {
   /** Kurz nachleuchtende Bewertungen nach dem Loslassen */
   flashes: ReadonlyMap<number, KeyFlash>;
   hint: boolean;
+  /** Ohne Animation: Zielmarke pulsiert nicht */
+  still?: boolean;
   nowMs: number;
   /** Harmony Assist: vorgeschlagener Akkord (Bass = linke Hand, upper = rechte Hand) */
   ghost: { bass: number; upper: readonly number[] } | null;
@@ -279,7 +281,7 @@ export function drawKeyboardAnnotations(
       const gh = ghostHand.get(k.midi);
       if (gh) drawGhost(ctx, k, whiteMarkY, gh, height, f.ghostSoft, f.pressed.has(k.midi));
       if (look.expectHand && !f.approaching?.has(k.midi))
-        drawExpectMarker(ctx, k, whiteMarkY, look.expectHand, f.hint, f.nowMs);
+        drawExpectMarker(ctx, k, whiteMarkY, look.expectHand, f.hint && !f.still, f.nowMs);
       drawMark(ctx, k, whiteMarkY, look.mark);
     }
   }
@@ -291,7 +293,7 @@ export function drawKeyboardAnnotations(
       const gh = ghostHand.get(k.midi);
       if (gh) drawGhost(ctx, k, blackMarkY, gh, bh, f.ghostSoft, f.pressed.has(k.midi));
       if (look.expectHand && !f.approaching?.has(k.midi))
-        drawExpectMarker(ctx, k, blackMarkY, look.expectHand, f.hint, f.nowMs);
+        drawExpectMarker(ctx, k, blackMarkY, look.expectHand, f.hint && !f.still, f.nowMs);
       drawMark(ctx, k, blackMarkY, look.mark);
     }
 

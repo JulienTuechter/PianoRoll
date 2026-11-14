@@ -1,12 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { Canvas2DRenderer } from '../scene/canvas2d-renderer';
+import { useSettings } from '../store/settings';
 import { SceneModel } from '../scene/scene-model';
 import type { NoteRenderer, SceneSize } from '../scene/types';
 
 /**
  * Bühne: eine Zeichenfläche über Notenbereich und Klaviatur, damit Licht, Bloom und Funken über die
- * Treffer-Linie hinweg wirken. Startet mit dem Canvas-2D-Fallback und wechselt auf WebGL (PixiJS),
- * sobald es geladen ist und der Browser es kann.
+ * Treffer-Linie hinweg wirken. Animationen aus: schlichte fallende Noten in Canvas 2D (kein WebGL,
+ * kein Bloom, keine Funken). Animationen an: wechselt auf WebGL (PixiJS), sobald es geladen ist und
+ * der Browser es kann. Der Schalter wirkt sofort.
  */
 export function Scene() {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -45,27 +47,52 @@ export function Scene() {
     size = measure();
     let renderer: NoteRenderer = new Canvas2DRenderer();
     void renderer.mount(host, size);
+    /** Zählt Wechsel hoch, damit ein verspätet geladenes PixiJS nicht einen neueren Wunsch überschreibt */
+    let generation = 0;
 
-    void import('../scene/pixi-renderer')
-      .then(async ({ PixiRenderer }) => {
-        if (disposed || !PixiRenderer.supported()) return;
-        const next = new PixiRenderer();
-        try {
-          await next.mount(host, size);
-        } catch (err) {
-          console.warn('WebGL-Bühne nicht verfügbar, bleibe bei Canvas 2D', err);
-          next.destroy();
-          return;
-        }
-        if (disposed) {
-          next.destroy();
-          return;
-        }
-        renderer.destroy();
-        renderer = next;
-        renderer.resize(size);
-      })
-      .catch((err: unknown) => console.warn('PixiJS konnte nicht geladen werden', err));
+    const swapTo = (next: NoteRenderer) => {
+      renderer.destroy();
+      renderer = next;
+      void renderer.mount(host, size);
+    };
+
+    const toPixi = () => {
+      const gen = ++generation;
+      void import('../scene/pixi-renderer')
+        .then(async ({ PixiRenderer }) => {
+          if (disposed || gen !== generation || !PixiRenderer.supported()) return;
+          const next = new PixiRenderer();
+          try {
+            await next.mount(host, size);
+          } catch (err) {
+            console.warn('WebGL-Bühne nicht verfügbar, bleibe bei Canvas 2D', err);
+            next.destroy();
+            return;
+          }
+          if (disposed || gen !== generation) {
+            next.destroy();
+            return;
+          }
+          renderer.destroy();
+          renderer = next;
+          renderer.resize(size);
+        })
+        .catch((err: unknown) => console.warn('PixiJS konnte nicht geladen werden', err));
+    };
+
+    const toPlain = () => {
+      generation++;
+      if (renderer.kind !== 'canvas2d') swapTo(new Canvas2DRenderer());
+    };
+
+    let animated = useSettings.getState().animations;
+    if (animated) toPixi();
+    const unsubscribe = useSettings.subscribe((st) => {
+      if (st.animations === animated) return;
+      animated = st.animations;
+      if (animated) toPixi();
+      else toPlain();
+    });
 
     let raf = 0;
     const frame = () => {
@@ -81,6 +108,7 @@ export function Scene() {
 
     return () => {
       disposed = true;
+      unsubscribe();
       cancelAnimationFrame(raf);
       renderer.destroy();
       model.dispose();
