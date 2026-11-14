@@ -1,13 +1,78 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pianist – Learn piano with your MIDI keyboard</title>
+    <meta
+      name="description"
+      content="Learn piano with your MIDI keyboard: the app waits until you play the right note and shows you which chord fits next."
+    />
+    <meta name="theme-color" content="#0b0605" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="%SITE_URL%/" />
+
+    <!-- Icons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>Pianist</title>
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Link-Vorschau (Open Graph: WhatsApp, Signal, Telegram, Facebook, LinkedIn, Slack, Discord …)
+         Englisch, weil Crawler nur eine Sprache pro URL lesen; die App selbst folgt der Browsersprache -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Pianist" />
+    <meta property="og:title" content="Pianist – Learn piano with your MIDI keyboard" />
+    <meta
+      property="og:description"
+      content="Learn piano with your MIDI keyboard: the app waits until you play the right note and shows you which chord fits next."
+    />
+    <meta property="og:url" content="%SITE_URL%/" />
+    <meta property="og:image" content="%SITE_URL%/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Pianist: glowing falling notes land on a piano keyboard, sparks fly on a correct note."
+    />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="de_DE" />
+
+    <!-- X/Twitter, Mastodon -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Pianist – Learn piano with your MIDI keyboard" />
+    <meta
+      name="twitter:description"
+      content="Learn piano with your MIDI keyboard: the app waits until you play the right note and shows you which chord fits next."
+    />
+    <meta name="twitter:image" content="%SITE_URL%/og-image.png" />
+    <meta
+      name="twitter:image:alt"
+      content="Pianist: glowing falling notes land on a piano keyboard, sparks fly on a correct note."
+    />
+
+    <!-- Strukturierte Daten für Suchmaschinen -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Pianist",
+        "url": "%SITE_URL%/",
+        "image": "%SITE_URL%/og-image.png",
+        "description": "Learn piano with your MIDI keyboard: the app waits until you play the right note and shows you which chord fits next.",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Web",
+        "browserRequirements": "Web MIDI (Chrome, Edge, Firefox, Brave)",
+        "inLanguage": ["en", "de"],
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>Pianist needs JavaScript. / Pianist braucht JavaScript.</noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

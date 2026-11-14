@@ -16,6 +16,10 @@ npm run dev      # http://localhost:5173 – Web MIDI braucht localhost oder HTT
 | `npm run build`                   | Typecheck + Produktions-Build |
 | `npm run lint` / `npm run format` | ESLint / Prettier             |
 
+**Veröffentlichen:** Für Link-Vorschauen (WhatsApp, Slack, Facebook …) braucht der Build die öffentliche Adresse:
+`SITE_URL=https://deine-domain.de npm run build` (oder `SITE_URL=…` in einer `.env`). Daraus werden `og:url`, `og:image`,
+`canonical`, `robots.txt` und `sitemap.xml` erzeugt. Das Vorschaubild liegt in `public/og-image.png` (1200 × 630).
+
 ## Funktionen
 
 - **Piano anschließen** über Web MIDI (Firefox, Brave), Hot-Plug, Velocity, Sustain-Pedal. Ohne Piano: Simulator (Tastatur/Maus).

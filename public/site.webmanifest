@@ -1,0 +1,15 @@
+{
+  "name": "Pianist – Learn piano with your MIDI keyboard",
+  "short_name": "Pianist",
+  "description": "Learn piano with your MIDI keyboard: the app waits until you play the right note and shows you which chord fits next.",
+  "lang": "en",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0605",
+  "theme_color": "#0b0605",
+  "icons": [
+    { "src": "/favicon.svg", "type": "image/svg+xml", "sizes": "any" },
+    { "src": "/icon-192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "/icon-512.png", "type": "image/png", "sizes": "512x512" }
+  ]
+}
