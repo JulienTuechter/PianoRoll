@@ -3,6 +3,7 @@ import { countInRemaining } from '../../core/practice-engine/beats';
 import { midiToName } from '../../core/note-event-model/notes';
 import { accuracy } from '../../core/scoring/scoring';
 import { getEngine, getWaitEngine, live, transport } from '../runtime';
+import { useT } from '../i18n';
 import { useApp } from '../store/app-store';
 import { useSettings } from '../store/settings';
 
@@ -80,6 +81,7 @@ function CountInOverlay() {
 }
 
 function LoopBadge() {
+  const t = useT();
   const lastPass = useApp((s) => s.lastPass);
   const loopEnabled = useApp((s) => s.loopEnabled);
   const rate = useApp((s) => s.rate);
@@ -90,13 +92,14 @@ function LoopBadge() {
   const atMax = Math.round(rate * 100) >= maxPercent;
   let tempoInfo: string | null = null;
   if (autoTempo) {
-    if (lastPass.tempoUp !== null) tempoInfo = `Tempo ↑ ${Math.round(lastPass.tempoUp * 100)} %`;
-    else if (atMax) tempoInfo = `Zieltempo ${maxPercent} % erreicht`;
-    else tempoInfo = `${lastPass.cleanStreak}/${passes} bis Tempo ↑`;
+    if (lastPass.tempoUp !== null) tempoInfo = t.hud.tempoUp(t.pct(Math.round(lastPass.tempoUp * 100)));
+    else if (atMax) tempoInfo = t.hud.targetReached(t.pct(maxPercent));
+    else tempoInfo = t.hud.toTempoUp(lastPass.cleanStreak, passes);
   }
   return (
     <div className={`loop-badge${lastPass.clean ? ' clean' : ''}`}>
-      Durchlauf {lastPass.index}: {Math.round(lastPass.accuracy * 100)} % {lastPass.clean ? '✓ sauber' : ''}
+      {t.hud.pass(lastPass.index, t.pct(Math.round(lastPass.accuracy * 100)))}{' '}
+      {lastPass.clean ? t.hud.clean : ''}
       {tempoInfo && <span className="muted"> · {tempoInfo}</span>}
     </div>
   );
@@ -104,6 +107,7 @@ function LoopBadge() {
 
 /** Statusanzeige über den fallenden Noten. Aktualisiert sich 10×/s, nicht pro Frame. */
 export function PlayHud() {
+  const t = useT();
   const strict = useSettings((s) => s.strict);
   const [snap, setSnap] = useState<HudSnapshot | null>(null);
 
@@ -125,25 +129,28 @@ export function PlayHud() {
       <CountInOverlay />
       {snap && (
         <div className="hud" aria-live="off">
-          <HudItem label="Genauigkeit" value={`${Math.round(snap.accuracy * 100)} %`} />
+          <HudItem label={t.hud.accuracy} value={t.pct(Math.round(snap.accuracy * 100))} />
           {snap.mode === 'wait' ? (
-            <HudItem label={strict ? 'Fehler' : 'Extra-Noten'} value={strict ? snap.wrong : snap.extra} />
+            <HudItem
+              label={strict ? t.hud.errors : t.hud.extraNotes}
+              value={strict ? snap.wrong : snap.extra}
+            />
           ) : (
             <>
-              <HudItem label="Perfect" value={snap.perfect} />
-              <HudItem label="Good" value={snap.good} />
-              <HudItem label="Miss" value={snap.missed} />
-              <HudItem label="Falsch" value={snap.wrong} />
+              <HudItem label={t.hud.perfect} value={snap.perfect} />
+              <HudItem label={t.hud.good} value={snap.good} />
+              <HudItem label={t.hud.miss} value={snap.missed} />
+              <HudItem label={t.hud.wrong} value={snap.wrong} />
             </>
           )}
-          <HudItem label="Serie" value={snap.streak} />
-          {snap.progress && <HudItem label="Fortschritt" value={snap.progress} small />}
+          <HudItem label={t.hud.streak} value={snap.streak} />
+          {snap.progress && <HudItem label={t.hud.progress} value={snap.progress} small />}
         </div>
       )}
       <LoopBadge />
       {snap?.waitingFor && (
         <div className={`waiting-pill${snap.hint ? ' hint' : ''}`}>
-          {snap.hint ? 'Tipp: spiele ' : 'Warte auf '}
+          {snap.hint ? t.hud.hintPlay : t.hud.waitingFor}
           <strong>{snap.waitingFor}</strong>
         </div>
       )}

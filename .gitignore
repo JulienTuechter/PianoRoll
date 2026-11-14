@@ -3,3 +3,8 @@ dist
 *.tsbuildinfo
 .vite
 coverage
+.hallmark/*
+.hallmark
+.hallmark/**
+.hallmark/*/**
+.agents

@@ -1,12 +1,12 @@
 import { useApp } from '../store/app-store';
 import { useSettings } from '../store/settings';
-import { FallingNotes } from './FallingNotes';
 import { NotationView } from './NotationView';
 import { StageOverlay } from './StageOverlay';
 
 /**
  * Mittlerer Bereich: fallende Noten, Notenschrift oder beides übereinander.
- * Die fallenden Noten bleiben immer direkt über der Klaviatur (gleiche Breite = gleiche Tastenpositionen).
+ * Der Notenbereich ist nur ein Platzhalter für die Anzeigen darüber; gezeichnet wird er von der Bühne (Scene),
+ * die direkt über der Klaviatur liegt (gleiche Breite = gleiche Tastenpositionen).
  */
 export function Stage() {
   const song = useApp((s) => s.song);
@@ -23,7 +23,6 @@ export function Stage() {
       )}
       {showFalling && (
         <div className="falling-pane">
-          <FallingNotes />
           <StageOverlay />
         </div>
       )}

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 import type { HandFilter } from '../../core/wait-mode-engine/wait-mode-engine';
 import { MIDDLE_C } from '../../core/note-event-model/types';
+import { detectLocale, type LocalePref } from '../../i18n';
 import { libraryRepo } from '../library-repo';
 
 export type PlayMode = 'watch' | 'wait' | 'performance';
@@ -9,13 +10,15 @@ export type PlayMode = 'watch' | 'wait' | 'performance';
 export type StageView = 'falling' | 'notation' | 'split';
 
 export interface Settings {
+  /** Sprache der Oberfläche; „auto“ = Browsersprache */
+  locale: LocalePref;
   midiDeviceId: string | null;
   /** Eigenes Spiel am Piano über die App wiedergeben (Doppelsound mit Piano-Lautsprechern!) */
   echo: boolean;
   echoVolume: number;
   /** Simulator (Computertastatur/Maus) hörbar */
   simulatorSound: boolean;
-  /** App-Klang: Vorspielen, Begleitung, später Metronom */
+  /** App-Klang: Vorspielen, Begleitung, Metronom */
   appSound: boolean;
   appVolume: number;
   /** Standard-Split-Punkt für neu geladene Stücke */
@@ -81,17 +84,31 @@ export interface Settings {
   // Visuell
   /** Anfängermodus: Führungsstrahl zur Taste, Zieltaste leuchtet vorher auf (mit Notennamen) */
   beginnerMode: boolean;
+<<<<<<< HEAD
   /** Funkeneffekte, wenn Balken auf die Klaviatur treffen bzw. aufsteigen */
   particles: boolean;
   /** Seitenpanel rechts ausgeklappt */
+=======
+  /** Bühne: Qualitätsstufe (Partikelzahl, Bloom) */
+  visualQuality: VisualQuality;
+  /** Bühnen-Animationen: Funken, Flackern, Pulsieren (aus = ruhiges Leuchten) */
+  animations: boolean;
+  /** Notenfarbe nach Hand oder nach Tonhöhe (links kühl, rechts warm) */
+  noteColorMode: NoteColorMode;
+  /** Seitenleiste über der Bühne sichtbar */
+>>>>>>> main
   sidePanelOpen: boolean;
 }
+
+export type VisualQuality = 'low' | 'medium' | 'high';
+export type NoteColorMode = 'hand' | 'pitch';
 
 interface SettingsStore extends Settings {
   update(partial: Partial<Settings>): void;
 }
 
 export const defaultSettings: Settings = {
+  locale: 'auto',
   midiDeviceId: null,
   echo: false,
   echoVolume: 0.8,
@@ -101,7 +118,8 @@ export const defaultSettings: Settings = {
   splitPoint: MIDDLE_C,
   simulatorOctave: 4,
   simulatorVelocity: 0.7,
-  keyboardLabels: 'de',
+  // Tastenbeschriftung des Simulators passend zur Browsersprache (QWERTZ bzw. QWERTY)
+  keyboardLabels: detectLocale() === 'de' ? 'de' : 'en',
   showNoteNames: true,
   fallWindowSec: 3,
   latencyMs: 0,
@@ -141,8 +159,16 @@ export const defaultSettings: Settings = {
   quantMinNote: 16,
   quantResolveOverlaps: true,
   beginnerMode: false,
+<<<<<<< HEAD
   particles: false,
   sidePanelOpen: true,
+=======
+  visualQuality: 'medium',
+  animations: false,
+  noteColorMode: 'hand',
+  // Auf schmalen Bildschirmen verdeckt die Leiste sonst die halbe Bühne
+  sidePanelOpen: typeof window === 'undefined' || window.innerWidth > 900,
+>>>>>>> main
 };
 
 function safeLocalStorage(): Storage | null {

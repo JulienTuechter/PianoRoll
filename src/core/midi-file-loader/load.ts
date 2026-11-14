@@ -12,8 +12,18 @@ import { MIDDLE_C } from '../note-event-model/types';
 import { applyHands, assignHands, type TrackSummary } from './hands';
 import { hashBytes } from './hash';
 
+/** Grund des Ladefehlers; die Oberfläche übersetzt ihn (die Meldung bleibt für Logs auf Deutsch). */
+export type MidiFileErrorCode = 'invalid' | 'empty';
+
 export class MidiFileError extends Error {
   override name = 'MidiFileError';
+  constructor(
+    message: string,
+    readonly code: MidiFileErrorCode,
+    readonly detail?: string,
+  ) {
+    super(message);
+  }
 }
 
 export interface LoadOptions {
@@ -28,9 +38,8 @@ export function loadMidiFile(data: ArrayBuffer | Uint8Array, options: LoadOption
   try {
     midi = new Midi(bytes);
   } catch (err) {
-    throw new MidiFileError(
-      `Die Datei ist keine gültige MIDI-Datei (${err instanceof Error ? err.message : String(err)})`,
-    );
+    const detail = err instanceof Error ? err.message : String(err);
+    throw new MidiFileError(`Die Datei ist keine gültige MIDI-Datei (${detail})`, 'invalid', detail);
   }
 
   const ppq = midi.header.ppq;
@@ -120,7 +129,7 @@ export function loadMidiFile(data: ArrayBuffer | Uint8Array, options: LoadOption
   const notes = applyHands(rawNotes, tracks, splitPoint).sort(
     (a, b) => a.startSec - b.startSec || a.midi - b.midi || a.track - b.track,
   );
-  if (notes.length === 0) throw new MidiFileError('Die MIDI-Datei enthält keine Noten.');
+  if (notes.length === 0) throw new MidiFileError('Die MIDI-Datei enthält keine Noten.', 'empty');
 
   const durationSec = notes.reduce((m, n) => Math.max(m, n.startSec + n.durationSec), 0);
 

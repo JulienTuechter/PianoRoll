@@ -7,6 +7,7 @@ import type { MusicalKey } from '../core/key-detection/key';
 import type { NotationScore } from '../core/notation-builder/notation';
 import type { NoteEvent } from '../core/note-event-model/types';
 import { renderScore } from './notation/render-score';
+import { t } from '../i18n';
 
 export function safeFileName(title: string): string {
   return title.replace(/[\\/:*?"<>|]+/g, '_').trim() || 'Stueck';
@@ -55,7 +56,7 @@ export function midiBytes(src: ExportSource): Uint8Array<ArrayBuffer> {
     denominator: src.denominator,
     key: src.key,
     title: src.title,
-    tracks: [track('right', 'Rechte Hand', 0), track('left', 'Linke Hand', 1)],
+    tracks: [track('right', t().common.rightHand, 0), track('left', t().common.leftHand, 1)],
   });
 }
 
@@ -64,7 +65,12 @@ export function exportMidi(src: ExportSource): void {
 }
 
 export function exportMusicXml(src: ExportSource): void {
-  const xml = toMusicXml(src.score, { title: src.title, bpm: src.bpm, key: src.key });
+  const xml = toMusicXml(src.score, {
+    title: src.title,
+    bpm: src.bpm,
+    key: src.key,
+    partName: t().common.piano,
+  });
   download(xml, `${safeFileName(src.title)}.musicxml`, 'application/vnd.recordare.musicxml+xml');
 }
 
@@ -91,7 +97,7 @@ export async function standaloneSvg(
   try {
     const layout = await renderScore(host, score, width);
     const svgEl = host.querySelector('svg');
-    if (!svgEl) throw new Error('Notenbild konnte nicht erzeugt werden.');
+    if (!svgEl) throw new Error(t().errors.scoreFailed);
     const titleH = 50;
     const height = layout.height + titleH;
     const clone = svgEl.cloneNode(true) as SVGSVGElement;
@@ -142,12 +148,12 @@ export async function exportPng(src: Pick<ExportSource, 'score' | 'title'>, scal
     canvas.width = Math.round(width * scale);
     canvas.height = Math.round(height * scale);
     const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Canvas nicht verfügbar');
+    if (!ctx) throw new Error(t().errors.canvasMissing);
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, 'image/png'));
-    if (!blob) throw new Error('PNG konnte nicht erzeugt werden.');
+    if (!blob) throw new Error(t().errors.pngFailed);
     download(blob, `${safeFileName(src.title)}.png`, 'image/png');
   } finally {
     URL.revokeObjectURL(url);

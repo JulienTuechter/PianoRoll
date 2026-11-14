@@ -6,12 +6,15 @@ import { Stage } from './components/Stage';
 import { MeasureTimeline } from './components/MeasureTimeline';
 import { Onboarding } from './components/Onboarding';
 import { PianoKeyboard } from './components/PianoKeyboard';
+import { Scene } from './components/Scene';
 import { RecordingDialog } from './components/RecordingDialog';
 import { ResultsDialog } from './components/ResultsDialog';
 import { SettingsDialog } from './components/SettingsDialog';
 import { SidePanel } from './components/SidePanel';
 import { TransportBar } from './components/TransportBar';
 import { useKeyboardInput } from './hooks/useKeyboardInput';
+import { useImmersive } from './hooks/useImmersive';
+import { useLocaleSync } from './i18n';
 import { startFreeMetronome } from './free-metronome';
 import { startHarmony } from './harmony-service';
 import { startRuntime } from './runtime';
@@ -24,7 +27,10 @@ export function App() {
   const onboardingDone = useSettings((s) => s.onboardingDone);
   const sidePanelOpen = useSettings((s) => s.sidePanelOpen);
   const activeDeviceId = useApp((s) => s.midi.activeDeviceId);
+  const panelOpen = useSettings((s) => s.sidePanelOpen);
+  const immersive = useImmersive();
 
+  useLocaleSync();
   useEffect(() => startRuntime(), []);
   useEffect(() => startHarmony(), []);
   useEffect(() => startFreeMetronome(), []);
@@ -38,12 +44,13 @@ export function App() {
   }, [activeDeviceId]);
 
   return (
-    <div className="app">
+    <div className={`app${immersive ? ' immersive' : ''}${panelOpen ? ' panel-open' : ''}`}>
       <TransportBar />
       <MeasureTimeline />
       <main className={`main${sidePanelOpen ? '' : ' side-closed'}`}>
         {/* Falling Notes und Klaviatur teilen sich exakt dieselbe Breite */}
         <div className="stage-col">
+          <Scene />
           <Stage />
           <div className="keyboard-wrap">
             <PianoKeyboard />

@@ -1,3 +1,4 @@
+import { useT } from '../i18n';
 import { useApp } from '../store/app-store';
 import { HarmonyBar } from './HarmonyBar';
 import { LibraryList } from './Library';
@@ -9,6 +10,7 @@ import { RecordingOverlay } from './RecordingOverlay';
  * oder per „Frei spielen“) bzw. im freien Spiel die Harmonie-Leiste; mit Stück Spielanzeige und Count-in.
  */
 export function StageOverlay() {
+  const t = useT();
   const song = useApp((s) => s.song);
   const ready = useApp((s) => s.ready);
   const freePlay = useApp((s) => s.freePlay);
@@ -28,16 +30,13 @@ export function StageOverlay() {
       <div className="stage-empty">
         <div className="stage-empty-inner">
           <div className="stage-empty-head">
-            <h2>Was möchtest du üben?</h2>
+            <h2>{t.stage.startHeading}</h2>
             <button className="btn" onClick={() => set({ freePlay: true })}>
-              Frei spielen
+              {t.stage.freePlay}
             </button>
           </div>
           <LibraryList />
-          <p className="muted small">
-            Spiel einfach los – diese Ansicht verschwindet beim ersten Ton. Die Bibliothek erreichst du
-            jederzeit oben.
-          </p>
+          <p className="muted small">{t.stage.startHint}</p>
         </div>
       </div>
     );

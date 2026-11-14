@@ -16,13 +16,20 @@ import type { SongSource } from '../core/library/types';
 import { browserMidiEnvironment } from '../core/midi-input/browser-env';
 import { InputHub } from '../core/midi-input/input-hub';
 import { WebMidiConnection } from '../core/midi-input/web-midi';
-import { loadMidiFile, playableNotes, reassignHands, titleFromFileName } from '../core/midi-file-loader/load';
+import {
+  loadMidiFile,
+  MidiFileError,
+  playableNotes,
+  reassignHands,
+  titleFromFileName,
+} from '../core/midi-file-loader/load';
 import {
   buildMeasures,
   measureIndexAt,
   TempoMap,
   type MeasureInfo,
 } from '../core/note-event-model/tempo-map';
+import { firstNoteIndexAtOrAfter } from '../core/note-event-model/notes';
 import type { NoteEvent, Song, TrackInfo } from '../core/note-event-model/types';
 import { NoteScheduler } from '../core/playback/note-scheduler';
 import { TimeScheduler } from '../core/playback/time-scheduler';
@@ -45,6 +52,7 @@ import {
 import { PerformanceEngine } from '../core/practice-engine/performance-engine';
 import { countsOf, passSummary, type StatCounts } from '../core/scoring/scoring';
 import { performanceClock } from '../core/time/clock';
+import { t } from '../i18n';
 import {
   defaultWaitConfig,
   isPracticed,
@@ -53,6 +61,7 @@ import {
 } from '../core/wait-mode-engine/wait-mode-engine';
 import type { KeyFlash } from './canvas/keyboard-renderer';
 import { libraryRepo } from './library-repo';
+import { pushFx } from './scene/fx-queue';
 import { useApp } from './store/app-store';
 import { settingsHydrated, useSettings, type Settings } from './store/settings';
 import { setHandColors } from './theme';
@@ -191,9 +200,21 @@ export function startRuntime(): () => void {
     const ci = live.countIn;
     const duringCountIn =
       ci !== null && e.type === 'noteon' && transport.position < ci.startSec - COUNT_IN_GRACE_SEC;
+    judgedNow.clear();
     if (engine && !duringCountIn) {
       engine.handleInput(e);
       pump(); // Begleitung zur gerade erfüllten Gruppe sofort spielen
+    }
+    // Bühne: Anschlag mit der Wertung, die die Engine gerade (synchron) vergeben hat
+    if (e.type === 'noteon') {
+      const j = judgedNow.get(e.midi);
+      pushFx({
+        kind: j?.kind ?? 'press',
+        midi: e.midi,
+        velocity: e.velocity,
+        strength: j?.strength ?? 0.8,
+        hand: handFor(e.midi),
+      });
     }
     const s = useSettings.getState();
     const audible = e.source === 'midi' ? s.echo : s.simulatorSound;
@@ -295,8 +316,41 @@ const FLASH_MS = 350;
 /** So lange vor Ende des Count-ins werden Anschläge schon gewertet (leicht zu frühes Einsetzen) */
 const COUNT_IN_GRACE_SEC = 0.3;
 
+/** Wertungen des laufenden Anschlags (von onEngineEvent gesetzt, im Input-Handler gelesen) */
+const judgedNow = new Map<number, { kind: 'hit' | 'wrong'; strength: number }>();
+
+/** Hand einer gespielten Taste: die nächstgelegene Note des Stücks, sonst der Split-Punkt */
+export function handFor(midi: number): 'left' | 'right' {
+  const pos = transport.position;
+  let best: NoteEvent | null = null;
+  let bestDist = 0.75;
+  for (
+    let i = firstNoteIndexAtOrAfter(live.notes, pos - live.maxDurationSec - 0.75);
+    i < live.notes.length;
+    i++
+  ) {
+    const n = live.notes[i]!;
+    if (n.startSec > pos + 0.75) break;
+    if (n.midi !== midi) continue;
+    const d = Math.abs(n.startSec - pos);
+    if (d < bestDist) {
+      best = n;
+      bestDist = d;
+    }
+  }
+  if (best) return best.hand;
+  return midi < useSettings.getState().splitPoint ? 'left' : 'right';
+}
+
 function onEngineEvent(e: EngineEvent): void {
   const now = performance.now();
+  if (e.type === 'correct') judgedNow.set(e.midi, { kind: 'hit', strength: 1 });
+  if (e.type === 'hit')
+    judgedNow.set(e.midi, {
+      kind: 'hit',
+      strength: e.grade === 'perfect' ? 1 : e.grade === 'good' ? 0.7 : 0.35,
+    });
+  if (e.type === 'wrong') judgedNow.set(e.midi, { kind: 'wrong', strength: 0 });
   if (e.type === 'wrong') live.flashes.set(e.midi, { kind: 'wrong', untilMs: now + FLASH_MS });
   if (e.type === 'hit') {
     const kind: KeyJudgement = e.grade === 'perfect' ? 'correct' : e.offsetMs < 0 ? 'early' : 'late';
@@ -487,7 +541,14 @@ export async function refreshLibrary(): Promise<void> {
 }
 
 function showError(err: unknown): void {
-  useApp.getState().set({ error: err instanceof Error ? err.message : String(err) });
+  useApp.getState().set({ error: errorMessage(err) });
+}
+
+/** Fehlertext in der aktuellen Sprache; Ladefehler kommen sprachneutral als Code aus dem Kern. */
+export function errorMessage(err: unknown): string {
+  if (err instanceof MidiFileError)
+    return err.code === 'empty' ? t().errors.midiEmpty : t().errors.midiInvalid(err.detail ?? '');
+  return err instanceof Error ? err.message : String(err);
 }
 
 /** Lädt Bytes, legt sie in der Bibliothek ab und öffnet das Stück (mit gespeicherten Korrekturen). */
@@ -523,7 +584,7 @@ export async function importBytes(
 
 export async function loadFile(file: File): Promise<void> {
   if (!/\.(mid|midi)$/i.test(file.name)) {
-    showError(`„${file.name}“ ist keine MIDI-Datei (.mid/.midi).`);
+    showError(t().errors.notMidi(file.name));
     return;
   }
   try {
@@ -536,7 +597,13 @@ export async function loadFile(file: File): Promise<void> {
 
 export async function loadDemo(): Promise<void> {
   try {
-    await importAndOpen(createDemoMidi(), 'demo.mid', 'demo', 'Demo – Erste Schritte');
+    const m = t();
+    await importAndOpen(
+      createDemoMidi({ right: m.common.rightHand, left: m.common.leftHand }),
+      'demo.mid',
+      'demo',
+      m.library.demoTitle,
+    );
     useApp.getState().set({ libraryOpen: false });
   } catch (err) {
     showError(err);
@@ -549,7 +616,7 @@ export async function openFromLibrary(id: string, parsed?: Song): Promise<void> 
   let song = parsed;
   if (!song) {
     const bytes = await libraryRepo.getBytes(id);
-    if (!bytes || !entry) throw new Error('Stück nicht in der Bibliothek gefunden.');
+    if (!bytes || !entry) throw new Error(t().errors.songMissing);
     song = loadMidiFile(bytes, { title: entry.title, splitPoint: useSettings.getState().splitPoint });
   }
   if (entry) {

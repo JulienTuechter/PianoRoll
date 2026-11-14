@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { describeChord } from '../../core/chord-detection/chord';
 import { segmentIndexAt, type ChordSegment } from '../../core/chord-detection/song-chords';
 import { alternativesFor, romanFor, voiceChord } from '../../core/harmony-suggestions/harmony';
-import { allKeys, keyLabel, sameKey, type MusicalKey } from '../../core/key-detection/key';
+import { allKeys, sameKey, type MusicalKey } from '../../core/key-detection/key';
+import { chordDescription, keyName } from '../../i18n/music';
 import { showGhost, togglePin } from '../harmony-service';
+import { useT } from '../i18n';
 import { transport } from '../runtime';
 import { useApp } from '../store/app-store';
 import { useHarmony, type SuggestionChip } from '../store/harmony-store';
@@ -14,6 +15,7 @@ function keyValue(k: MusicalKey | null): string {
 }
 
 export function Chip({ chip, id }: { chip: SuggestionChip; id: string }) {
+  const t = useT();
   const pinned = useHarmony((s) => s.pinned === id);
   return (
     <button
@@ -30,7 +32,12 @@ export function Chip({ chip, id }: { chip: SuggestionChip; id: string }) {
       }}
       onFocus={() => showGhost({ bass: chip.bass, upper: chip.upper })}
       onClick={() => togglePin(chip, id)}
-      title={`${chip.symbol} (${chip.numeral}) – ${Math.round(chip.probability * 100)} % · Klick: anpinnen${useSettings.getState().harmonyAudition ? ' und anspielen' : ''}`}
+      title={t.harmony.chipTitle(
+        chip.symbol,
+        chip.numeral,
+        t.pct(Math.round(chip.probability * 100)),
+        useSettings.getState().harmonyAudition,
+      )}
       aria-pressed={pinned}
     >
       <span className="chip-symbol">{chip.symbol}</span>
@@ -60,37 +67,49 @@ function toChip(seg: ChordSegment, key: MusicalKey): SuggestionChip | null {
 }
 
 /** A) Freispiel */
-function FreePlay() {
+function FreePlay({ onStage }: { onStage: boolean }) {
+  const t = useT();
   const { chord, chordSounding, chordNumeral, key, keySource, keyConfidence, suggestions } = useHarmony();
   const s = useSettings();
 
   return (
     <div className="harmony-free">
-      <div className={`chord-now${chordSounding ? ' sounding' : ''}`}>
-        <span className="chord-symbol">{chord ? chord.symbol : '–'}</span>
-        {chord && chordNumeral && <span className="chord-numeral">{chordNumeral}</span>}
-      </div>
-      <p className="help chord-desc">
-        {chord ? describeChord(chord) : 'Spiele mindestens drei Töne gleichzeitig.'}
-        {chord && !chordSounding && ' · zuletzt gespielt'}
-      </p>
+      {/* Ohne Stück steht der Akkord groß auf der Bühne (Harmonie-Leiste) – hier nicht doppelt zeigen */}
+      {!onStage && (
+        <div className={`chord-now${chordSounding ? ' sounding' : ''}`}>
+          <span className="chord-symbol">{chord ? chord.symbol : '–'}</span>
+          {chord && chordNumeral && <span className="chord-numeral">{chordNumeral}</span>}
+        </div>
+      )}
+      {!onStage && (
+        <p className="help chord-desc">
+          {chord ? chordDescription(chord, t) : `${t.harmony.playThree}.`}
+          {chord && !chordSounding && `, ${t.harmony.lastPlayed}`}
+        </p>
+      )}
 
       <label className="field">
         <span>
-          Tonart{' '}
+          {t.common.key}{' '}
           {key && (
             <strong className="key-name">
-              {keyLabel(key)}
+              {keyName(key, t)}
               {keySource === 'auto' && (
                 <span className="muted">
                   {' '}
-                  ({keyConfidence > 0.5 ? 'eindeutig' : keyConfidence > 0.15 ? 'wahrscheinlich' : 'unsicher'})
+                  (
+                  {keyConfidence > 0.5
+                    ? t.harmony.confidence.sure
+                    : keyConfidence > 0.15
+                      ? t.harmony.confidence.likely
+                      : t.harmony.confidence.unsure}
+                  )
                 </span>
               )}
-              {keySource === 'song' && <span className="muted"> (aus dem Stück)</span>}
+              {keySource === 'song' && <span className="muted"> {t.harmony.fromSong}</span>}
             </strong>
           )}
-          {!key && <span className="muted">– spiel ein paar Takte</span>}
+          {!key && <span className="muted">{t.harmony.keyUnknownShort}</span>}
         </span>
         <select
           value={keyValue(s.harmonyKey)}
@@ -102,20 +121,20 @@ function FreePlay() {
               s.update({ harmonyKey: { tonicPc: Number(p), mode: mode === 'minor' ? 'minor' : 'major' } });
             }
           }}
-          aria-label="Tonart"
+          aria-label={t.common.key}
         >
-          <option value="auto">Automatisch (letzte ~8 s)</option>
+          <option value="auto">{t.harmony.keyAuto}</option>
           {allKeys().map((k) => (
             <option key={keyValue(k)} value={keyValue(k)}>
-              {keyLabel(k)}
+              {keyName(k, t)}
             </option>
           ))}
         </select>
       </label>
 
-      {suggestions.length > 0 && (
+      {!onStage && suggestions.length > 0 && (
         <>
-          <div className="chips-head">Als Nächstes {chord ? `nach ${chord.symbol}` : 'in der Tonart'}</div>
+          <div className="chips-head">{chord ? t.harmony.nextAfter(chord.symbol) : t.harmony.nextInKey}</div>
           <div
             className="chips"
             onMouseLeave={() => useHarmony.getState().pinned === null && showGhost(null)}
@@ -132,6 +151,7 @@ function FreePlay() {
 
 /** B) Akkorde im Stück */
 function InSong() {
+  const t = useT();
   const segments = useHarmony((s) => s.segments);
   const songKey = useHarmony((s) => s.songKey);
   const [idx, setIdx] = useState(-1);
@@ -141,7 +161,7 @@ function InSong() {
     return () => clearInterval(id);
   }, [segments]);
 
-  if (!songKey || segments.length === 0) return <p className="help">Keine Akkorde erkannt.</p>;
+  if (!songKey || segments.length === 0) return <p className="help">{t.harmony.noChordsFound}</p>;
   const cur = segments[Math.max(0, idx)];
   const nextIdx = segments.findIndex((s, i) => i > idx && s.chord !== null);
   const next = nextIdx >= 0 ? segments[nextIdx] : undefined;
@@ -160,26 +180,32 @@ function InSong() {
   return (
     <div className="harmony-song">
       <p className="help">
-        Tonart des Stücks: <strong>{keyLabel(songKey)}</strong>
+        {t.harmony.songKey} <strong>{keyName(songKey, t)}</strong>
       </p>
       <div className="song-chords">
         <div>
-          <div className="chips-head">Jetzt</div>
-          {curChip ? <Chip chip={curChip} id={`cur-${idx}`} /> : <span className="muted">–</span>}
+          <div className="chips-head">{t.harmony.now}</div>
+          {curChip ? (
+            <Chip chip={curChip} id={`cur-${idx}`} />
+          ) : (
+            <span className="muted">{t.harmony.noChordShort}</span>
+          )}
         </div>
         <div>
-          <div className="chips-head">Als Nächstes{next ? ` · Takt ${next.measure + 1}` : ''}</div>
+          <div className="chips-head">
+            {next ? t.harmony.nextFromMeasure(next.measure + 1) : t.harmony.next}
+          </div>
           {nextChip ? (
             <Chip chip={nextChip} id={`next-${nextIdx}`} />
           ) : (
-            <span className="muted">Schluss</span>
+            <span className="muted">{t.harmony.end}</span>
           )}
         </div>
       </div>
       {curAlt.length > 0 && (
         <>
           <div className="chips-head tip">
-            {curChip ? `Tipp: Statt ${curChip.symbol} würde hier auch passen` : 'Tipp: Hier würde passen'}
+            {curChip ? t.harmony.tipInstead(curChip.symbol) : t.harmony.tipFits}
           </div>
           <div className="chips">
             {curAlt.map((c) => (
@@ -190,7 +216,7 @@ function InSong() {
       )}
       {nextAlt.length > 0 && (
         <>
-          <div className="chips-head">Alternativen zu {nextChip?.symbol}</div>
+          <div className="chips-head">{t.harmony.alternatives(nextChip?.symbol ?? '')}</div>
           <div className="chips">
             {nextAlt.map((c) => (
               <Chip key={`na-${nextIdx}-${c.symbol}`} chip={c} id={`na-${nextIdx}-${c.symbol}`} />
@@ -203,6 +229,7 @@ function InSong() {
 }
 
 export function HarmonyPanel() {
+  const t = useT();
   const s = useSettings();
   const song = useApp((a) => a.song);
   const playing = useApp((a) => a.transport === 'playing');
@@ -228,7 +255,7 @@ export function HarmonyPanel() {
             checked={s.harmonyFree}
             onChange={(e) => s.update({ harmonyFree: e.target.checked })}
           />
-          Freispiel-Vorschläge
+          {t.harmony.switchFree}
         </label>
         <label className="check">
           <input
@@ -236,7 +263,7 @@ export function HarmonyPanel() {
             checked={s.harmonySong}
             onChange={(e) => s.update({ harmonySong: e.target.checked })}
           />
-          Akkorde im Stück
+          {t.harmony.switchSong}
         </label>
         <label className="check">
           <input
@@ -244,7 +271,7 @@ export function HarmonyPanel() {
             checked={s.harmonyAutoGhost}
             onChange={(e) => s.update({ harmonyAutoGhost: e.target.checked })}
           />
-          Wahrscheinlichsten Folgeakkord auf der Klaviatur zeigen
+          {t.harmony.switchGhost}
         </label>
         <label className="check">
           <input
@@ -252,13 +279,11 @@ export function HarmonyPanel() {
             checked={s.harmonyScaleTones}
             onChange={(e) => s.update({ harmonyScaleTones: e.target.checked })}
           />
-          Skalentöne markieren
+          {t.harmony.switchScale}
         </label>
       </div>
-      {s.harmonyFree && song && playing && (
-        <p className="help">Freispiel-Vorschläge erscheinen, wenn das Stück pausiert.</p>
-      )}
-      {freeVisible && <FreePlay />}
+      {s.harmonyFree && song && playing && <p className="help">{t.harmony.freeWhenPaused}</p>}
+      {freeVisible && <FreePlay onStage={!song} />}
       {songVisible && (
         <>
           {freeVisible && <hr className="sep" />}
@@ -266,9 +291,7 @@ export function HarmonyPanel() {
         </>
       )}
       {key && songKey && freeVisible && songVisible && !sameKey(key, songKey) && (
-        <p className="help">
-          Hinweis: Dein Spiel klingt nach {keyLabel(key)}, das Stück steht in {keyLabel(songKey)}.
-        </p>
+        <p className="help">{t.harmony.keyMismatch(keyName(key, t), keyName(songKey, t))}</p>
       )}
     </div>
   );

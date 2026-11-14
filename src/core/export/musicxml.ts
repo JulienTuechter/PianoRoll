@@ -43,6 +43,8 @@ interface MusicXmlOptions {
   title: string;
   bpm: number;
   key: MusicalKey | null;
+  /** Name der Stimme (Standard „Klavier“) */
+  partName?: string;
 }
 
 /**
@@ -62,7 +64,9 @@ export function toMusicXml(score: NotationScore, opts: MusicXmlOptions): string 
   push('<score-partwise version="4.0">');
   push(`  <work><work-title>${escapeXml(opts.title)}</work-title></work>`);
   push('  <identification><encoding><software>Pianist</software></encoding></identification>');
-  push('  <part-list><score-part id="P1"><part-name>Klavier</part-name></score-part></part-list>');
+  push(
+    `  <part-list><score-part id="P1"><part-name>${escapeXml(opts.partName ?? 'Klavier')}</part-name></score-part></part-list>`,
+  );
   push('  <part id="P1">');
 
   // Bögen über Taktgrenzen hinweg: welche Tonhöhen enden in einer gebundenen Note?

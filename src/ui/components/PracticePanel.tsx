@@ -1,12 +1,9 @@
 import type { HandFilter } from '../../core/wait-mode-engine/wait-mode-engine';
+import { useT } from '../i18n';
 import { useApp } from '../store/app-store';
 import { useSettings } from '../store/settings';
 
-const HANDS: { id: HandFilter; label: string }[] = [
-  { id: 'left', label: 'Links' },
-  { id: 'both', label: 'Beide' },
-  { id: 'right', label: 'Rechts' },
-];
+const HANDS: HandFilter[] = ['left', 'both', 'right'];
 
 function preventArrows(e: React.KeyboardEvent): void {
   e.preventDefault();
@@ -14,27 +11,23 @@ function preventArrows(e: React.KeyboardEvent): void {
 
 /** Hände & Modus-spezifische Optionen */
 export function PracticePanel() {
+  const t = useT();
   const s = useSettings();
   if (s.mode === 'watch') {
-    return (
-      <p className="help">
-        Im Modus „Anschauen“ läuft das Stück durch und wird vorgespielt. Wechsle oben auf „Warten“ oder
-        „Performance“, um selbst zu spielen.
-      </p>
-    );
+    return <p className="help">{t.practice.watchHelp}</p>;
   }
   return (
     <div className="practice">
       <div className="field">
-        Hände
-        <div className="seg" role="group" aria-label="Geübte Hände">
+        {t.practice.hands}
+        <div className="seg" role="group" aria-label={t.practice.handsGroup}>
           {HANDS.map((h) => (
             <button
-              key={h.id}
-              className={s.waitHands === h.id ? 'on' : ''}
-              onClick={() => s.update({ waitHands: h.id })}
+              key={h}
+              className={s.waitHands === h ? 'on' : ''}
+              onClick={() => s.update({ waitHands: h })}
             >
-              {h.label}
+              {t.hands[h]}
             </button>
           ))}
         </div>
@@ -46,32 +39,32 @@ export function PracticePanel() {
             checked={s.accompaniment}
             onChange={(e) => s.update({ accompaniment: e.target.checked })}
           />
-          Andere Hand spielt automatisch mit
+          {t.practice.accompaniment}
         </label>
       )}
       {s.mode === 'wait' && (
         <>
           <div className="field">
-            Falsche Noten
-            <div className="seg" role="group" aria-label="Strenge">
+            {t.practice.wrongNotes}
+            <div className="seg" role="group" aria-label={t.practice.strictGroup}>
               <button
                 className={!s.strict ? 'on' : ''}
                 onClick={() => s.update({ strict: false })}
-                title="Zusätzliche Noten werden toleriert"
+                title={t.practice.allowedTitle}
               >
-                Erlaubt
+                {t.practice.allowed}
               </button>
               <button
                 className={s.strict ? 'on' : ''}
                 onClick={() => s.update({ strict: true })}
-                title="Falsche Noten zählen als Fehler"
+                title={t.practice.countAsErrorTitle}
               >
-                Zählen als Fehler
+                {t.practice.countAsError}
               </button>
             </div>
           </div>
           <label className="field">
-            Akkord-Toleranz: {s.chordToleranceMs} ms
+            {t.practice.chordTolerance(s.chordToleranceMs)}
             <input
               type="range"
               min={50}
@@ -83,15 +76,15 @@ export function PracticePanel() {
             />
           </label>
           <label className="field">
-            Hinweis nach Fehlversuchen
+            {t.practice.hintAfter}
             <select
               value={s.hintAfterErrors}
               onChange={(e) => s.update({ hintAfterErrors: Number(e.target.value) })}
             >
-              <option value={0}>Aus</option>
+              <option value={0}>{t.common.off}</option>
               {[1, 2, 3, 4, 5].map((n) => (
                 <option key={n} value={n}>
-                  nach {n}
+                  {t.practice.afterN(n)}
                 </option>
               ))}
             </select>
@@ -99,10 +92,7 @@ export function PracticePanel() {
         </>
       )}
       {s.mode === 'performance' && (
-        <p className="help">
-          Perfect ≤ {s.perfectMs} ms, Good ≤ {s.goodMs} ms, sonst Miss. Fenster und Latenzausgleich in den
-          Einstellungen.
-        </p>
+        <p className="help">{t.practice.performanceHelp(s.perfectMs, s.goodMs)}</p>
       )}
     </div>
   );
@@ -110,6 +100,7 @@ export function PracticePanel() {
 
 /** Metronom, Count-in, Auto-Tempo – in allen Modi verfügbar. */
 export function PracticeTools() {
+  const t = useT();
   const s = useSettings();
   const song = useApp((a) => a.song);
   return (
@@ -117,7 +108,7 @@ export function PracticeTools() {
       {!song && (
         <div className="rec-settings">
           <label className="field">
-            Tempo (BPM)
+            {t.practice.tempoBpm}
             <input
               className="text-input"
               type="number"
@@ -130,7 +121,7 @@ export function PracticeTools() {
             />
           </label>
           <label className="field">
-            Taktart
+            {t.common.meter}
             <select
               value={`${s.recNumerator}/${s.recDenominator}`}
               onChange={(e) => {
@@ -153,15 +144,11 @@ export function PracticeTools() {
           checked={s.metronome}
           onChange={(e) => s.update({ metronome: e.target.checked })}
         />
-        Metronom <kbd>Shift</kbd>+<kbd>M</kbd>
+        {t.transport.metronome} <kbd>Shift</kbd>+<kbd>M</kbd>
       </label>
-      <p className="help">
-        {song
-          ? 'Folgt dem Takt des Stücks (beim Abspielen).'
-          : 'Im freien Spiel nach Tempo und Taktart oben – gilt auch für Aufnahmen.'}
-      </p>
+      <p className="help">{song ? t.practice.metronomeSong : t.practice.metronomeFree}</p>
       <label className="field">
-        Metronom-Lautstärke
+        {t.practice.metronomeVolume}
         <input
           type="range"
           min={0}
@@ -173,12 +160,12 @@ export function PracticeTools() {
         />
       </label>
       <label className="field">
-        Count-in
+        {t.practice.countIn}
         <select value={s.countInBars} onChange={(e) => s.update({ countInBars: Number(e.target.value) })}>
-          <option value={0}>Aus</option>
+          <option value={0}>{t.common.off}</option>
           {[1, 2, 3, 4].map((n) => (
             <option key={n} value={n}>
-              {n} {n === 1 ? 'Takt' : 'Takte'}
+              {t.common.bars(n)}
             </option>
           ))}
         </select>
@@ -189,29 +176,29 @@ export function PracticeTools() {
           checked={s.autoTempo}
           onChange={(e) => s.update({ autoTempo: e.target.checked })}
         />
-        Auto-Tempo im Loop
+        {t.practice.autoTempo}
       </label>
       {s.autoTempo && (
         <div className="auto-tempo">
-          nach
+          {t.practice.autoAfter}
           <input
             type="number"
             min={1}
             max={20}
             value={s.autoTempoPasses}
             onChange={(e) => s.update({ autoTempoPasses: Math.max(1, Number(e.target.value) || 1) })}
-            aria-label="Saubere Durchläufe"
+            aria-label={t.practice.autoPassesLabel}
           />
-          sauberen Durchläufen +
+          {t.practice.autoPasses}
           <input
             type="number"
             min={1}
             max={50}
             value={s.autoTempoStepPercent}
             onChange={(e) => s.update({ autoTempoStepPercent: Math.max(1, Number(e.target.value) || 1) })}
-            aria-label="Steigerung in Prozent"
+            aria-label={t.practice.autoStepLabel}
           />
-          %, bis
+          {t.practice.autoUpTo}
           <input
             type="number"
             min={30}
@@ -221,13 +208,14 @@ export function PracticeTools() {
             onChange={(e) =>
               s.update({ autoTempoMaxPercent: Math.min(150, Math.max(30, Number(e.target.value) || 100)) })
             }
-            aria-label="Maximales Tempo in Prozent"
+            aria-label={t.practice.autoMaxLabel}
           />
           %
         </div>
       )}
       <p className="help">
-        Loop: in der Taktleiste oben einen Bereich ziehen oder <kbd>L</kbd> drücken.
+        {t.practice.loopHelpBefore} <kbd>L</kbd>
+        {t.practice.loopHelpAfter}
       </p>
     </div>
   );

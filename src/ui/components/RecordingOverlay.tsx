@@ -1,10 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { formatTime } from '../format';
 import { recLive, stopRecording } from '../recording';
+import { t as msg } from '../../i18n';
+import { useT } from '../i18n';
 import { useApp } from '../store/app-store';
 
 /** Anzeige während der Aufnahme: Einzählen (große Ziffer), danach REC-Zeit, Takt und Notenanzahl. */
 export function RecordingOverlay() {
+  const t = useT();
   const recording = useApp((s) => s.recording);
   const countRef = useRef<HTMLDivElement>(null);
   const infoRef = useRef<HTMLSpanElement>(null);
@@ -21,11 +24,15 @@ export function RecordingOverlay() {
         countRef.current.style.display = remaining > 0 ? 'grid' : 'none';
       }
       if (infoRef.current) {
-        if (now < t0) infoRef.current.textContent = 'Einzählen …';
+        if (now < t0) infoRef.current.textContent = msg().hud.countIn;
         else {
           const elapsed = now - t0;
           const measure = Math.floor(elapsed / (beatMs * numerator)) + 1;
-          infoRef.current.textContent = `${formatTime(elapsed / 1000)} · Takt ${measure} · ${recorder?.noteCount ?? 0} Noten`;
+          infoRef.current.textContent = msg().recording.info(
+            formatTime(elapsed / 1000),
+            measure,
+            recorder?.noteCount ?? 0,
+          );
         }
       }
       raf = requestAnimationFrame(tick);
@@ -39,9 +46,10 @@ export function RecordingOverlay() {
     <>
       <div ref={countRef} className="countin" aria-hidden="true" />
       <div className="rec-badge" role="status">
-        <span className="rec-dot" /> REC <span ref={infoRef} className="rec-info" />
-        <button className="btn small" onClick={stopRecording} title="Aufnahme beenden (Leertaste)">
-          ■ Stopp
+        <span className="rec-dot" aria-hidden="true" /> {t.recording.badge}{' '}
+        <span ref={infoRef} className="rec-info" />
+        <button className="btn small" onClick={stopRecording} title={t.recording.stopTitle}>
+          {t.recording.stopShort}
         </button>
       </div>
     </>
