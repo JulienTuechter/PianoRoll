@@ -1,7 +1,4 @@
 # Pianist
-
-**English** · [Deutsch](README.de.md)
-
 A web app for learning piano with a MIDI keyboard. Load a song, watch the notes fall, and play along: Pianist waits for you, scores your timing, or just plays the piece for you. Everything runs locally in the browser. No account, no server, no tracking.
 
 Built with React and TypeScript.
