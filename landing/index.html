@@ -69,26 +69,26 @@
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" }
       }
     </script>
-
-    <!-- Platzhalter-Landingpage: bewusst minimal, wird später ausgebaut -->
-    <link rel="stylesheet" href="/landing/landing.css" />
+    <style>
+      html {
+        background: #0b0605;
+      }
+    </style>
   </head>
   <body>
-    <main class="landing">
-      <h1>Pianist</h1>
-      <p class="slogan">
-        Learn piano with your MIDI keyboard: the app waits until you play the right note and shows you which
-        chord fits next.
-      </p>
-      <a class="cta" href="/app/">Open the app</a>
-      <p class="note">Free, no sign-up. Runs in your browser. No keyboard? Play with your computer keys.</p>
-      <img
-        class="shot"
-        src="/landing/stage.webp"
-        width="720"
-        height="660"
-        alt="Glowing falling notes land on a piano keyboard, sparks fly on a correct note."
-      />
-    </main>
+    <div id="root"></div>
+    <noscript>
+      <main
+        style="max-width: 40rem; margin: 0 auto; padding: 4rem 1rem; color: #f2eadd; font-family: system-ui"
+      >
+        <h1>Pianist</h1>
+        <p>
+          Learn piano with your MIDI keyboard: the app waits until you play the right note and shows you which
+          chord fits next.
+        </p>
+        <p><a href="/app/" style="color: #fe6a00">Open the app</a></p>
+      </main>
+    </noscript>
+    <script type="module" src="/landing/src/main.tsx"></script>
   </body>
 </html>
