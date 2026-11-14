@@ -1,0 +1,81 @@
+/* Platzhalter-Landingpage: nur das Nötigste, Farben und Schriften wie in der App (Kiln) */
+@import '@fontsource-variable/fraunces/opsz.css';
+@import '@fontsource-variable/geist';
+
+:root {
+  --paper: oklch(13% 0.012 40);
+  --ink: oklch(94% 0.02 80);
+  --muted: oklch(72% 0.03 60);
+  --accent: oklch(70% 0.2 45);
+  --accent-ink: oklch(14% 0.02 40);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Geist Variable', system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+.landing {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: clamp(48px, 12vh, 120px) 16px 64px;
+}
+
+h1 {
+  margin: 0;
+  font-family: 'Fraunces Variable', Georgia, serif;
+  font-size: clamp(56px, 12vw, 112px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.slogan {
+  max-width: 34ch;
+  margin: 28px 0 32px;
+  font-size: clamp(20px, 3vw, 26px);
+  line-height: 1.35;
+}
+
+.cta {
+  display: inline-block;
+  padding: 14px 28px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+  font-size: 18px;
+  text-decoration: none;
+}
+
+.cta:hover {
+  filter: brightness(1.08);
+}
+
+.cta:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.note {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.shot {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  margin-top: 56px;
+  border-radius: 12px;
+}
