@@ -25,7 +25,6 @@ export function App() {
   const dialogOpen = useApp((s) => s.settingsOpen || s.libraryOpen || s.resultsOpen || s.take !== null);
   const ready = useApp((s) => s.ready);
   const onboardingDone = useSettings((s) => s.onboardingDone);
-  const sidePanelOpen = useSettings((s) => s.sidePanelOpen);
   const activeDeviceId = useApp((s) => s.midi.activeDeviceId);
   const panelOpen = useSettings((s) => s.sidePanelOpen);
   const immersive = useImmersive();
@@ -47,8 +46,8 @@ export function App() {
     <div className={`app${immersive ? ' immersive' : ''}${panelOpen ? ' panel-open' : ''}`}>
       <TransportBar />
       <MeasureTimeline />
-      <main className={`main${sidePanelOpen ? '' : ' side-closed'}`}>
-        {/* Falling Notes und Klaviatur teilen sich exakt dieselbe Breite */}
+      <main className="main">
+        {/* Notenbereich und Klaviatur teilen sich exakt dieselbe Breite; die Bühne zeichnet beide */}
         <div className="stage-col">
           <Scene />
           <Stage />
@@ -56,7 +55,7 @@ export function App() {
             <PianoKeyboard />
           </div>
         </div>
-        {sidePanelOpen && <SidePanel />}
+        <SidePanel />
       </main>
       <DropZone />
       <ErrorToast />
