@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { useCopy } from '../i18n';
+import { GITHUB_URL } from '../links';
 
 /** Kleine Linien-Glyphen für die Ausstattung (inline SVG, erben die Textfarbe) */
 const GLYPHS = [
@@ -32,10 +33,9 @@ const GLYPHS = [
     <path d="M5 24c5-9 12-13 19-13s14 4 19 13c-5 9-12 13-19 13S10 33 5 24z" />
     <circle cx="24" cy="24" r="6" />
   </svg>,
-  // Sprache
-  <svg key="lang" viewBox="0 0 48 48" aria-hidden="true">
-    <circle cx="24" cy="24" r="17" />
-    <path d="M7 24h34M24 7c6 6 6 28 0 34M24 7c-6 6-6 28 0 34" />
+  // Quellcode
+  <svg key="code" viewBox="0 0 48 48" aria-hidden="true">
+    <path d="M17 15L7 24l10 9M31 15l10 9-10 9M27 11l-6 26" />
   </svg>,
 ];
 
@@ -64,6 +64,11 @@ export function Rig() {
             <span className="rig-glyph">{GLYPHS[i]}</span>
             <h3>{it.t}</h3>
             <p>{it.d}</p>
+            {i === c.rig.items.length - 1 && (
+              <a className="rig-link" href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
+                {c.github} <span aria-hidden="true">↗</span>
+              </a>
+            )}
           </li>
         ))}
       </ul>

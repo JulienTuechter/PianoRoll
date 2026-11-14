@@ -2,20 +2,29 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useCopy } from '../i18n';
 import { useCanvasLoop, useNear, prefersReducedMotion } from '../hooks';
 import { sound, wakeSound } from '../audio';
-import { demoSong, handColor } from '../stage';
+import { demoSong, handColor, keyboardFrame, strikeLine } from '../stage';
 import { scoreFor } from '../../../src/ui/notation/score-for-song';
 import { cursorAt, renderScore, type ScoreLayout } from '../../../src/ui/notation/render-score';
 import { computeKeyboardLayout, type KeyboardLayout } from '../../../src/ui/canvas/keyboard-layout';
 import { drawFallingNotes } from '../../../src/ui/canvas/falling-notes-renderer';
+import { drawKeyboard } from '../../../src/ui/canvas/keyboard-renderer';
 import { firstNoteIndexAtOrAfter } from '../../../src/core/note-event-model/notes';
+import { measureIndexAt } from '../../../src/core/note-event-model/tempo-map';
+import type { Hand } from '../../../src/core/note-event-model/types';
 import { ParticleSystem } from '../../../src/ui/canvas/particles';
 
 const MIN = 36;
 const MAX = 84;
+/**
+ * Das Notenblatt wird in fester Breite gesetzt (vier Takte pro Zeile) und dann auf die verfügbare Breite skaliert –
+ * auf dem Handy kompakt, auf großen Bildschirmen etwas größer.
+ */
+const SCORE_W = 820;
+const MAX_SCALE = 1.3;
 
 /**
- * Notenschrift: dasselbe Demo-Stück, gesetzt mit dem VexFlow-Renderer der App (wird erst in Sichtweite nachgeladen),
- * darüber die fallenden Noten im Gleichlauf – wie die geteilte Ansicht der App.
+ * Notenschrift: dasselbe Demo-Stück, gesetzt mit dem VexFlow-Renderer der App (erst in Sichtweite nachgeladen),
+ * darüber fallende Noten mit Klaviatur im Gleichlauf – wie die geteilte Ansicht der App.
  */
 export function NotationDemo() {
   const c = useCopy();
@@ -26,11 +35,16 @@ export function NotationDemo() {
   const stripRef = useRef<HTMLCanvasElement>(null);
   const near = useNear(sectionRef, '600px');
   const [layout, setLayout] = useState<ScoreLayout | null>(null);
-  const [width, setWidth] = useState(0);
+  const [avail, setAvail] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const play = useRef({ pos: 0, playing: false, lastNow: 0 });
+  const [bar, setBar] = useState(1);
+  const play = useRef({ pos: 0, playing: false, lastNow: 0, bar: 1 });
   const strip = useRef({ layout: null as KeyboardLayout | null, lw: 0, particles: new ParticleSystem(400) });
   const still = prefersReducedMotion();
+
+  const scoreW = SCORE_W;
+  const scale = avail > 0 ? Math.min(MAX_SCALE, avail / scoreW) : 1;
+  const bars = demoSong().measures.length;
 
   const score = useMemo(() => {
     if (!near) return null;
@@ -38,16 +52,18 @@ export function NotationDemo() {
     return scoreFor(d.notes, d.measures, d.song.ppq, { tonicPc: 0, mode: 'major' }, d.tempoMap);
   }, [near]);
 
+  // verfügbare Breite des Notenblatts beobachten
   useEffect(() => {
-    const el = svgRef.current?.parentElement;
+    const el = paperRef.current;
     if (!el) return;
     let t = 0;
+    const measure = () => setAvail(Math.floor(el.clientWidth - 24));
     const ro = new ResizeObserver(() => {
       window.clearTimeout(t);
-      t = window.setTimeout(() => setWidth(Math.floor(el.clientWidth)), 150);
+      t = window.setTimeout(measure, 150);
     });
     ro.observe(el);
-    setWidth(Math.floor(el.clientWidth));
+    measure();
     return () => {
       ro.disconnect();
       window.clearTimeout(t);
@@ -56,17 +72,17 @@ export function NotationDemo() {
 
   useEffect(() => {
     const el = svgRef.current;
-    if (!el || !score || width < 200) return;
+    if (!el || !score) return;
     let cancelled = false;
-    renderScore(el, score, width)
+    renderScore(el, score, scoreW)
       .then((l) => !cancelled && setLayout(l))
       .catch((e: unknown) => console.error(e));
     return () => {
       cancelled = true;
     };
-  }, [score, width]);
+  }, [score, scoreW]);
 
-  // Leichtes Kippen des Notenblatts zur Maus (Parallaxe)
+  // Leichtes Kippen des Notenblatts zur Maus
   useEffect(() => {
     const paper = paperRef.current;
     if (!paper || still) return;
@@ -74,8 +90,8 @@ export function NotationDemo() {
       const r = paper.getBoundingClientRect();
       const x = (e.clientX - r.left) / r.width - 0.5;
       const y = (e.clientY - r.top) / r.height - 0.5;
-      paper.style.setProperty('--rx', `${(-y * 4).toFixed(2)}deg`);
-      paper.style.setProperty('--ry', `${(x * 5).toFixed(2)}deg`);
+      paper.style.setProperty('--rx', `${(-y * 2.5).toFixed(2)}deg`);
+      paper.style.setProperty('--ry', `${(x * 3).toFixed(2)}deg`);
       paper.style.setProperty('--mx', `${((x + 0.5) * 100).toFixed(1)}%`);
       paper.style.setProperty('--my', `${((y + 0.5) * 100).toFixed(1)}%`);
     };
@@ -102,13 +118,15 @@ export function NotationDemo() {
     setPlaying(p.playing);
   };
 
-  // Ein Takt für Zeit, Klang, fallende Noten, Cursor und leuchtende Noten
+  // Ein Takt für Zeit, Klang, fallende Noten, Klaviatur, Cursor und leuchtende Noten
   useCanvasLoop(stripRef, (ctx, { w, h }, _dt, now) => {
     const p = play.current;
     const d = demoSong();
     const s = strip.current;
     const dt = Math.min(0.05, (now - p.lastNow) / 1000);
     p.lastNow = now;
+    const kh = Math.round(Math.min(56, Math.max(34, w * 0.05)));
+    const nh = h - kh;
     if (p.playing) {
       const prev = p.pos;
       p.pos += dt;
@@ -117,20 +135,29 @@ export function NotationDemo() {
         if (n.startSec > p.pos) break;
         sound.play(n.midi, n.velocity * 0.85, n.durationSec);
         const k = s.layout?.byMidi[n.midi];
-        if (k && !still) s.particles.burst(k.x + k.w / 2, h, handColor(n.hand), 14);
+        if (k && !still) s.particles.burst(k.x + k.w / 2, nh, handColor(n.hand), 14);
       }
       if (p.pos > d.song.durationSec + 0.3) {
         p.playing = false;
         setPlaying(false);
       }
     }
+    const curBar = Math.min(bars, measureIndexAt(d.measures, p.pos) + 1);
+    if (curBar !== p.bar) {
+      p.bar = curBar;
+      setBar(curBar);
+    }
     if (s.lw !== w || !s.layout) {
       s.layout = computeKeyboardLayout(w, MIN, MAX);
       s.lw = w;
     }
-    drawFallingNotes(ctx, s.layout, h, {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, w, nh);
+    ctx.clip();
+    drawFallingNotes(ctx, s.layout, nh, {
       positionSec: p.pos,
-      windowSec: 2.2,
+      windowSec: 2.4,
       notes: d.notes,
       maxDurationSec: d.maxDurationSec,
       measures: d.measures,
@@ -143,8 +170,21 @@ export function NotationDemo() {
       beginner: false,
       still,
     });
-    ctx.fillStyle = '#fe6a00';
-    ctx.fillRect(0, h - 2, w, 2);
+    ctx.globalCompositeOperation = 'lighter';
+    strikeLine(ctx, nh, w, 0.8);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.restore();
+
+    const active = new Map<number, Hand>();
+    for (let i = firstNoteIndexAtOrAfter(d.notes, p.pos - d.maxDurationSec); i < d.notes.length; i++) {
+      const n = d.notes[i]!;
+      if (n.startSec > p.pos) break;
+      if (n.startSec + n.durationSec > p.pos) active.set(n.midi, n.hand);
+    }
+    ctx.save();
+    ctx.translate(0, nh);
+    drawKeyboard(ctx, s.layout, kh, keyboardFrame(now, { active }));
+    ctx.restore();
     s.particles.update(dt);
     s.particles.draw(ctx);
 
@@ -175,20 +215,35 @@ export function NotationDemo() {
         <h2>{c.notation.title}</h2>
         <p className="lead">{c.notation.lead}</p>
       </div>
-      <div className="notation-stage">
+      <div className="demo-stage notation-stage">
+        <div className="demo-bar">
+          <button type="button" className="play-btn" onClick={toggle} aria-pressed={playing}>
+            <span aria-hidden="true">{playing ? '❚❚' : '▶'}</span>
+            {playing ? c.notation.pause : c.notation.play}
+          </button>
+          <span className={`pill ${playing ? 'on' : ''}`}>{c.notation.bar(bar, bars)}</span>
+        </div>
         <canvas ref={stripRef} className="notation-strip" aria-hidden="true" />
         <div className="paper" ref={paperRef}>
-          <div className="paper-inner">
-            <div ref={svgRef} className="paper-svg" />
-            <div ref={cursorRef} className="paper-cursor" />
+          <div
+            className="paper-fit"
+            style={{ height: layout ? Math.ceil(layout.height * scale) : undefined }}
+          >
+            <div
+              className="paper-scale"
+              style={{
+                width: scoreW,
+                marginLeft: Math.max(0, (avail - scoreW * scale) / 2),
+                transform: `scale(${scale})`,
+              }}
+            >
+              <div ref={svgRef} className="paper-svg" />
+              <div ref={cursorRef} className="paper-cursor" />
+            </div>
             {!layout && <p className="paper-loading">{c.notation.loading}</p>}
           </div>
           <div className="paper-light" aria-hidden="true" />
         </div>
-        <button type="button" className="play-fab" onClick={toggle} aria-pressed={playing}>
-          <span aria-hidden="true">{playing ? '❚❚' : '▶'}</span>
-          {playing ? c.notation.pause : c.notation.play}
-        </button>
       </div>
     </section>
   );

@@ -6,7 +6,7 @@
     <title>Pianist – Learn piano with your MIDI keyboard</title>
     <meta
       name="description"
-      content="Learn piano with your MIDI keyboard: the app waits until you play the right note and shows you which chord fits next."
+      content="Learn piano with your MIDI keyboard: the app waits until you play the right note and shows you which chord fits next. Free and open source."
     />
     <meta name="theme-color" content="#0b0605" />
     <meta name="color-scheme" content="dark" />
@@ -17,6 +17,8 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
+    <!-- Quellcode (Open Source), Adresse aus .env: VITE_GITHUB_URL -->
+    <link rel="code-repository" href="%VITE_GITHUB_URL%" />
 
     <!-- Link-Vorschau (Open Graph: WhatsApp, Signal, Telegram, Facebook, LinkedIn, Slack, Discord …)
          Englisch, weil Crawler nur eine Sprache pro URL lesen; die App selbst folgt der Browsersprache -->
@@ -25,7 +27,7 @@
     <meta property="og:title" content="Pianist – Learn piano with your MIDI keyboard" />
     <meta
       property="og:description"
-      content="Learn piano with your MIDI keyboard: the app waits until you play the right note and shows you which chord fits next."
+      content="Learn piano with your MIDI keyboard: the app waits until you play the right note and shows you which chord fits next. Free and open source."
     />
     <meta property="og:url" content="%SITE_URL%/app/" />
     <meta property="og:image" content="%SITE_URL%/og-image.png" />
@@ -44,7 +46,7 @@
     <meta name="twitter:title" content="Pianist – Learn piano with your MIDI keyboard" />
     <meta
       name="twitter:description"
-      content="Learn piano with your MIDI keyboard: the app waits until you play the right note and shows you which chord fits next."
+      content="Learn piano with your MIDI keyboard: the app waits until you play the right note and shows you which chord fits next. Free and open source."
     />
     <meta name="twitter:image" content="%SITE_URL%/og-image.png" />
     <meta
@@ -60,12 +62,14 @@
         "name": "Pianist",
         "url": "%SITE_URL%/",
         "image": "%SITE_URL%/og-image.png",
-        "description": "Learn piano with your MIDI keyboard: the app waits until you play the right note and shows you which chord fits next.",
+        "description": "Learn piano with your MIDI keyboard: the app waits until you play the right note and shows you which chord fits next. Free and open source.",
         "applicationCategory": "EducationalApplication",
         "operatingSystem": "Web",
         "browserRequirements": "Web MIDI (Chrome, Edge, Firefox, Brave)",
         "inLanguage": ["en", "de"],
         "isAccessibleForFree": true,
+        "sameAs": ["%VITE_GITHUB_URL%"],
+        "keywords": "piano, MIDI, learn piano, open source",
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" }
       }
     </script>

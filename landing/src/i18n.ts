@@ -6,7 +6,7 @@ export type Lang = 'en' | 'de';
 const en = {
   nav: { open: 'Open the app', soundOn: 'Sound on', soundOff: 'Sound off', loading: 'Loading sound…' },
   hero: {
-    eyebrow: 'Free · in your browser · no sign-up',
+    eyebrow: 'Free · open source · in your browser',
     title1: 'The stage',
     title2: 'is yours.',
     lead: 'Pianist turns your MIDI keyboard into a lit stage. Notes fall, time waits until you hit the right key, and every hit throws sparks.',
@@ -74,6 +74,7 @@ const en = {
     play: 'Play',
     pause: 'Pause',
     loading: 'Setting the score…',
+    bar: (n: number, of: number) => `Bar ${n} of ${of}`,
   },
   quant: {
     kicker: 'Record & quantize',
@@ -102,7 +103,10 @@ const en = {
         t: 'Made for every eye',
         d: 'Color-blind-safe colors, symbols on every judgement, reduced motion respected.',
       },
-      { t: 'English & Deutsch', d: 'Follows your browser language, switch any time in the settings.' },
+      {
+        t: 'Completely open source',
+        d: 'Every line of code is public on GitHub. Read it, fork it, make it better.',
+      },
     ],
   },
   finale: {
@@ -111,6 +115,19 @@ const en = {
     cta: 'Open the app',
     note: 'Free, no sign-up. Runs in Chrome, Edge, Firefox and Brave.',
   },
+  rail: [
+    'Stage',
+    'From stage to keys',
+    'Wait mode',
+    'Performance mode',
+    'Harmony Assist',
+    'Notation',
+    'Record & quantize',
+    'Backstage',
+    'Your turn',
+  ],
+  github: 'View source on GitHub',
+  railLabel: 'Sections',
   footer: {
     samples: 'Piano samples: Salamander Grand Piano V3 by Alexander Holm, CC-BY 3.0',
     local: 'Runs entirely in your browser. Nothing is uploaded.',
@@ -122,7 +139,7 @@ type Copy = typeof en;
 const de: Copy = {
   nav: { open: 'App öffnen', soundOn: 'Ton an', soundOff: 'Ton aus', loading: 'Klang lädt…' },
   hero: {
-    eyebrow: 'Kostenlos · im Browser · ohne Anmeldung',
+    eyebrow: 'Kostenlos · Open Source · im Browser',
     title1: 'Die Bühne',
     title2: 'gehört dir.',
     lead: 'Pianist macht dein MIDI-Piano zur beleuchteten Bühne. Noten fallen, die Zeit wartet, bis du die richtige Taste triffst, und jeder Treffer sprüht Funken.',
@@ -196,6 +213,7 @@ const de: Copy = {
     play: 'Abspielen',
     pause: 'Pause',
     loading: 'Noten werden gesetzt…',
+    bar: (n: number, of: number) => `Takt ${n} von ${of}`,
   },
   quant: {
     kicker: 'Aufnehmen & quantisieren',
@@ -233,7 +251,10 @@ const de: Copy = {
         t: 'Für jedes Auge',
         d: 'Farbenblind-sichere Farben, Symbole bei jeder Bewertung, reduzierte Bewegung wird respektiert.',
       },
-      { t: 'Deutsch & English', d: 'Folgt deiner Browsersprache, umschaltbar in den Einstellungen.' },
+      {
+        t: 'Komplett Open Source',
+        d: 'Jede Zeile Code ist öffentlich auf GitHub. Reinschauen, forken, besser machen.',
+      },
     ],
   },
   finale: {
@@ -242,6 +263,19 @@ const de: Copy = {
     cta: 'App öffnen',
     note: 'Kostenlos, ohne Anmeldung. Läuft in Chrome, Edge, Firefox und Brave.',
   },
+  rail: [
+    'Bühne',
+    'Von der Bühne zur Klaviatur',
+    'Warte-Modus',
+    'Performance-Modus',
+    'Harmony Assist',
+    'Notenschrift',
+    'Aufnehmen & quantisieren',
+    'Hinter der Bühne',
+    'Du bist dran',
+  ],
+  github: 'Quellcode auf GitHub',
+  railLabel: 'Abschnitte',
   footer: {
     samples: 'Piano-Samples: Salamander Grand Piano V3 von Alexander Holm, CC-BY 3.0',
     local: 'Läuft komplett in deinem Browser. Nichts wird hochgeladen.',

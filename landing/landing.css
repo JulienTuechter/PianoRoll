@@ -321,6 +321,50 @@ h3 {
   }
 }
 
+.gh {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  color: var(--ink-2);
+  transition:
+    color 200ms,
+    border-color 200ms,
+    box-shadow 200ms;
+}
+.gh:hover {
+  color: var(--ink);
+  border-color: color-mix(in oklab, var(--accent) 60%, transparent);
+  box-shadow: 0 0 24px -6px var(--accent-glow);
+}
+.footer-gh {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-2);
+  text-decoration: none;
+}
+.footer-gh:hover {
+  color: var(--accent-hot);
+}
+.rig-link {
+  display: inline-flex;
+  gap: 6px;
+  margin-top: 16px;
+  color: var(--accent-hot);
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in oklab, var(--accent) 40%, transparent);
+}
+.rig-link span {
+  transition: transform 220ms var(--ease-out);
+}
+.rig-link:hover span {
+  transform: translate(2px, -2px);
+}
+
 /* ── Lichtschiene ──────────────────────────────────────── */
 .rail {
   position: fixed;
@@ -351,23 +395,110 @@ h3 {
 }
 .rail a {
   position: relative;
+  display: block;
   width: 7px;
   height: 7px;
   border-radius: 50%;
+  outline-offset: 6px;
+}
+/* Punkt */
+.rail a::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
   background: var(--paper-3);
   box-shadow: 0 0 0 1px var(--rule-2);
-  transition: all 300ms var(--ease-out);
+  transition:
+    transform 300ms var(--ease-out),
+    background 300ms,
+    box-shadow 300ms;
 }
-.rail a.past {
+/* größere Trefferfläche */
+.rail a::after {
+  content: '';
+  position: absolute;
+  inset: -9px -12px;
+}
+.rail a.past::before {
   background: var(--accent);
   box-shadow: none;
 }
-.rail a.on {
+.rail a.on::before {
   background: #fff3e0;
   box-shadow:
     0 0 0 3px oklch(70% 0.2 45 / 0.35),
     0 0 16px var(--accent);
   transform: scale(1.3);
+}
+.rail a:hover::before,
+.rail a:focus-visible::before {
+  background: var(--accent-hot);
+  box-shadow: 0 0 14px var(--accent);
+  transform: scale(1.7);
+}
+
+/* Legende: erscheint beim Hovern, Einträge fahren nacheinander ein */
+.rail::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: -60px;
+  bottom: -60px;
+  right: -18px;
+  width: 300px;
+  pointer-events: none;
+  background: radial-gradient(100% 60% at 100% 50%, oklch(11% 0.012 40 / 0.92), transparent 75%);
+  opacity: 0;
+  transition: opacity 400ms var(--ease-out);
+}
+.rail-label {
+  position: absolute;
+  right: 24px;
+  top: 50%;
+  padding: 3px 10px;
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(12px, -50%);
+  filter: blur(3px);
+  transition:
+    opacity 350ms var(--ease-out),
+    transform 450ms var(--ease-out),
+    filter 350ms var(--ease-out),
+    color 200ms,
+    background 200ms;
+  transition-delay: 0ms;
+}
+.rail:hover::after,
+.rail:focus-within::after {
+  opacity: 1;
+}
+.rail:hover .rail-label,
+.rail:focus-within .rail-label {
+  opacity: 1;
+  transform: translate(0, -50%);
+  filter: none;
+  pointer-events: auto;
+  transition-delay: calc(var(--i) * 28ms);
+}
+.rail a.past .rail-label {
+  color: var(--ink-2);
+}
+.rail a.on .rail-label {
+  color: #fff3e0;
+  text-shadow: 0 0 14px oklch(70% 0.2 45 / 0.8);
+}
+.rail a:hover .rail-label,
+.rail a:focus-visible .rail-label {
+  color: var(--accent-ink);
+  background: var(--accent);
+  box-shadow: 0 0 24px -4px var(--accent-glow);
+  transition-delay: 0ms;
 }
 @media (max-width: 960px) {
   .rail {
@@ -1087,17 +1218,41 @@ main > section {
   color: var(--muted);
 }
 
-/* Notenschrift */
+/* Notenschrift: Bildschirm (fallende Noten + Klaviatur) über dem Notenblatt, wie die geteilte Ansicht der App */
 .notation-stage {
-  position: relative;
-  perspective: 1400px;
+  perspective: 1600px;
+}
+.play-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 18px;
+  border: 1px solid var(--rule-2);
+  border-radius: 999px;
+  background: var(--paper);
+  font-weight: 500;
+  font-size: 15px;
+  transition:
+    border-color 200ms,
+    box-shadow 200ms;
+}
+.play-btn:hover,
+.play-btn[aria-pressed='true'] {
+  border-color: color-mix(in oklab, var(--accent) 70%, transparent);
+  box-shadow: 0 0 30px -8px var(--accent-glow);
+}
+.play-btn span {
+  color: var(--accent-hot);
+  font-size: 12px;
+}
+.notation-stage .pill {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
 }
 .notation-strip {
   width: 100%;
-  height: 130px;
-  border-radius: 18px 18px 0 0;
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 40%);
-  mask-image: linear-gradient(to bottom, transparent, #000 40%);
+  height: clamp(150px, 22vh, 220px);
+  border-radius: 16px 16px 0 0;
 }
 .paper {
   --rx: 0deg;
@@ -1105,31 +1260,31 @@ main > section {
   --mx: 50%;
   --my: 20%;
   position: relative;
-  border-radius: 6px 6px 18px 18px;
+  margin-top: 12px;
+  padding: 16px 12px 8px;
+  border-radius: 14px;
   background: #f2eadd;
   color: #1b120e;
   transform: rotateX(var(--rx)) rotateY(var(--ry));
-  transform-style: preserve-3d;
   transition: transform 400ms var(--ease-out);
   box-shadow:
-    0 0 0 1px oklch(0% 0 0 / 0.2),
-    0 60px 120px -40px oklch(70% 0.2 45 / 0.35),
-    0 30px 60px -30px oklch(0% 0 0 / 0.8);
+    0 0 0 1px oklch(0% 0 0 / 0.25),
+    0 40px 90px -40px oklch(70% 0.2 45 / 0.4);
   overflow: hidden;
 }
-.paper-inner {
+.paper-fit {
   position: relative;
-  padding: 18px 8px 10px;
-  min-height: 300px;
+  min-height: 160px;
+  overflow: hidden;
 }
-.paper-svg svg {
-  max-width: 100%;
-  height: auto;
+.paper-scale {
+  position: relative;
+  transform-origin: 0 0;
 }
 .paper-cursor {
   position: absolute;
-  top: 18px;
-  left: 8px;
+  top: 0;
+  left: 0;
   display: none;
   width: 2px;
   background: var(--accent);
@@ -1155,30 +1310,6 @@ main > section {
 .vf-playing * {
   fill: #e85d00 !important;
   stroke: #e85d00 !important;
-}
-.play-fab {
-  position: absolute;
-  right: 18px;
-  top: 92px;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 18px;
-  border: 1px solid var(--rule-2);
-  border-radius: 999px;
-  background: oklch(13% 0.012 40 / 0.8);
-  backdrop-filter: blur(8px);
-  font-weight: 500;
-  font-size: 15px;
-  z-index: 2;
-}
-.play-fab:hover {
-  border-color: var(--accent);
-  box-shadow: 0 0 30px -8px var(--accent-glow);
-}
-.play-fab span {
-  color: var(--accent-hot);
-  font-size: 12px;
 }
 
 /* Quantizer-Notenrolle */
@@ -1425,11 +1556,6 @@ main > section {
   .next button {
     grid-template-columns: 40px 60px 1fr 40px;
     gap: 8px;
-  }
-  .play-fab {
-    top: auto;
-    bottom: 14px;
-    right: 14px;
   }
   .hero-title .glow {
     padding-left: 0;
