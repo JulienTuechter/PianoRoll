@@ -4,7 +4,7 @@ export interface RunStats {
   correctNotes: number;
   /** Falsche Noten, die als Fehler zählen */
   wrongNotes: number;
-  /** Zusätzliche Noten, die toleriert wurden (lockerer Wait-Modus) */
+  /** Nur noch in alten gespeicherten Ergebnissen (früherer lockerer Wait-Modus) */
   extraNotes: number;
   /** Erwartete Noten, die nicht (rechtzeitig) gespielt wurden – Performance-Modus */
   missedNotes: number;

@@ -162,7 +162,7 @@ export class PerformanceEngine implements PlayEngine {
     if (best < 0) {
       recordError(this._stats, this.measureAt(songT));
       this.keyJudgements.set(e.midi, 'wrong');
-      this.emit({ type: 'wrong', midi: e.midi, counted: true, group: -1 });
+      this.emit({ type: 'wrong', midi: e.midi, group: -1 });
       return;
     }
 

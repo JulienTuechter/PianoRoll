@@ -22,8 +22,6 @@ export interface WaitModeConfig {
   groupWindowSec: number;
   /** Wie lange eine losgelassene Akkordnote noch als „gehalten“ gilt */
   chordToleranceMs: number;
-  /** true: falsche Noten zählen als Fehler; false: Extra-Noten erlaubt */
-  strict: boolean;
   /** Nach so vielen Fehlversuchen in einer Gruppe wird die Hinweisanzeige aktiv (0 = aus) */
   hintAfterErrors: number;
   /** Wie früh (Songzeit) vor einer Gruppe deren Noten schon angenommen werden */
@@ -34,7 +32,6 @@ export const defaultWaitConfig: WaitModeConfig = {
   hands: 'both',
   groupWindowSec: 0.04,
   chordToleranceMs: 150,
-  strict: false,
   hintAfterErrors: 3,
   earlyWindowSec: 0.3,
 };
@@ -81,7 +78,7 @@ export function buildWaitGroups(
  * - Der Transport hält an der nächsten offenen Gruppe (Haltepunkt).
  * - Eine Gruppe ist erfüllt, wenn jede erwartete Tonhöhe seit Aktivierung der Gruppe angeschlagen wurde
  *   und zum Zeitpunkt des letzten Anschlags noch gehalten wird (oder vor höchstens chordToleranceMs losgelassen wurde).
- * - Falsche Noten brechen nichts ab; je nach Strenge zählen sie als Fehler.
+ * - Falsche Noten brechen nichts ab, zählen aber als Fehler.
  */
 export class WaitModeEngine implements PlayEngine {
   readonly mode = 'wait' as const;
@@ -231,9 +228,8 @@ export class WaitModeEngine implements PlayEngine {
 
     this.keyJudgements.set(e.midi, 'wrong');
     this.groupErrors++;
-    if (this.config.strict) recordError(this._stats, group.measure);
-    else this._stats.extraNotes++;
-    this.emit({ type: 'wrong', midi: e.midi, counted: this.config.strict, group: group.index });
+    recordError(this._stats, group.measure);
+    this.emit({ type: 'wrong', midi: e.midi, group: group.index });
     if (!this._hint && this.config.hintAfterErrors > 0 && this.groupErrors >= this.config.hintAfterErrors) {
       this._hint = true;
       this.emit({ type: 'hint', group: group.index });

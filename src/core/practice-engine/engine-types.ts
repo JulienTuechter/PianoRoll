@@ -7,7 +7,7 @@ export type KeyJudgement = 'correct' | 'wrong' | 'early' | 'late';
 
 export type EngineEvent =
   | { type: 'correct'; midi: number; group: number }
-  | { type: 'wrong'; midi: number; counted: boolean; group: number }
+  | { type: 'wrong'; midi: number; group: number }
   | { type: 'group-complete'; group: number; hadErrors: boolean }
   | { type: 'hint'; group: number }
   | { type: 'hit'; midi: number; grade: TimingGrade; offsetMs: number }

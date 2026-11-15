@@ -35,8 +35,6 @@ export interface Settings {
   waitHands: HandFilter;
   /** Nicht geübte Hand spielt automatisch mit */
   accompaniment: boolean;
-  /** true = falsche Noten zählen als Fehler */
-  strict: boolean;
   chordToleranceMs: number;
   /** 0 = aus */
   hintAfterErrors: number;
@@ -121,7 +119,6 @@ export const defaultSettings: Settings = {
   mode: 'wait',
   waitHands: 'both',
   accompaniment: true,
-  strict: false,
   chordToleranceMs: 150,
   hintAfterErrors: 3,
   lastSongId: null,
@@ -200,10 +197,15 @@ export const useSettings = create<SettingsStore>()(
     }),
     {
       name: 'pianist-settings',
-      version: 9,
+      version: 10,
       storage: createJSONStorage(() => idbStorage),
       // Neue Felder bekommen Standardwerte; unbekannte alte Felder werden ignoriert
-      migrate: (persisted) => ({ ...defaultSettings, ...(persisted as Partial<Settings>) }),
+      migrate: (persisted) => {
+        // v10: Schalter „strict“ entfernt, falsche Noten zählen immer als Fehler
+        const merged = { ...defaultSettings, ...(persisted as Partial<Settings>) };
+        delete (merged as { strict?: boolean }).strict;
+        return merged;
+      },
       partialize: ({ update: _update, ...rest }) => rest,
     },
   ),

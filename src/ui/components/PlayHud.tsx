@@ -11,7 +11,6 @@ interface HudSnapshot {
   mode: 'wait' | 'performance';
   accuracy: number;
   wrong: number;
-  extra: number;
   missed: number;
   perfect: number;
   good: number;
@@ -32,7 +31,6 @@ function snapshot(): HudSnapshot | null {
     mode: e.mode,
     accuracy: accuracy(s),
     wrong: s.wrongNotes,
-    extra: s.extraNotes,
     missed: s.missedNotes,
     perfect: s.timing.perfect,
     good: s.timing.good,
@@ -108,7 +106,6 @@ function LoopBadge() {
 /** Statusanzeige über den fallenden Noten. Aktualisiert sich 10×/s, nicht pro Frame. */
 export function PlayHud() {
   const t = useT();
-  const strict = useSettings((s) => s.strict);
   const [snap, setSnap] = useState<HudSnapshot | null>(null);
 
   useEffect(() => {
@@ -131,10 +128,7 @@ export function PlayHud() {
         <div className="hud" aria-live="off">
           <HudItem label={t.hud.accuracy} value={t.pct(Math.round(snap.accuracy * 100))} />
           {snap.mode === 'wait' ? (
-            <HudItem
-              label={strict ? t.hud.errors : t.hud.extraNotes}
-              value={strict ? snap.wrong : snap.extra}
-            />
+            <HudItem label={t.hud.errors} value={snap.wrong} />
           ) : (
             <>
               <HudItem label={t.hud.perfect} value={snap.perfect} />

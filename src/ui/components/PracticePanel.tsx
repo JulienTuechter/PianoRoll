@@ -44,25 +44,6 @@ export function PracticePanel() {
       )}
       {s.mode === 'wait' && (
         <>
-          <div className="field">
-            {t.practice.wrongNotes}
-            <div className="seg" role="group" aria-label={t.practice.strictGroup}>
-              <button
-                className={!s.strict ? 'on' : ''}
-                onClick={() => s.update({ strict: false })}
-                title={t.practice.allowedTitle}
-              >
-                {t.practice.allowed}
-              </button>
-              <button
-                className={s.strict ? 'on' : ''}
-                onClick={() => s.update({ strict: true })}
-                title={t.practice.countAsErrorTitle}
-              >
-                {t.practice.countAsError}
-              </button>
-            </div>
-          </div>
           <label className="field">
             {t.practice.chordTolerance(s.chordToleranceMs)}
             <input

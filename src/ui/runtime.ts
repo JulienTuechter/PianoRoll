@@ -113,7 +113,6 @@ const SESSION_KEYS: (keyof Settings)[] = [
   'mode',
   'waitHands',
   'accompaniment',
-  'strict',
   'chordToleranceMs',
   'hintAfterErrors',
   'perfectMs',
@@ -389,7 +388,6 @@ function rebuildSession(): void {
       {
         ...defaultWaitConfig,
         hands: s.waitHands,
-        strict: s.strict,
         chordToleranceMs: s.chordToleranceMs,
         hintAfterErrors: s.hintAfterErrors,
       },

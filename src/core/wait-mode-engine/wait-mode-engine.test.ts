@@ -4,6 +4,7 @@ import { MockMidiInput } from '../midi-input/mock-input';
 import type { Hand, NoteEvent } from '../note-event-model/types';
 import { Transport } from '../playback/transport';
 import { FakeClock } from '../time/clock';
+import { accuracy } from '../scoring/scoring';
 import {
   buildWaitGroups,
   defaultWaitConfig,
@@ -107,8 +108,8 @@ describe('WaitModeEngine', () => {
     expect(engine.currentGroupIndex).toBe(2);
   });
 
-  it('zählt falsche Noten im strengen Modus als Fehler, ohne abzubrechen', () => {
-    const { mock, engine, events } = setup([n(60, 0), n(62, 2.5)], { strict: true });
+  it('zählt falsche Noten als Fehler, ohne abzubrechen', () => {
+    const { mock, engine, events } = setup([n(60, 0), n(62, 2.5)]);
     mock.press(61);
     mock.release(61);
     expect(engine.stats.wrongNotes).toBe(1);
@@ -120,13 +121,16 @@ describe('WaitModeEngine', () => {
     expect(engine.stats.streak).toBe(1);
   });
 
-  it('erlaubt Extra-Noten im lockeren Modus', () => {
-    const { mock, engine } = setup([n(60, 0)], { strict: false });
+  it('bewertet ein Stück mit vielen falschen Noten nicht als fehlerfrei', () => {
+    const { mock, engine } = setup([n(60, 0)]);
     mock.press(50);
+    mock.press(51);
     expect(engine.keyJudgements.get(50)).toBe('wrong');
     mock.press(60);
-    expect(engine.stats.wrongNotes).toBe(0);
-    expect(engine.stats.extraNotes).toBe(1);
+    expect(engine.stats.wrongNotes).toBe(2);
+    expect(engine.stats.extraNotes).toBe(0);
+    expect(engine.stats.cleanGroups).toBe(0);
+    expect(accuracy(engine.stats)).toBeCloseTo(1 / 3);
     expect(engine.currentGroupIndex).toBe(1);
   });
 
@@ -142,7 +146,7 @@ describe('WaitModeEngine', () => {
   });
 
   it('nimmt Noten kurz vor der Gruppe an (Frühfenster), aber nicht zu früh', () => {
-    const { mock, clock, engine, transport } = setup([n(60, 1)], { earlyWindowSec: 0.3, strict: true });
+    const { mock, clock, engine, transport } = setup([n(60, 1)], { earlyWindowSec: 0.3 });
     clock.advance(500);
     mock.press(60); // 0,5 s zu früh → falsch
     mock.release(60);
@@ -199,7 +203,7 @@ describe('WaitModeEngine', () => {
   });
 
   it('meldet am Ende ein Ergebnis mit Heatmap und startet bei Play neu', () => {
-    const { mock, clock, transport, events, engine } = setup([n(60, 0), n(62, 2.2)], { strict: true });
+    const { mock, clock, transport, events, engine } = setup([n(60, 0), n(62, 2.2)]);
     mock.press(61);
     mock.press(60);
     clock.advance(2200);
