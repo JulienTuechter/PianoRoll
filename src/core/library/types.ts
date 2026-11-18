@@ -1,7 +1,7 @@
 import type { HandAssignment } from '../note-event-model/types';
 import type { RunResult } from '../scoring/scoring';
 
-export type SongSource = 'file' | 'demo' | 'recording';
+export type SongSource = 'file' | 'demo' | 'recording' | 'catalog';
 
 export interface TrackOverride {
   handAssignment: HandAssignment;
@@ -41,6 +41,10 @@ export interface LibraryRepository {
   delete(id: string): Promise<void>;
   addRun(run: StoredRun): Promise<void>;
   runs(songId: string): Promise<StoredRun[]>;
+  /** Alle Durchgänge aller Stücke (für die Datensicherung) */
+  allRuns(): Promise<StoredRun[]>;
   getSetting<T>(key: string): Promise<T | undefined>;
   setSetting<T>(key: string, value: T): Promise<void>;
+  /** Alle gespeicherten Einstellungen als Schlüssel/Wert (für die Datensicherung) */
+  allSettings(): Promise<Record<string, unknown>>;
 }

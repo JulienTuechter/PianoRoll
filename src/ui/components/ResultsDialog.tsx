@@ -1,20 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { worstMeasures, type TimingSummary } from '../../core/scoring/scoring';
-import { formatTime } from '../format';
+import { formatTime, handsLabel, heatColor } from '../format';
 import { restartRun, seekToMeasure } from '../runtime';
-import type { Messages } from '../../i18n';
 import { useT } from '../i18n';
 import { useApp } from '../store/app-store';
-
-const handsLabel = (t: Messages, h: 'both' | 'left' | 'right'): string =>
-  h === 'both' ? t.hands.bothHands : h === 'left' ? t.common.leftHand : t.common.rightHand;
-
-function heatColor(errors: number, max: number): string {
-  if (errors === 0) return 'var(--heat-0)';
-  const t = Math.min(1, errors / Math.max(1, max));
-  // Hitzeskala: Ochsenblut (wenig) bis Weißglut (viel), Stufen auch über Helligkeit unterscheidbar
-  return `var(--heat-${1 + Math.min(4, Math.floor(t * 4.999))})`;
-}
 
 function Bar({ label, value, total, cls }: { label: string; value: number; total: number; cls: string }) {
   const pct = total > 0 ? (value / total) * 100 : 0;
@@ -198,6 +187,11 @@ export function ResultsDialog() {
       )}
 
       <div className="dialog-actions">
+        {song && (
+          <button className="btn" onClick={() => set({ resultsOpen: false, historySongId: song.id })}>
+            {t.history.open}
+          </button>
+        )}
         <button className="btn" onClick={() => set({ resultsOpen: false })}>
           {t.common.close}
         </button>

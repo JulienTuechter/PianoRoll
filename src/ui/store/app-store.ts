@@ -21,6 +21,8 @@ interface AppState {
   libraryOpen: boolean;
   dragging: boolean;
   library: LibraryEntry[];
+  /** Stück, dessen Lernverlauf gerade angezeigt wird */
+  historySongId: string | null;
   lastResult: RunResult | null;
   resultsOpen: boolean;
   /** Ausgewählter Loop-Bereich (Takte) und ob er aktiv ist */
@@ -49,6 +51,7 @@ export const useApp = create<AppState>()((set) => ({
   libraryOpen: false,
   dragging: false,
   library: [],
+  historySongId: null,
   lastResult: null,
   resultsOpen: false,
   loop: null,

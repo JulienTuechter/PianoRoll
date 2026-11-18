@@ -3,6 +3,7 @@
  * Renderer lesen `live` / `getEngine()` direkt pro Frame – kein React-Rerender pro Tastendruck.
  */
 import { ToneAudioEngine } from '../core/audio-engine/tone-engine';
+import { catalogDisplayTitle, type CatalogItem } from '../core/catalog/catalog';
 import { createDemoMidi } from '../core/demo/demo-song';
 import {
   addSong,
@@ -60,6 +61,7 @@ import {
   type HandFilter,
 } from '../core/wait-mode-engine/wait-mode-engine';
 import type { KeyFlash } from './canvas/keyboard-renderer';
+import { fetchCatalogBytes } from './catalog';
 import { libraryRepo } from './library-repo';
 import { pushFx } from './scene/fx-queue';
 import { useApp } from './store/app-store';
@@ -602,6 +604,17 @@ export async function loadDemo(): Promise<void> {
       'demo',
       m.library.demoTitle,
     );
+    useApp.getState().set({ libraryOpen: false });
+  } catch (err) {
+    showError(err);
+  }
+}
+
+/** Öffnet ein Stück aus dem mitgelieferten Katalog (Datei wird erst jetzt geladen und in die Bibliothek übernommen). */
+export async function loadCatalogItem(item: CatalogItem): Promise<void> {
+  try {
+    const bytes = await fetchCatalogBytes(item);
+    await importAndOpen(bytes, item.path, 'catalog', catalogDisplayTitle(item));
     useApp.getState().set({ libraryOpen: false });
   } catch (err) {
     showError(err);

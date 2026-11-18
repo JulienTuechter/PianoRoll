@@ -1,4 +1,5 @@
 # Pianist
+
 A web app for learning piano with a MIDI keyboard. Load a song, watch the notes fall, and play along: Pianist waits for you, scores your timing, or just plays the piece for you. Everything runs locally in the browser. No account, no server, no tracking.
 
 Built with React and TypeScript.
@@ -17,6 +18,9 @@ Built with React and TypeScript.
 - **Recording** with count-in and metronome. Quantization supports 1/4, 1/8, 1/16, triplets and swing, plus minimum length, overlap handling and hand splitting. The score preview updates as you go.
 - **Export** to MIDI, MusicXML, SVG or PNG, for recordings and for loaded songs.
 - **Library** stored in IndexedDB that tracks your progress (last practiced, best accuracy). Recordings are saved there too.
+- **Progress history** per piece: best accuracy per practice day, every run with mode, hands and tempo, and a bar-by-bar comparison of your last runs with the ones before.
+- **Piece catalogue** with public-domain pieces (folk songs, Beethoven, Petzold, Bach). Extend it by dropping MIDI files into `catalog/` (see [catalog/README.md](catalog/README.md)).
+- **Backup:** export library, recordings, history and settings to one JSON file and restore it on any device. Restoring merges instead of overwriting.
 - **Languages:** English and German. "Automatic" follows the browser language.
 
 ### Keyboard shortcuts
@@ -81,6 +85,7 @@ src/core/         Pure logic, no UI, fully tested
 src/ui/           React components, Zustand stores, Canvas/WebGL and VexFlow rendering
 src/i18n/locales/ Translations
 public/           Icons, preview image, piano samples
+catalog/          Bundled MIDI pieces, picked up automatically (Category/Composer - Title.mid)
 ```
 
 `src/core` covers MIDI input, file loading, the note model, transport, the wait and performance engines, scoring, chord and key detection, harmony suggestions, the notation builder, recorder, quantizer, MIDI/MusicXML export and audio. It must not import React, and ESLint enforces this.

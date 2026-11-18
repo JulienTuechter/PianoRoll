@@ -13,7 +13,13 @@ function seo(): Plugin {
   return {
     name: 'pianist-seo',
     configResolved(config) {
-      siteUrl = (process.env.SITE_URL ?? loadEnv(config.mode, process.cwd(), '').SITE_URL ?? '')
+      // Vercel setzt VERCEL_PROJECT_PRODUCTION_URL (ohne Protokoll) beim Build automatisch
+      const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+      siteUrl = (
+        process.env.SITE_URL ??
+        loadEnv(config.mode, process.cwd(), '').SITE_URL ??
+        (vercel ? `https://${vercel}` : '')
+      )
         .trim()
         .replace(/\/+$/, '');
       if (config.command === 'build' && !siteUrl)

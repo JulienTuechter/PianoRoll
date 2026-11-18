@@ -68,6 +68,15 @@ export class IdbLibraryRepository implements LibraryRepository {
     return (await this.db()).getAllFromIndex('runs', 'bySong', songId);
   }
 
+  async allRuns(): Promise<StoredRun[]> {
+    return (await this.db()).getAll('runs');
+  }
+
+  async allSettings(): Promise<Record<string, unknown>> {
+    const rows = await (await this.db()).getAll('kv');
+    return Object.fromEntries(rows.map((r) => [r.key, r.value]));
+  }
+
   async getSetting<T>(key: string): Promise<T | undefined> {
     return (await (await this.db()).get('kv', key))?.value as T | undefined;
   }

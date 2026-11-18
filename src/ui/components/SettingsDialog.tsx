@@ -6,6 +6,7 @@ import { useApp } from '../store/app-store';
 import { DEFAULT_LEFT, DEFAULT_RIGHT, luminance } from '../theme';
 import { defaultSettings, useSettings, type VisualQuality } from '../store/settings';
 import { prefersReducedMotion } from '../scene/scene-model';
+import { BackupPanel } from './BackupPanel';
 import { MidiStatusPanel } from './MidiStatus';
 
 /** Sprachnamen immer in der eigenen Sprache */
@@ -303,6 +304,11 @@ export function SettingsDialog() {
             onChange={(e) => s.update({ simulatorVelocity: Number(e.target.value) })}
           />
         </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>{t.backup.heading}</legend>
+        <BackupPanel />
       </fieldset>
 
       <div className="dialog-actions">

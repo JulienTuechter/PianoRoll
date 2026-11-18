@@ -360,9 +360,86 @@ export const de = {
     sortRecent: 'Zuletzt geübt',
     sortTitle: 'Titel',
     sortAdded: 'Hinzugefügt',
-    empty: 'Noch keine Stücke. Zieh eine MIDI-Datei hierher oder lade das Demo-Stück.',
+    empty:
+      'Noch keine Stücke. Zieh eine MIDI-Datei hierher, lade das Demo-Stück oder wähle eins aus dem Stückkatalog.',
     colLastPracticed: 'Zuletzt geübt',
     colBest: 'Beste',
+    catalogTag: 'Katalog',
+    history: 'Verlauf',
+    historyLabel: (title: string) => `Lernverlauf von ${title}`,
+    tabLibrary: 'Meine Stücke',
+    tabCatalog: 'Stückkatalog',
+    catalogIntro:
+      'Gemeinfreie Stücke zum Üben. Eigene MIDI-Dateien lassen sich über den Ordner catalog/ im Projekt ergänzen.',
+    catalogEmpty: 'Der Katalog ist leer. Lege MIDI-Dateien im Ordner catalog/ ab.',
+    catalogUncategorized: 'Weitere Stücke',
+    inLibrary: 'In der Bibliothek',
+    catalogOpen: (title: string) => `${title} öffnen`,
+  },
+
+  history: {
+    heading: 'Lernverlauf',
+    runs: 'Durchgänge',
+    days: 'Übungstage',
+    time: 'Übungszeit',
+    best: 'Beste',
+    trend: 'Trend',
+    trendValue: (recent: string, earlier: string) => `${earlier} → ${recent}`,
+    trendHelp: (n: number) => `Ø Genauigkeit der letzten ${n} Durchgänge gegenüber den ${n} davor`,
+    filter: 'Modus',
+    all: 'Alle',
+    empty:
+      'Noch keine Durchgänge. Spiel das Stück im Warte- oder Performance-Modus, dann erscheint hier dein Fortschritt.',
+    emptyFiltered: 'Keine Durchgänge in diesem Modus.',
+    chartTitle: 'Genauigkeit je Übungstag',
+    chartLabel: (days: number) => `Diagramm: beste Genauigkeit an ${days} Übungstagen`,
+    legendBest: 'Beste je Tag (vollständig)',
+    legendRun: 'Einzelner Durchgang',
+    dayTip: (date: string, runs: number, best: string, mean: string) =>
+      `${date}: ${runs} ${runs === 1 ? 'Durchgang' : 'Durchgänge'}, beste ${best}, Ø ${mean}`,
+    measures: 'Takte im Vergleich',
+    measuresHelp: 'Ø Fehler je Durchgang. Klick auf einen Takt springt dorthin.',
+    recentRow: (n: number) => `Letzte ${n}`,
+    earlierRow: (n: number) => `${n} davor`,
+    measureTip: (m: number, recent: string, earlier: string | null) =>
+      earlier === null
+        ? `Takt ${m}: Ø ${recent} Fehler`
+        : `Takt ${m}: Ø ${recent} Fehler (vorher ${earlier})`,
+    improved: (list: string) => `Besser geworden: ${list}`,
+    worse: (list: string) => `Mehr Fehler als vorher: ${list}`,
+    list: 'Alle Durchgänge',
+    colDate: 'Datum',
+    colMode: 'Modus',
+    colHands: 'Hände',
+    colTempo: 'Tempo',
+    colAccuracy: 'Genauigkeit',
+    partialTag: 'Teil',
+    showMore: (n: number) => `${n} weitere anzeigen`,
+    open: 'Verlauf',
+  },
+
+  backup: {
+    heading: 'Datensicherung',
+    help: 'Bibliothek, Aufnahmen, Lernverlauf und Einstellungen liegen nur in diesem Browser. Eine Sicherungsdatei schützt vor dem Löschen der Browserdaten und bringt alles auf ein anderes Gerät.',
+    export: 'Sicherung herunterladen',
+    import: 'Sicherung einspielen …',
+    includeSettings: 'Einstellungen mit übernehmen',
+    mergeHelp:
+      'Beim Einspielen wird zusammengeführt: Vorhandene Stücke bleiben, fehlende Durchgänge kommen dazu.',
+    last: (date: string) => `Letzte Sicherung: ${date}`,
+    never: 'Noch keine Sicherung erstellt.',
+    working: 'Wird bearbeitet …',
+    exported: 'Sicherung gespeichert.',
+    restored: (added: number, merged: number, runs: number) =>
+      `Eingespielt: ${added} neue ${added === 1 ? 'Stück' : 'Stücke'}, ${merged} zusammengeführt, ${runs} ${runs === 1 ? 'Durchgang' : 'Durchgänge'} ergänzt.`,
+    persisted: 'Der Browser hält die Daten dauerhaft vor.',
+    transient: 'Der Browser darf die Daten bei Speicherknappheit löschen.',
+    persist: 'Dauerhaft speichern',
+    errors: {
+      notJson: 'Die Datei ist keine Pianist-Sicherung (kein JSON).',
+      wrongFormat: 'Die Datei ist keine Pianist-Sicherung.',
+      newerVersion: 'Die Sicherung stammt aus einer neueren Pianist-Version.',
+    },
   },
 
   results: {

@@ -36,6 +36,12 @@ export class MemoryLibraryRepository implements LibraryRepository {
   runs(songId: string): Promise<StoredRun[]> {
     return Promise.resolve(this.runList.filter((r) => r.songId === songId));
   }
+  allRuns(): Promise<StoredRun[]> {
+    return Promise.resolve([...this.runList]);
+  }
+  allSettings(): Promise<Record<string, unknown>> {
+    return Promise.resolve(Object.fromEntries(this.settings));
+  }
   getSetting<T>(key: string): Promise<T | undefined> {
     return Promise.resolve(this.settings.get(key) as T | undefined);
   }

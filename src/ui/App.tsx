@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { DropZone } from './components/DropZone';
 import { ErrorToast } from './components/ErrorToast';
+import { HistoryDialog } from './components/HistoryDialog';
 import { LibraryDialog } from './components/Library';
 import { Stage } from './components/Stage';
 import { MeasureTimeline } from './components/MeasureTimeline';
@@ -62,6 +63,7 @@ export function App() {
       <SettingsDialog />
       <LibraryDialog />
       <ResultsDialog />
+      <HistoryDialog />
       <RecordingDialog />
       {ready && <Onboarding />}
     </div>

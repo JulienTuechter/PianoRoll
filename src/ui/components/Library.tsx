@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
+import { catalogDisplayTitle, type CatalogItem } from '../../core/catalog/catalog';
 import { sortEntries } from '../../core/library/library';
 import type { LibraryEntry } from '../../core/library/types';
+import { catalog } from '../catalog';
 import { pickMidiFile } from '../file-picker';
 import { formatTime } from '../format';
 import {
   closeSong,
   deleteLibrarySong,
+  loadCatalogItem,
   loadDemo,
   openFromLibrary,
   renameLibrarySong,
@@ -70,6 +73,7 @@ function Row({ entry, current }: { entry: LibraryEntry; current: boolean }) {
             {entry.title}
             {entry.source === 'demo' && <span className="tag">{t.library.demoTag}</span>}
             {entry.source === 'recording' && <span className="tag rec-tag">{t.library.recordingTag}</span>}
+            {entry.source === 'catalog' && <span className="tag">{t.library.catalogTag}</span>}
           </button>
         )}
       </td>
@@ -77,7 +81,17 @@ function Row({ entry, current }: { entry: LibraryEntry; current: boolean }) {
       <td className="num">{Math.round(entry.bpm)}</td>
       <td>{formatDate(entry.lastPracticedAt, t)}</td>
       <td className="num">
-        {entry.bestAccuracy === null ? '–' : t.pct(Math.round(entry.bestAccuracy * 100))}
+        {entry.runCount > 0 ? (
+          <button
+            className="link"
+            onClick={() => set({ historySongId: entry.id })}
+            title={t.library.historyLabel(entry.title)}
+          >
+            {entry.bestAccuracy === null ? '–' : t.pct(Math.round(entry.bestAccuracy * 100))}
+          </button>
+        ) : (
+          '–'
+        )}
       </td>
       <td className="lib-actions">
         {confirmDelete ? (
@@ -91,6 +105,28 @@ function Row({ entry, current }: { entry: LibraryEntry; current: boolean }) {
           </>
         ) : (
           <>
+            <button
+              className="btn small icon-sm"
+              onClick={() => set({ historySongId: entry.id })}
+              aria-label={t.library.historyLabel(entry.title)}
+              title={t.library.history}
+              disabled={entry.runCount === 0}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M4 19h16" />
+                <path d="M5 15l4-5 4 3 6-7" />
+              </svg>
+            </button>
             <button
               className="btn small icon-sm"
               onClick={() => {
@@ -142,16 +178,69 @@ function Row({ entry, current }: { entry: LibraryEntry; current: boolean }) {
   );
 }
 
+function CatalogList() {
+  const t = useT();
+  const library = useApp((s) => s.library);
+  const owned = new Set(library.filter((e) => e.source === 'catalog').map((e) => e.fileName));
+  const open = (item: CatalogItem) => void loadCatalogItem(item);
+
+  if (catalog.length === 0) return <p className="muted">{t.library.catalogEmpty}</p>;
+  return (
+    <div className="catalog">
+      <p className="muted small">{t.library.catalogIntro}</p>
+      {catalog.map((g) => (
+        <section key={g.category} className="catalog-group">
+          <h3>{g.category || t.library.catalogUncategorized}</h3>
+          <ul>
+            {g.items.map((item) => (
+              <li key={item.path}>
+                <button
+                  className="catalog-item"
+                  onClick={() => open(item)}
+                  aria-label={t.library.catalogOpen(catalogDisplayTitle(item))}
+                >
+                  <span className="catalog-title">{item.title}</span>
+                  {item.composer && <span className="catalog-composer">{item.composer}</span>}
+                  {owned.has(item.path) && <span className="tag">{t.library.inLibrary}</span>}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+type Tab = 'library' | 'catalog';
+
 /** Bibliotheksliste – im Dialog und als Startansicht ohne geladenes Stück. */
 export function LibraryList() {
   const t = useT();
   const library = useApp((s) => s.library);
   const currentId = useApp((s) => s.song?.id ?? null);
   const [sort, setSort] = useState<SortKey>('recent');
+  // Ohne eigene Stücke direkt den Katalog zeigen
+  const [tab, setTab] = useState<Tab>(() =>
+    library.length === 0 && catalog.length > 0 ? 'catalog' : 'library',
+  );
   const entries = sortEntries(library, sort);
 
   return (
     <div className="library">
+      <div className="seg pill" role="tablist" aria-label={t.library.heading}>
+        {(['library', 'catalog'] as const).map((k) => (
+          <button
+            key={k}
+            role="tab"
+            aria-selected={tab === k}
+            className={tab === k ? 'on' : ''}
+            onClick={() => setTab(k)}
+          >
+            {k === 'library' ? t.library.tabLibrary : t.library.tabCatalog}
+          </button>
+        ))}
+      </div>
       <div className="library-toolbar">
         <button className="btn primary" onClick={pickMidiFile}>
           {t.library.addFile}
@@ -164,16 +253,20 @@ export function LibraryList() {
             {t.library.freePlay}
           </button>
         )}
-        <label className="sort">
-          {t.library.sort}
-          <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
-            <option value="recent">{t.library.sortRecent}</option>
-            <option value="title">{t.library.sortTitle}</option>
-            <option value="added">{t.library.sortAdded}</option>
-          </select>
-        </label>
+        {tab === 'library' && (
+          <label className="sort">
+            {t.library.sort}
+            <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
+              <option value="recent">{t.library.sortRecent}</option>
+              <option value="title">{t.library.sortTitle}</option>
+              <option value="added">{t.library.sortAdded}</option>
+            </select>
+          </label>
+        )}
       </div>
-      {entries.length === 0 ? (
+      {tab === 'catalog' ? (
+        <CatalogList />
+      ) : entries.length === 0 ? (
         <p className="muted">{t.library.empty}</p>
       ) : (
         <div className="table-wrap">
