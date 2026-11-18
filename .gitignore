@@ -9,3 +9,4 @@ coverage
 .hallmark/*/**
 .agents
 .env
+.env
