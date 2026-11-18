@@ -187,27 +187,32 @@ function CatalogList() {
   if (catalog.length === 0) return <p className="muted">{t.library.catalogEmpty}</p>;
   return (
     <div className="catalog">
-      <p className="muted small">{t.library.catalogIntro}</p>
-      {catalog.map((g) => (
-        <section key={g.category} className="catalog-group">
-          <h3>{g.category || t.library.catalogUncategorized}</h3>
-          <ul>
-            {g.items.map((item) => (
-              <li key={item.path}>
-                <button
-                  className="catalog-item"
-                  onClick={() => open(item)}
-                  aria-label={t.library.catalogOpen(catalogDisplayTitle(item))}
-                >
-                  <span className="catalog-title">{item.title}</span>
-                  {item.composer && <span className="catalog-composer">{item.composer}</span>}
-                  {owned.has(item.path) && <span className="tag">{t.library.inLibrary}</span>}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
+      <p className="muted small catalog-intro">{t.library.catalogIntro}</p>
+      <div className="catalog-cols">
+        {catalog.map((g) => (
+          <section key={g.category} className="catalog-group">
+            <h3>{g.category || t.library.catalogUncategorized}</h3>
+            <ul>
+              {g.items.map((item) => (
+                <li key={item.path}>
+                  <button
+                    type="button"
+                    className="catalog-item"
+                    onClick={() => open(item)}
+                    aria-label={t.library.catalogOpen(catalogDisplayTitle(item))}
+                  >
+                    <span className="catalog-title">{item.title}</span>
+                    <span className="catalog-meta">
+                      {item.composer && <span className="catalog-composer">{item.composer}</span>}
+                      {owned.has(item.path) && <span className="tag">{t.library.inLibrary}</span>}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
     </div>
   );
 }
@@ -228,12 +233,15 @@ export function LibraryList() {
 
   return (
     <div className="library">
-      <div className="seg pill" role="tablist" aria-label={t.library.heading}>
+      <div className="lib-tabs" role="tablist" aria-label={t.library.heading}>
         {(['library', 'catalog'] as const).map((k) => (
           <button
             key={k}
+            id={`lib-tab-${k}`}
+            type="button"
             role="tab"
             aria-selected={tab === k}
+            aria-controls="lib-panel"
             className={tab === k ? 'on' : ''}
             onClick={() => setTab(k)}
           >
@@ -264,31 +272,33 @@ export function LibraryList() {
           </label>
         )}
       </div>
-      {tab === 'catalog' ? (
-        <CatalogList />
-      ) : entries.length === 0 ? (
-        <p className="muted">{t.library.empty}</p>
-      ) : (
-        <div className="table-wrap">
-          <table className="lib-table">
-            <thead>
-              <tr>
-                <th>{t.common.title}</th>
-                <th className="num">{t.common.duration}</th>
-                <th className="num">BPM</th>
-                <th>{t.library.colLastPracticed}</th>
-                <th className="num">{t.library.colBest}</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {entries.map((e) => (
-                <Row key={e.id} entry={e} current={e.id === currentId} />
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <div id="lib-panel" role="tabpanel" aria-labelledby={`lib-tab-${tab}`}>
+        {tab === 'catalog' ? (
+          <CatalogList />
+        ) : entries.length === 0 ? (
+          <p className="muted">{t.library.empty}</p>
+        ) : (
+          <div className="table-wrap">
+            <table className="lib-table">
+              <thead>
+                <tr>
+                  <th>{t.common.title}</th>
+                  <th className="num">{t.common.duration}</th>
+                  <th className="num">BPM</th>
+                  <th>{t.library.colLastPracticed}</th>
+                  <th className="num">{t.library.colBest}</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {entries.map((e) => (
+                  <Row key={e.id} entry={e} current={e.id === currentId} />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -9,7 +9,7 @@ import {
 } from '../../core/library/progress';
 import type { RunMode, RunResult } from '../../core/scoring/scoring';
 import type { Messages } from '../../i18n';
-import { formatDuration, handsLabel, heatColor, heatLevel } from '../format';
+import { formatDuration, handsLabel, heatColor } from '../format';
 import { useT } from '../i18n';
 import { libraryRepo } from '../library-repo';
 import { errorMessage, openFromLibrary, seekToMeasure } from '../runtime';
@@ -49,7 +49,7 @@ function AccuracyChart({ days, runs }: { days: DayProgress[]; runs: RunResult[] 
   const t = useT();
   const [wrapRef, width] = useWidth<HTMLDivElement>();
   const [hover, setHover] = useState<number | null>(null);
-  const H = 200;
+  const H = 220;
   const pad = { l: 44, r: 16, t: 12, b: 28 };
   const plotW = Math.max(40, width - pad.l - pad.r);
   const plotH = H - pad.t - pad.b;
@@ -78,6 +78,10 @@ function AccuracyChart({ days, runs }: { days: DayProgress[]; runs: RunResult[] 
 
   const labelEvery = Math.max(1, Math.ceil(days.length / Math.max(2, Math.floor(plotW / 80))));
   const hovered = hover !== null ? days[hover] : undefined;
+  // Oben im Diagramm würde der Hinweis die neuesten Punkte verdecken, dann steht er darunter
+  const tipY = hovered?.best != null ? y(hovered.best) : pad.t;
+  const tipBelow = tipY < pad.t + plotH / 2;
+  const tipTop = tipBelow ? tipY + 14 : tipY - 12;
 
   return (
     <figure className="hist-chart">
@@ -153,9 +157,10 @@ function AccuracyChart({ days, runs }: { days: DayProgress[]; runs: RunResult[] 
           <div
             className="chart-tip"
             style={{
-              left: Math.min(Math.max(x(hover!), 90), width - 90),
-              top: hovered.best !== null ? y(hovered.best) - 12 : pad.t,
+              left: Math.min(Math.max(x(hover!), 130), width - 130),
+              top: tipTop,
             }}
+            data-below={tipBelow ? '' : undefined}
           >
             {t.history.dayTip(
               dateText(t, hovered.lastAt, false),
@@ -200,39 +205,63 @@ function MeasureCompare({ runs, songId }: { runs: RunResult[]; songId: string })
     .sort((a, b) => b.d - a.d)
     .slice(0, 4);
 
+  const n = trend.recent.length;
+  // Taktnummern: bei sehr vielen Takten nur jede vierte; breite Spalten tragen die Werte, notfalls wird gescrollt
+  const every = n <= 40 ? 1 : 4;
   const row = (values: number[], label: string, other: number[] | null) => (
-    <div className="trend-row">
-      <span className="trend-label">{label}</span>
-      <div className="heatmap" role="list" aria-label={label}>
-        {values.map((v, i) => (
+    <>
+      <span className="strip-label">{label}</span>
+      {values.map((v, i) => {
+        const tip = t.history.measureTip(i + 1, t.num(v, 1), other ? t.num(other[i] ?? 0, 1) : null);
+        return (
           <button
             key={i}
-            role="listitem"
-            className="heat-cell"
-            style={{
-              background: heatColor(v, max),
-              // Auf den dunklen Stufen helle Schrift, sonst ist die Zahl kaum lesbar
-              color: heatLevel(v, max) <= 2 ? 'var(--color-ink)' : undefined,
-            }}
-            title={t.history.measureTip(i + 1, t.num(v, 1), other ? t.num(other[i] ?? 0, 1) : null)}
+            type="button"
+            className="strip-cell"
+            style={{ background: heatColor(v, max) }}
+            title={tip}
+            aria-label={tip}
             onClick={() => jump(i)}
-          >
-            {fmt(Math.round(v * 10) / 10)}
-          </button>
-        ))}
-      </div>
-    </div>
+          />
+        );
+      })}
+      <span className="strip-label" aria-hidden="true" />
+      {values.map((v, i) => (
+        <span key={i} className="strip-value" aria-hidden="true">
+          {fmt(Math.round(v * 10) / 10)}
+        </span>
+      ))}
+    </>
   );
 
   return (
-    <>
+    <section className="hist-measures">
       <h3>{t.history.measures}</h3>
       <p className="muted small">{t.history.measuresHelp}</p>
-      {row(trend.recent, t.history.recentRow(trend.recentRuns), trend.earlier)}
-      {trend.earlier && row(trend.earlier, t.history.earlierRow(trend.earlierRuns), trend.recent)}
-      {improved.length > 0 && <p className="success small">{t.history.improved(list(improved))}</p>}
+      <div className="strip-scroll">
+        <div
+          className="strip"
+          style={{ gridTemplateColumns: `var(--strip-label) repeat(${n}, minmax(28px, 1fr))` }}
+        >
+          <span className="strip-label" aria-hidden="true" />
+          {trend.recent.map((_, i) => (
+            <span key={i} className="strip-tick" aria-hidden="true">
+              {i === 0 || (i + 1) % every === 0 ? i + 1 : ''}
+            </span>
+          ))}
+          {row(trend.recent, t.history.recentRow(trend.recentRuns), trend.earlier)}
+          {trend.earlier && row(trend.earlier, t.history.earlierRow(trend.earlierRuns), trend.recent)}
+        </div>
+      </div>
+      <div className="heat-key" aria-hidden="true">
+        <span>{t.history.heatKey}</span>
+        <span className="heat-key-num">0</span>
+        <span className="heat-key-track" />
+        <span className="heat-key-num">{fmt(Math.round(max * 10) / 10) || '0'}</span>
+      </div>
+      {improved.length > 0 && <p className="hist-change small">{t.history.improved(list(improved))}</p>}
       {worse.length > 0 && <p className="muted small">{t.history.worse(list(worse))}</p>}
-    </>
+    </section>
   );
 }
 
@@ -241,7 +270,7 @@ function RunTable({ runs }: { runs: RunResult[] }) {
   const [shown, setShown] = useState(PAGE);
   const newest = useMemo(() => [...runs].sort((a, b) => b.finishedAt - a.finishedAt), [runs]);
   return (
-    <>
+    <section className="hist-log">
       <h3>{t.history.list}</h3>
       <div className="table-wrap">
         <table className="lib-table runs-table">
@@ -257,13 +286,15 @@ function RunTable({ runs }: { runs: RunResult[] }) {
           <tbody>
             {newest.slice(0, shown).map((r, i) => (
               <tr key={`${r.finishedAt}-${i}`}>
-                <td>{dateText(t, r.finishedAt, true)}</td>
+                <td>
+                  {dateText(t, r.finishedAt, true)}
+                  {!r.complete && <span className="tag">{t.history.partialTag}</span>}
+                </td>
                 <td>{t.transport.modes[r.mode].label}</td>
                 <td>{handsLabel(t, r.hands)}</td>
                 <td className="num">{t.pct(Math.round(r.rate * 100))}</td>
                 <td className="num">
-                  {!r.complete && <span className="tag">{t.history.partialTag}</span>}{' '}
-                  {t.pct(Math.round(r.accuracy * 100))}
+                  <span className="run-acc">{t.pct(Math.round(r.accuracy * 100))}</span>
                 </td>
               </tr>
             ))}
@@ -275,12 +306,12 @@ function RunTable({ runs }: { runs: RunResult[] }) {
           {t.history.showMore(Math.min(PAGE * 2, newest.length - shown))}
         </button>
       )}
-    </>
+    </section>
   );
 }
 
 /** Inhalt für ein Stück; wird je Stück neu gemountet (key), damit Filter und Daten zurückgesetzt werden. */
-function HistoryBody({ songId }: { songId: string }) {
+function HistoryBody({ songId, title }: { songId: string; title: string | undefined }) {
   const t = useT();
   const runCount = useApp((s) => s.library.find((e) => e.id === songId)?.runCount ?? 0);
   const [all, setAll] = useState<RunResult[] | null>(null);
@@ -305,48 +336,77 @@ function HistoryBody({ songId }: { songId: string }) {
   const hasBothModes =
     all !== null && all.some((r) => r.mode === 'wait') && all.some((r) => r.mode === 'performance');
 
-  if (all === null) return null;
-  if (all.length === 0) return <p className="muted">{t.history.empty}</p>;
-  return (
-    <>
+  const head = (
+    <header className="hist-head">
+      <div>
+        <h2>{t.history.heading}</h2>
+        <p className="hist-song">{title}</p>
+      </div>
       {hasBothModes && (
         <div className="seg pill" role="group" aria-label={t.history.filter}>
           {(['all', 'wait', 'performance'] as const).map((m) => (
-            <button key={m} className={mode === m ? 'on' : ''} onClick={() => setMode(m)}>
+            <button key={m} type="button" className={mode === m ? 'on' : ''} onClick={() => setMode(m)}>
               {m === 'all' ? t.history.all : t.transport.modes[m].label}
             </button>
           ))}
         </div>
       )}
+    </header>
+  );
+
+  if (all === null)
+    return (
+      <>
+        {head}
+        <p className="muted appear-late" role="status">
+          {t.history.loading}
+        </p>
+      </>
+    );
+  if (all.length === 0)
+    return (
+      <>
+        {head}
+        <p className="hist-empty">{t.history.empty}</p>
+      </>
+    );
+  return (
+    <>
+      {head}
       {runs.length === 0 ? (
-        <p className="muted">{t.history.emptyFiltered}</p>
+        <p className="hist-empty">{t.history.emptyFiltered}</p>
       ) : (
         <>
-          <dl className="meta-row">
-            <div>
-              <dt>{t.history.runs}</dt>
-              <dd>{sum.runs}</dd>
+          <section className="hist-lead">
+            <div className="hist-now">
+              <p className="hist-figure">{pctText(t, sum.recentMean)}</p>
+              <p className="hist-qual" title={t.history.trendHelp(TREND_WINDOW)}>
+                {t.history.now(Math.min(TREND_WINDOW, sum.runs))}
+                {sum.earlierMean !== null && (
+                  <span className="hist-before">{t.history.before(pctText(t, sum.earlierMean))}</span>
+                )}
+              </p>
+              <dl className="hist-facts">
+                <div>
+                  <dt>{t.history.best}</dt>
+                  <dd>{pctText(t, sum.best)}</dd>
+                </div>
+                <div>
+                  <dt>{t.history.runs}</dt>
+                  <dd>{sum.runs}</dd>
+                </div>
+                <div>
+                  <dt>{t.history.days}</dt>
+                  <dd>{sum.days}</dd>
+                </div>
+                <div>
+                  <dt>{t.history.time}</dt>
+                  <dd>{formatDuration(sum.practiceMs)}</dd>
+                </div>
+              </dl>
             </div>
-            <div>
-              <dt>{t.history.days}</dt>
-              <dd>{sum.days}</dd>
-            </div>
-            <div>
-              <dt>{t.history.time}</dt>
-              <dd>{formatDuration(sum.practiceMs)}</dd>
-            </div>
-            <div>
-              <dt>{t.history.best}</dt>
-              <dd>{pctText(t, sum.best)}</dd>
-            </div>
-            {sum.earlierMean !== null && sum.recentMean !== null && (
-              <div title={t.history.trendHelp(TREND_WINDOW)}>
-                <dt>{t.history.trend}</dt>
-                <dd>{t.history.trendValue(pctText(t, sum.recentMean), pctText(t, sum.earlierMean))}</dd>
-              </div>
-            )}
-          </dl>
-          <AccuracyChart days={days} runs={runs} />
+            <AccuracyChart days={days} runs={runs} />
+          </section>
           <MeasureCompare runs={runs} songId={songId} />
           <RunTable runs={runs} />
         </>
@@ -370,16 +430,15 @@ export function HistoryDialog() {
   }, [songId]);
 
   return (
-    <dialog ref={ref} className="dialog wide history" onClose={() => set({ historySongId: null })}>
-      <h2>{t.history.heading}</h2>
-      {songId && (
-        <>
-          <p className="history-title">{title}</p>
-          <HistoryBody key={songId} songId={songId} />
-        </>
-      )}
+    <dialog
+      ref={ref}
+      className="dialog wide history"
+      aria-label={t.history.heading}
+      onClose={() => set({ historySongId: null })}
+    >
+      {songId && <HistoryBody key={songId} songId={songId} title={title} />}
       <div className="dialog-actions">
-        <button className="btn" onClick={() => set({ historySongId: null })}>
+        <button type="button" className="btn" onClick={() => set({ historySongId: null })}>
           {t.common.close}
         </button>
       </div>

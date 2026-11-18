@@ -383,8 +383,10 @@ export const de = {
     days: 'Übungstage',
     time: 'Übungszeit',
     best: 'Beste',
-    trend: 'Trend',
-    trendValue: (recent: string, earlier: string) => `${earlier} → ${recent}`,
+    now: (n: number) => (n === 1 ? 'Letzter Durchgang' : `Ø der letzten ${n} Durchgänge`),
+    before: (v: string) => `vorher ${v}`,
+    loading: 'Durchgänge werden geladen …',
+    heatKey: 'Ø Fehler',
     trendHelp: (n: number) => `Ø Genauigkeit der letzten ${n} Durchgänge gegenüber den ${n} davor`,
     filter: 'Modus',
     all: 'Alle',
@@ -426,8 +428,8 @@ export const de = {
     includeSettings: 'Einstellungen mit übernehmen',
     mergeHelp:
       'Beim Einspielen wird zusammengeführt: Vorhandene Stücke bleiben, fehlende Durchgänge kommen dazu.',
-    last: (date: string) => `Letzte Sicherung: ${date}`,
-    never: 'Noch keine Sicherung erstellt.',
+    lastLabel: 'Letzte Sicherung',
+    never: 'noch keine',
     working: 'Wird bearbeitet …',
     exported: 'Sicherung gespeichert.',
     restored: (added: number, merged: number, runs: number) =>
