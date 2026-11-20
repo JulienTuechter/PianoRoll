@@ -5,7 +5,8 @@ import { writeMidi } from '../core/export/midi-writer';
 import { toMusicXml } from '../core/export/musicxml';
 import type { MusicalKey } from '../core/key-detection/key';
 import type { NotationScore } from '../core/notation-builder/notation';
-import type { NoteEvent } from '../core/note-event-model/types';
+import { pedalEvents } from '../core/note-event-model/pedal';
+import type { NoteEvent, PedalSpan } from '../core/note-event-model/types';
 import { renderScore } from './notation/render-score';
 import { t } from '../i18n';
 
@@ -32,6 +33,8 @@ export interface ExportSource {
   denominator: number;
   key: MusicalKey | null;
   notes: readonly NoteEvent[];
+  /** Haltepedal (wird in die Spur der rechten Hand geschrieben) */
+  pedals?: readonly PedalSpan[];
   score: NotationScore;
 }
 
@@ -56,7 +59,10 @@ export function midiBytes(src: ExportSource): Uint8Array<ArrayBuffer> {
     denominator: src.denominator,
     key: src.key,
     title: src.title,
-    tracks: [track('right', t().common.rightHand, 0), track('left', t().common.leftHand, 1)],
+    tracks: [
+      { ...track('right', t().common.rightHand, 0), pedal: pedalEvents(src.pedals ?? []) },
+      track('left', t().common.leftHand, 1),
+    ],
   });
 }
 

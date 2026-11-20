@@ -6,7 +6,9 @@ import { useApp } from '../store/app-store';
 import { DEFAULT_LEFT, DEFAULT_RIGHT, luminance } from '../theme';
 import { defaultSettings, useSettings, type VisualQuality } from '../store/settings';
 import { prefersReducedMotion } from '../scene/scene-model';
+import { LATENCY_MAX_MS } from '../../core/latency/calibration';
 import { BackupPanel } from './BackupPanel';
+import { LatencyCalibration } from './LatencyCalibration';
 import { MidiStatusPanel } from './MidiStatus';
 
 /** Sprachnamen immer in der eigenen Sprache */
@@ -196,6 +198,35 @@ export function SettingsDialog() {
       </fieldset>
 
       <fieldset>
+        <legend>{t.settings.notationHeading}</legend>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={s.notationChords}
+            onChange={(e) => s.update({ notationChords: e.target.checked })}
+          />
+          {t.settings.notationChords}
+        </label>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={s.notationPedal}
+            onChange={(e) => s.update({ notationPedal: e.target.checked })}
+          />
+          {t.settings.notationPedal}
+        </label>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={s.notationDynamics}
+            onChange={(e) => s.update({ notationDynamics: e.target.checked })}
+          />
+          {t.settings.notationDynamics}
+        </label>
+        <p className="help">{t.settings.notationHelp}</p>
+      </fieldset>
+
+      <fieldset>
         <legend>{t.settings.scoring}</legend>
         <label className="field">
           {t.settings.perfectUpTo(s.perfectMs)}
@@ -230,13 +261,14 @@ export function SettingsDialog() {
           <input
             type="range"
             min={0}
-            max={200}
+            max={LATENCY_MAX_MS}
             step={5}
             value={s.latencyMs}
             onChange={(e) => s.update({ latencyMs: Number(e.target.value) })}
           />
         </label>
         <p className="help">{t.settings.latencyHelp}</p>
+        <LatencyCalibration />
       </fieldset>
 
       <fieldset>

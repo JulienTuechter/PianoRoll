@@ -22,6 +22,11 @@ export default tseslint.config(
     },
   },
   {
+    files: ['src/sw/**/*.js'],
+    extends: [js.configs.recommended, prettier],
+    languageOptions: { ecmaVersion: 2023, sourceType: 'script', globals: globals.serviceworker },
+  },
+  {
     // core must stay UI-free
     files: ['src/core/**/*.ts'],
     rules: {

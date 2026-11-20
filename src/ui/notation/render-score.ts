@@ -49,12 +49,36 @@ function loadVexFlow(): Promise<VF> {
   return vfPromise;
 }
 
-function minMeasureWidth(m: NotationScore['measures'][number], firstInRow: boolean): number {
-  const events = Math.max(m.treble.length, m.bass.length);
-  const accidentals = [...m.treble, ...m.bass].some((e) => e.keys.some((k) => /^[a-g](#|b)/.test(k)))
-    ? 12
-    : 0;
-  return 50 + 30 * events + accidentals + (firstInRow ? 100 : 0) + (m.timeSigChange ? 30 : 0);
+type Measure = NotationScore['measures'][number];
+type StaffName = 'treble' | 'bass';
+
+const allEvents = (m: Measure) => [...m.treble, ...m.treble2, ...m.bass, ...m.bass2];
+
+function minMeasureWidth(m: Measure, firstInRow: boolean): number {
+  const events = Math.max(m.treble.length, m.treble2.length, m.bass.length, m.bass2.length);
+  const accidentals = allEvents(m).some((e) => e.keys.some((k) => /^[a-g](#|b)/.test(k))) ? 12 : 0;
+  // Akkordsymbole brauchen Platz nebeneinander
+  const chords = m.chords.reduce((w, c) => w + 9 * c.label.length + 8, 0);
+  return (
+    Math.max(50 + 30 * events + accidentals, chords) + (firstInRow ? 100 : 0) + (m.timeSigChange ? 30 : 0)
+  );
+}
+
+/**
+ * Schlüssel des unteren Systems einer Zeile: Spielt die linke Hand dort überwiegend ab H3 aufwärts,
+ * steht sie im Violinschlüssel (sonst lägen alle Noten auf Hilfslinien über dem Bassschlüssel).
+ */
+export function lowerStaffClef(measures: readonly Measure[]): StaffName {
+  const midis = measures.flatMap((m) => [...m.bass, ...m.bass2].flatMap((e) => (e.rest ? [] : e.midis)));
+  if (midis.length === 0) return 'bass';
+  const sorted = [...midis].sort((a, b) => a - b);
+  return sorted[Math.floor(sorted.length * 0.2)]! >= 59 ? 'treble' : 'bass';
+}
+
+/** Pausenlage: bei zwei Stimmen ober- bzw. unterhalb der Mitte, sonst Mittellinie */
+function restKey(clef: StaffName, voice: 0 | 1 | null): string {
+  if (clef === 'treble') return voice === 0 ? 'e/5' : voice === 1 ? 'f/4' : 'b/4';
+  return voice === 0 ? 'g/3' : voice === 1 ? 'a/2' : 'd/3';
 }
 
 /** Klaviersystem zeilenweise als SVG zeichnen. */
@@ -104,9 +128,16 @@ export async function renderScore(
 
   const layout: ScoreLayout = { width, height, rows: [], measures: [], points: [], noteEls: new Map() };
   type Placed = { e: NotationEvent; note: InstanceType<typeof StaveNote>; row: number };
-  const staffNotes: Record<'treble' | 'bass', Placed[]> = { treble: [], bass: [] };
+  const staffNotes: Record<StaffName, Placed[]> = { treble: [], bass: [] };
+  const staves: {
+    m: Measure;
+    row: number;
+    ts: InstanceType<typeof Stave>;
+    bs: InstanceType<typeof Stave>;
+  }[] = [];
 
   rowsIdx.forEach((row, r) => {
+    const lowerClef = lowerStaffClef(row.map((mi) => score.measures[mi]!));
     const y = TOP_PAD + r * ROW_HEIGHT;
     layout.rows.push({ y, h: ROW_HEIGHT });
     const mins = row.map((mi, k) => minMeasureWidth(score.measures[mi]!, k === 0));
@@ -122,7 +153,7 @@ export async function renderScore(
       const bs = new Stave(x, y + BASS_OFFSET, w);
       if (k === 0) {
         ts.addClef('treble').addKeySignature(score.keySpec);
-        bs.addClef('bass').addKeySignature(score.keySpec);
+        bs.addClef(lowerClef).addKeySignature(score.keySpec);
       }
       if (m.timeSigChange) {
         ts.addTimeSignature(`${m.numerator}/${m.denominator}`);
@@ -146,23 +177,27 @@ export async function renderScore(
         .setContext(ctx)
         .draw();
 
-      const make = (e: NotationEvent, clef: 'treble' | 'bass') => {
+      // Stimme 0 = obere (bzw. einzige), 1 = untere; bei zwei Stimmen feste Halsrichtung
+      const make = (e: NotationEvent, clef: StaffName, voice: 0 | 1 | null) => {
         const note = new StaveNote({
-          keys: e.rest ? [clef === 'treble' ? 'b/4' : 'd/3'] : e.keys,
+          keys: e.rest ? [restKey(clef, voice)] : e.keys,
           duration: e.value,
           dots: e.dots,
           type: e.rest ? 'r' : undefined,
           clef,
-          autoStem: true,
+          autoStem: voice === null,
+          ...(voice !== null ? { stemDirection: voice === 0 ? 1 : -1 } : {}),
         });
         if (e.dots > 0) Dot.buildAndAttach([note], { all: true });
         return note;
       };
-      const tNotes = m.treble.map((e) => make(e, 'treble'));
-      const bNotes = m.bass.map((e) => make(e, 'bass'));
       // Triolen: aufeinanderfolgende Ereignisse derselben Gruppe → „3 im Raum von 2“ (vor dem Formatieren!)
       const tuplets: InstanceType<typeof Tuplet>[] = [];
-      const groupTuplets = (events: NotationEvent[], notes: InstanceType<typeof StaveNote>[]) => {
+      const groupTuplets = (
+        events: NotationEvent[],
+        notes: InstanceType<typeof StaveNote>[],
+        voice: 0 | 1 | null,
+      ) => {
         let i = 0;
         while (i < events.length) {
           const g = events[i]!.tuplet;
@@ -173,55 +208,83 @@ export async function renderScore(
           let j = i;
           while (j < events.length && events[j]!.tuplet === g) j++;
           tuplets.push(
-            new Tuplet(notes.slice(i, j), { numNotes: 3, notesOccupied: 2, bracketed: true, ratioed: false }),
+            new Tuplet(notes.slice(i, j), {
+              numNotes: 3,
+              notesOccupied: 2,
+              bracketed: true,
+              ratioed: false,
+              ...(voice === 1 ? { location: -1 } : {}),
+            }),
           );
           i = j;
         }
       };
-      groupTuplets(m.treble, tNotes);
-      groupTuplets(m.bass, bNotes);
-      const tv = new Voice({ numBeats: m.numerator, beatValue: m.denominator })
-        .setMode(Voice.Mode.SOFT)
-        .addTickables(tNotes);
-      const bv = new Voice({ numBeats: m.numerator, beatValue: m.denominator })
-        .setMode(Voice.Mode.SOFT)
-        .addTickables(bNotes);
-      Accidental.applyAccidentals([tv], score.keySpec);
-      Accidental.applyAccidentals([bv], score.keySpec);
+      type VoicePlan = {
+        events: NotationEvent[];
+        notes: InstanceType<typeof StaveNote>[];
+        voice: InstanceType<typeof Voice>;
+        stem: 0 | 1 | null;
+      };
+      const plan = (clef: StaffName, first: NotationEvent[], second: NotationEvent[]): VoicePlan[] => {
+        const two = second.length > 0;
+        return (two ? [first, second] : [first]).map((events, k) => {
+          const stem: 0 | 1 | null = two ? (k as 0 | 1) : null;
+          const notes = events.map((e) => make(e, clef, stem));
+          groupTuplets(events, notes, stem);
+          const voice = new Voice({ numBeats: m.numerator, beatValue: m.denominator })
+            .setMode(Voice.Mode.SOFT)
+            .addTickables(notes);
+          return { events, notes, voice, stem };
+        });
+      };
+      const tv = plan('treble', m.treble, m.treble2);
+      const bv = plan(lowerClef, m.bass, m.bass2);
+      Accidental.applyAccidentals(
+        tv.map((p) => p.voice),
+        score.keySpec,
+      );
+      Accidental.applyAccidentals(
+        bv.map((p) => p.voice),
+        score.keySpec,
+      );
       new Formatter()
-        .joinVoices([tv])
-        .joinVoices([bv])
-        .format([tv, bv], Math.max(20, ts.getNoteEndX() - startX - 12));
-      const beams = [
-        ...Beam.generateBeams(tNotes.filter((_, i) => !m.treble[i]!.rest)),
-        ...Beam.generateBeams(bNotes.filter((_, i) => !m.bass[i]!.rest)),
-      ];
-      tv.draw(ctx, ts);
-      bv.draw(ctx, bs);
+        .joinVoices(tv.map((p) => p.voice))
+        .joinVoices(bv.map((p) => p.voice))
+        .format(
+          [...tv, ...bv].map((p) => p.voice),
+          Math.max(20, ts.getNoteEndX() - startX - 12),
+        );
+      const beams = [...tv, ...bv].flatMap((p) =>
+        Beam.generateBeams(
+          p.notes.filter((_, i) => !p.events[i]!.rest),
+          p.stem === null ? {} : { maintainStemDirections: true },
+        ),
+      );
+      for (const p of tv) p.voice.draw(ctx, ts);
+      for (const p of bv) p.voice.draw(ctx, bs);
       for (const b of beams) b.setContext(ctx).draw();
       for (const t of tuplets) t.setContext(ctx).draw();
 
-      const collect = (
-        events: NotationEvent[],
-        notes: InstanceType<typeof StaveNote>[],
-        staff: 'treble' | 'bass',
-      ) => {
-        events.forEach((e, i) => {
-          const note = notes[i]!;
-          staffNotes[staff].push({ e, note, row: r });
-          layout.points.push({ tick: e.startTick, x: note.getAbsoluteX() + 6, row: r });
-          const el = note.getSVGElement();
-          if (el) {
-            for (const id of e.noteIds) {
-              const list = layout.noteEls.get(id);
-              if (list) list.push(el);
-              else layout.noteEls.set(id, [el]);
+      const collect = (plans: VoicePlan[], staff: StaffName) => {
+        for (const p of plans) {
+          p.events.forEach((e, i) => {
+            const note = p.notes[i]!;
+            staffNotes[staff].push({ e, note, row: r });
+            layout.points.push({ tick: e.startTick, x: note.getAbsoluteX() + 6, row: r });
+            const el = note.getSVGElement();
+            if (el) {
+              for (const id of e.noteIds) {
+                const list = layout.noteEls.get(id);
+                if (list) list.push(el);
+                else layout.noteEls.set(id, [el]);
+              }
             }
-          }
-        });
+          });
+        }
       };
-      collect(m.treble, tNotes, 'treble');
-      collect(m.bass, bNotes, 'bass');
+      collect(tv, 'treble');
+      collect(bv, 'bass');
+      staves.push({ m, row: r, ts, bs });
       layout.points.push({ tick: m.endTick, x: x + w - 4, row: r });
       layout.measures.push({
         index: m.index,
@@ -237,13 +300,21 @@ export async function renderScore(
     });
   });
 
-  // Haltebögen (zeilenübergreifend als zwei halbe Bögen)
+  // Haltebögen (zeilenübergreifend als zwei halbe Bögen). Folgenote: im selben System, beginnt am Ende der Note
+  // und enthält dieselbe Tonhöhe – unabhängig von der Stimme (Stimmen können taktweise wechseln)
   for (const staff of ['treble', 'bass'] as const) {
-    const list = staffNotes[staff];
-    list.forEach((p, i) => {
-      if (!p.e.tieNext || p.e.rest) return;
-      const next = list[i + 1];
-      if (!next || next.e.rest) return;
+    const byStart = new Map<number, Placed[]>();
+    for (const p of staffNotes[staff]) {
+      if (p.e.rest) continue;
+      const list = byStart.get(p.e.startTick);
+      if (list) list.push(p);
+      else byStart.set(p.e.startTick, [p]);
+    }
+    for (const p of staffNotes[staff]) {
+      if (!p.e.tieNext || p.e.rest) continue;
+      const candidates = byStart.get(p.e.startTick + p.e.durationTicks) ?? [];
+      const next = candidates.find((c) => c.e.midis.some((x) => p.e.midis.includes(x)));
+      if (!next) continue;
       const first: number[] = [];
       const last: number[] = [];
       p.e.midis.forEach((m, fi) => {
@@ -253,7 +324,6 @@ export async function renderScore(
           last.push(li);
         }
       });
-      if (first.length === 0) return;
       if (next.row === p.row) {
         new StaveTie({ firstNote: p.note, lastNote: next.note, firstIndexes: first, lastIndexes: last })
           .setContext(ctx)
@@ -266,8 +336,10 @@ export async function renderScore(
           .setContext(ctx)
           .draw();
       }
-    });
+    }
   }
+
+  drawMarks(ctx, score, staves, layout);
 
   layout.points = normalizePoints(layout.points);
   return layout;
@@ -303,4 +375,83 @@ export function cursorAt(points: readonly CursorPoint[], tick: number): { x: num
   if (b.row !== a.row) return { x: a.x, row: a.row };
   const t = (tick - a.tick) / Math.max(1, b.tick - a.tick);
   return { x: a.x + (b.x - a.x) * t, row: a.row };
+}
+
+type Ctx = ReturnType<InstanceType<VF['Renderer']>['getContext']>;
+type StaveLike = { getYForLine(line: number): number };
+
+/** x-Position eines Ticks in einer Zeile (zwischen den Anschlagspunkten interpoliert) */
+export function xInRow(points: readonly CursorPoint[], row: number, tick: number): number | null {
+  const pts = points.filter((p) => p.row === row);
+  if (pts.length === 0) return null;
+  let a = pts[0]!;
+  if (tick <= a.tick) return a.x;
+  for (const b of pts.slice(1)) {
+    if (tick <= b.tick) return a.x + ((b.x - a.x) * (tick - a.tick)) / Math.max(1, b.tick - a.tick);
+    a = b;
+  }
+  return a.x;
+}
+
+/** Akkordsymbole (über dem Violinsystem), Dynamik (zwischen den Systemen) und Haltepedal (unter dem Bass). */
+function drawMarks(
+  ctx: Ctx,
+  score: NotationScore,
+  staves: { m: Measure; row: number; ts: StaveLike; bs: StaveLike }[],
+  layout: ScoreLayout,
+): void {
+  const points = normalizePoints(layout.points);
+  ctx.save();
+  for (const { m, row, ts, bs } of staves) {
+    ctx.setFont('Arial, sans-serif', 13, 'bold');
+    for (const c of m.chords) {
+      const x = xInRow(points, row, c.tick);
+      if (x !== null) ctx.fillText(c.label, x - 4, ts.getYForLine(0) - 22);
+    }
+    if (m.dynamic) {
+      const box = layout.measures.find((b) => b.index === m.index && b.row === row);
+      const x = xInRow(points, row, m.startTick) ?? box?.x ?? 0;
+      ctx.setFont('Times New Roman, serif', 17, 'bold italic');
+      ctx.fillText(m.dynamic, x - 4, (ts.getYForLine(4) + bs.getYForLine(0)) / 2 + 6);
+    }
+  }
+  // Pedal: „Ped.“ am Anfang, Linie bis zum Loslassen, Haken nach oben; über Zeilenumbrüche hinweg fortgesetzt
+  const rowStaves = new Map<number, StaveLike>();
+  for (const s of staves) if (!rowStaves.has(s.row)) rowStaves.set(s.row, s.bs);
+  const rowRange = new Map<number, { from: number; to: number }>();
+  for (const b of layout.measures) {
+    const r = rowRange.get(b.row);
+    rowRange.set(b.row, {
+      from: Math.min(r?.from ?? Infinity, b.startTick),
+      to: Math.max(r?.to ?? -Infinity, b.endTick),
+    });
+  }
+  ctx.setLineWidth(1.2);
+  for (const p of score.pedals) {
+    for (const [row, range] of rowRange) {
+      const from = Math.max(p.startTick, range.from);
+      const to = Math.min(p.endTick, range.to);
+      const bs = rowStaves.get(row);
+      if (to <= from || !bs) continue;
+      const x1 = xInRow(points, row, from);
+      const x2 = xInRow(points, row, to);
+      if (x1 === null || x2 === null) continue;
+      const y = bs.getYForLine(4) + 38;
+      let lineStart = x1;
+      if (from === p.startTick) {
+        ctx.setFont('Times New Roman, serif', 13, 'bold italic');
+        ctx.fillText('Ped.', x1 - 4, y + 4);
+        lineStart = x1 + 26;
+      }
+      const end = to === p.endTick ? x2 - 3 : x2;
+      if (end > lineStart) {
+        ctx.beginPath();
+        ctx.moveTo(lineStart, y);
+        ctx.lineTo(end, y);
+        if (to === p.endTick) ctx.lineTo(end, y - 8);
+        ctx.stroke();
+      }
+    }
+  }
+  ctx.restore();
 }

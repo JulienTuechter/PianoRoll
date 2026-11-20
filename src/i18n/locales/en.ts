@@ -320,7 +320,26 @@ export const en: Messages = {
     goodUpTo: (ms) => `Good up to ${ms} ms (Miss after that)`,
     latency: (ms) => `Latency compensation: ${ms} ms`,
     latencyHelp:
-      'Subtracted from the time of every key press. Tip: if Performance mode reports “X ms late on average” while you feel on time, raise this by about X.',
+      'Subtracted from the time of every key press. The easiest way is to measure it, using the piano, speakers or headphones you practise with.',
+    latencyTest: {
+      start: 'Measure latency',
+      countIn: (n) => `Count-in … ${n}`,
+      play: 'Play a key on your piano on every click (or press Space).',
+      tap: 'Tap',
+      result: (offset, spread, used, total) =>
+        `Measured: on average ${offset} ms after the click, spread ±${spread} ms (${used} of ${total} beats).`,
+      unreliable: 'Your taps vary a lot. Repeat the test for a more accurate value.',
+      early: 'On average you play before the click. That is not latency, so the compensation stays at 0 ms.',
+      failed: 'Too few taps detected. Try to play on every click and run the test again.',
+      apply: (ms) => `Use ${ms} ms`,
+      again: 'Measure again',
+    },
+    notationHeading: 'Notation',
+    notationChords: 'Chord symbols above the staff',
+    notationPedal: 'Pedal marks (from the file or recording)',
+    notationDynamics: 'Dynamics from key velocity (p, mf, f …)',
+    notationHelp:
+      'Chords are detected from the notes and can be off. Dynamics only appear for pieces whose notes vary in loudness.',
     colors: 'Colours',
     colorsDefault: 'Default',
     colorsContrast: 'Yellow/purple (high contrast)',
@@ -466,6 +485,12 @@ export const en: Messages = {
     trouble: (list) => `Trouble spots: ${list}. Drag them as a loop in the bar strip and practise them.`,
     clean: 'No mistakes, a clean run.',
     again: 'Again',
+  },
+
+  offline: {
+    ready: 'Pianist now works without an internet connection.',
+    update: 'A new version of Pianist is available.',
+    reload: 'Reload',
   },
 
   errors: {

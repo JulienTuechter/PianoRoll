@@ -6,6 +6,7 @@ import { LibraryDialog } from './components/Library';
 import { Stage } from './components/Stage';
 import { MeasureTimeline } from './components/MeasureTimeline';
 import { Onboarding } from './components/Onboarding';
+import { OfflineToast } from './components/OfflineToast';
 import { PianoKeyboard } from './components/PianoKeyboard';
 import { Scene } from './components/Scene';
 import { RecordingDialog } from './components/RecordingDialog';
@@ -60,6 +61,7 @@ export function App() {
       </main>
       <DropZone />
       <ErrorToast />
+      <OfflineToast />
       <SettingsDialog />
       <LibraryDialog />
       <ResultsDialog />

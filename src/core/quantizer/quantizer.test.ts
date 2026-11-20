@@ -191,3 +191,20 @@ describe('Recorder', () => {
     expect(rec.startedAt).toBe(123);
   });
 });
+
+describe('Quantizer – Haltepedal', () => {
+  it('setzt Pedal auf das Raster und schließt offenes Pedal am Ende', () => {
+    const r = rec([note(60, 0, 2400)], {
+      pedal: [
+        { timeMs: 20, down: true },
+        { timeMs: 1190, down: false },
+        { timeMs: 1210, down: true },
+      ],
+    });
+    const out = quantize(r, { splitPoint: 0 });
+    expect(out.pedals).toEqual([
+      { startTick: 0, endTick: 960 },
+      { startTick: 960, endTick: out.measureCount * out.measureTicks },
+    ]);
+  });
+});

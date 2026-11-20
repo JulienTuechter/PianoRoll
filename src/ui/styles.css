@@ -1735,6 +1735,39 @@ input[type='range']:disabled {
     var(--shadow-card);
   transform: translateX(-50%);
 }
+/* Latenz-Messtest in den Einstellungen */
+.latency-test {
+  display: grid;
+  gap: var(--space-xs);
+  justify-items: start;
+}
+.latency-test p {
+  margin: 0;
+}
+.latency-actions {
+  display: flex;
+  gap: var(--space-xs);
+}
+.latency-beats {
+  display: flex;
+  gap: 4px;
+}
+.latency-beats span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 var(--rule-hair) var(--color-rule-strong);
+}
+.latency-beats span.on {
+  background: var(--color-accent);
+}
+/* Hinweis ohne Fehler (Offline, Update); über einem Fehler-Toast */
+.toast.info {
+  bottom: calc(var(--space-lg) + 56px);
+  box-shadow:
+    inset 0 0 0 var(--rule-hair) var(--color-rule-strong),
+    var(--shadow-card);
+}
 /* Klang-Status: außerhalb des Leistenlayouts (verhindert Verschieben der Knöpfe beim ersten Klick) */
 .audio-status {
   position: fixed;

@@ -13,6 +13,9 @@ Built with React and TypeScript.
   - **Performance:** real time, rated Perfect / Good / Miss, with a timing distribution afterwards.
 - **Practice tools:** tempo from 25 to 150 %, loops (drag over the bar strip or the score), metronome, count-in and auto-tempo.
 - **Views:** falling notes, sheet music (VexFlow) with a moving cursor, or both. Free play shows rising notes.
+- **Sheet music:** up to two voices per hand (held notes under moving lines), chord symbols, dynamics derived from velocity, and sustain pedal marks from the file or recording. The left hand switches to treble clef in high passages.
+- **Latency test:** play along with a click in the settings to measure and set the latency compensation for Performance mode.
+- **Works offline:** after the first visit a service worker keeps the app, the piano samples and the catalogue available without a network connection.
 - **Stage:** WebGL rendering (PixiJS, loaded on demand) with a Canvas 2D fallback. Glowing notes with bloom, sparks that scale with velocity, and keys lit in the note's color. Hits throw sparks and wrong keys flash red. Colors go by hand or by pitch, with three quality levels. `prefers-reduced-motion` turns off sparks and flashing. The controls fade out while you play.
 - **Harmony Assist:** detects the current chord and key (Krumhansl–Schmuckler) and suggests next chords with scale degrees and ghost notes. Inside a song it shows the upcoming chord and alternatives.
 - **Recording** with count-in and metronome. Quantization supports 1/4, 1/8, 1/16, triplets and swing, plus minimum length, overlap handling and hand splitting. The score preview updates as you go.
@@ -56,13 +59,16 @@ npm run dev      # http://localhost:5173
 
 Web MIDI only works on `localhost` or over HTTPS.
 
-| Command                           | Purpose                       |
-| --------------------------------- | ----------------------------- |
-| `npm run dev`                     | Dev server                    |
-| `npm run test`                    | Unit tests (Vitest)           |
-| `npm run build`                   | Type check + production build |
-| `npm run preview`                 | Serve the production build    |
-| `npm run lint` / `npm run format` | ESLint / Prettier             |
+| Command                           | Purpose                                  |
+| --------------------------------- | ---------------------------------------- |
+| `npm run dev`                     | Dev server                               |
+| `npm run test`                    | Unit tests (Vitest)                      |
+| `npm run build`                   | Type check + production build            |
+| `npm run preview`                 | Serve the production build               |
+| `npm run e2e`                     | E2E tests (Playwright) against the build |
+| `npm run lint` / `npm run format` | ESLint / Prettier                        |
+
+E2E tests need a Chromium: `npx playwright install chromium`, or point them at an installed one with `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/brave-browser npm run e2e`. GitHub Actions runs lint, formatting, type check, unit tests, build and E2E on every push and pull request.
 
 ## Deployment
 
@@ -73,6 +79,8 @@ Link previews (WhatsApp, Slack, Facebook, …) need the public URL at build time
 ```bash
 SITE_URL=https://your-domain.com npm run build
 ```
+
+The build also writes `/sw.js` (service worker with the precache list). Serve it without long-term caching so updates are picked up; the app shows a "new version" notice with a reload button.
 
 You can also put `SITE_URL=…` in a `.env` file. The build uses it to generate `og:url`, `og:image`, `canonical`, `robots.txt` and `sitemap.xml`. The preview image is `public/og-image.png` (1200 × 630).
 
@@ -96,7 +104,7 @@ catalog/          Bundled MIDI pieces, picked up automatically (Category/Compose
 
 ## Known limitations
 
-Sheet music uses one voice per hand. Simultaneous notes become a chord, and a held note ends at the next onset in the same hand.
+Sheet music uses at most two voices per hand; a third simultaneous voice is shortened at the next onset. Chord symbols are detected from the notes and can be wrong. Fingering is not shown because MIDI files do not contain it.
 
 ## License
 

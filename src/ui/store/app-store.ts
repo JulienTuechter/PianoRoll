@@ -8,6 +8,8 @@ import type { Recording } from '../../core/recorder/recorder';
 import type { PassSummary, RunResult } from '../../core/scoring/scoring';
 
 export type AudioState = 'locked' | 'loading' | 'ready' | 'fallback';
+/** Service Worker: 'ready' = gerade erstmals offline verfügbar, 'update' = neue Version wartet */
+export type OfflineState = 'idle' | 'ready' | 'update';
 
 interface AppState {
   ready: boolean;
@@ -36,6 +38,7 @@ interface AppState {
   recording: 'countin' | 'recording' | null;
   /** Letzte Aufnahme, die im Editor bearbeitet wird */
   take: Recording | null;
+  offline: OfflineState;
   set(partial: Partial<Omit<AppState, 'set'>>): void;
 }
 
@@ -60,5 +63,6 @@ export const useApp = create<AppState>()((set) => ({
   freePlay: false,
   recording: null,
   take: null,
+  offline: 'idle',
   set: (partial) => set(partial),
 }));
