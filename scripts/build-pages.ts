@@ -1,6 +1,7 @@
 /**
  * Rendert die statischen Seiten nach `vite build`:
- *   dist/index.html (en, x-default), dist/de/index.html, dist/404.html, dist/sitemap.xml, dist/robots.txt
+ *   dist/index.html (en, x-default), dist/de/index.html, dist/404.html
+ * (sitemap.xml, robots.txt und die Bibliotheksseiten erzeugt danach scripts/library/ im postbuild)
  * Quelle: das von Vite verarbeitete Template dist/landing/index.html (mit gehashten Assets) und
  * src/i18n/{en,de}.json. Das Template wird danach entfernt.
  *
@@ -13,6 +14,7 @@ import { createServer } from 'vite';
 import { siteEnv } from './site-env';
 import { RENDER_MODULE, type PageRenderer } from './pages/types';
 import { BUILT_ROUTES, localizedPath, PAGE_LOCALES } from '../src/i18n/routes';
+import { latestPieces } from './library/latest';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const dist = join(root, 'dist');
@@ -23,8 +25,7 @@ async function main(): Promise<void> {
     throw new Error(`${templatePath} fehlt – zuerst \`vite build\` ausführen`);
   });
   const env = siteEnv('production', root);
-  if (!env.siteUrl)
-    console.warn('⚠ SITE_URL ist nicht gesetzt: canonical/hreflang relativ, keine sitemap.xml.');
+  if (!env.siteUrl) console.warn('⚠ SITE_URL ist nicht gesetzt: canonical/hreflang relativ, keine Sitemaps.');
 
   // Vites SSR-Loader löst die Landing-Komponenten (Aliase, import.meta.env, JSON) wie im Browser auf
   const vite = await createServer({
@@ -47,11 +48,9 @@ async function main(): Promise<void> {
       for (const locale of PAGE_LOCALES)
         await out(
           join(localizedPath(route, locale), 'index.html'),
-          render.renderPage(template, route, locale, env),
+          render.renderPage(template, route, locale, env, latestPieces(root, locale)),
         );
     await out('404.html', render.render404());
-    await out('robots.txt', render.renderRobots(env));
-    if (env.siteUrl) await out('sitemap.xml', render.renderSitemap(env));
   } finally {
     await vite.close();
   }

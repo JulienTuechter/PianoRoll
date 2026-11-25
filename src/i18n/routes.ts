@@ -2,8 +2,8 @@
  * Routen der statischen Seiten je Sprache. Englisch liegt ohne Präfix unter / (x-default),
  * Deutsch unter /de/. Jeder Link, jedes hreflang und die Sitemap laufen über localizedPath().
  *
- * Konzept für später: Seiten wie die Bibliothek bekommen lokalisierte Slugs. Sie sind hier schon
- * beschrieben, existieren aber noch nicht – gebaut werden nur die Routen in BUILT_ROUTES.
+ * Die Landingpage (BUILT_ROUTES) rendert scripts/build-pages.ts, die Bibliotheksseiten (library…)
+ * erzeugt scripts/library/ aus public/library/catalog.json.
  */
 import type { Locale } from './locale';
 
@@ -19,14 +19,18 @@ export const LOCALE_INFO: Record<Locale, { prefix: string; hreflang: string; ogL
 /** Pfad je Sprache (ohne Sprachpräfix), Parameter als :name */
 export const ROUTES = {
   home: { en: '/', de: '/' },
-  // noch nicht gebaut:
+  // Bibliothek (scripts/library/generate.ts)
   library: { en: '/library/', de: '/bibliothek/' },
+  piece: { en: '/library/:slug/', de: '/bibliothek/:slug/' },
   composer: { en: '/library/composer/:composer/', de: '/bibliothek/komponist/:composer/' },
+  collection: { en: '/library/collection/:collection/', de: '/bibliothek/sammlung/:collection/' },
+  level: { en: '/library/level/:level/', de: '/bibliothek/stufe/:level/' },
+  libraryFeed: { en: '/library/feed.xml', de: '/bibliothek/feed.xml' },
 } as const satisfies Record<string, Record<Locale, string>>;
 
 export type RouteName = keyof typeof ROUTES;
 
-/** Routen, für die es heute eine Seite gibt (Build, Sitemap) */
+/** Routen, die scripts/build-pages.ts aus dem Landing-Template rendert */
 export const BUILT_ROUTES: readonly RouteName[] = ['home'];
 
 export type RouteParams = Record<string, string>;
@@ -53,8 +57,8 @@ export function alternates(route: RouteName, params: RouteParams = {}): { hrefla
 }
 
 /** Die App liegt sprachneutral unter /app/; ?lang= übernimmt die Sprache der Seite, von der man kommt. */
-export function appPath(locale: Locale): string {
-  return `/app/?lang=${locale}`;
+export function appPath(locale: Locale, piece?: string): string {
+  return piece ? `/app/?piece=${encodeURIComponent(piece)}&lang=${locale}` : `/app/?lang=${locale}`;
 }
 
 /** Sprache aus einem Seitenpfad (für Dev-Server und Tests) */

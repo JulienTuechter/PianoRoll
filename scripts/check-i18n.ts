@@ -41,26 +41,39 @@ const placeholders = (s: string) =>
     .sort()
     .join(',');
 
-const texts = new Map<string, Map<string, Json>>();
-for (const locale of PAGE_LOCALES) {
-  const raw = await readFile(join(root, 'src/i18n', `${locale}.json`), 'utf8');
-  texts.set(locale, leaves(JSON.parse(raw) as Json));
-}
-const allKeys = new Set([...texts.values()].flatMap((m) => [...m.keys()]));
-for (const key of allKeys) {
-  const present = PAGE_LOCALES.filter((l) => texts.get(l)?.has(key));
-  if (present.length !== PAGE_LOCALES.length)
-    fail(
-      `Key „${key}“ nur in: ${present.join(', ')} (fehlt in ${PAGE_LOCALES.filter((l) => !present.includes(l)).join(', ')})`,
-    );
-  for (const l of present) {
-    const v = texts.get(l)?.get(key);
-    if (typeof v !== 'string') fail(`${l}.json: „${key}“ ist kein Text`);
-    else if (!v.trim()) fail(`${l}.json: „${key}“ ist leer`);
+async function readTexts(dir: string): Promise<Map<string, Map<string, Json>>> {
+  const out = new Map<string, Map<string, Json>>();
+  for (const locale of PAGE_LOCALES) {
+    const raw = await readFile(join(root, dir, `${locale}.json`), 'utf8');
+    out.set(locale, leaves(JSON.parse(raw) as Json));
   }
-  const ph = new Set(present.map((l) => placeholders(String(texts.get(l)?.get(key) ?? ''))));
-  if (ph.size > 1) fail(`Key „${key}“: Platzhalter unterscheiden sich zwischen den Sprachen`);
+  return out;
 }
+
+/** Keys in allen Sprachen, keine leeren Texte, gleiche {Platzhalter} */
+function checkTexts(texts: Map<string, Map<string, Json>>, label: string): number {
+  const allKeys = new Set([...texts.values()].flatMap((m) => [...m.keys()]));
+  for (const key of allKeys) {
+    const present = PAGE_LOCALES.filter((l) => texts.get(l)?.has(key));
+    if (present.length !== PAGE_LOCALES.length)
+      fail(
+        `${label}: Key „${key}“ nur in: ${present.join(', ')} (fehlt in ${PAGE_LOCALES.filter((l) => !present.includes(l)).join(', ')})`,
+      );
+    for (const l of present) {
+      const v = texts.get(l)?.get(key);
+      if (typeof v !== 'string') fail(`${label}/${l}.json: „${key}“ ist kein Text`);
+      else if (!v.trim()) fail(`${label}/${l}.json: „${key}“ ist leer`);
+    }
+    const ph = new Set(present.map((l) => placeholders(String(texts.get(l)?.get(key) ?? ''))));
+    if (ph.size > 1) fail(`${label}: Key „${key}“: Platzhalter unterscheiden sich zwischen den Sprachen`);
+  }
+  return allKeys.size;
+}
+
+// Landingpage (src/i18n/{en,de}.json) und Bibliotheksseiten (src/i18n/library/{en,de}.json)
+const texts = await readTexts('src/i18n');
+const keyCount =
+  checkTexts(texts, 'src/i18n') + checkTexts(await readTexts('src/i18n/library'), 'src/i18n/library');
 
 /* ── 2. Gebaute Seiten ──────────────────────────────────── */
 
@@ -186,5 +199,5 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(
-  `✓ check:i18n – ${allKeys.size} Keys in ${PAGE_LOCALES.join('/')}, ${pages.length} Seiten + 404.html geprüft`,
+  `✓ check:i18n – ${keyCount} Keys in ${PAGE_LOCALES.join('/')}, ${pages.length} Seiten + 404.html geprüft`,
 );

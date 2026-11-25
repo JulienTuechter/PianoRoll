@@ -186,6 +186,11 @@
     "samples": "Klavier-Samples: Salamander Grand Piano V3 von Alexander Holm, CC-BY 3.0",
     "local": "Läuft komplett in deinem Browser. Nichts wird hochgeladen."
   },
+  "libraryNew": {
+    "title": "Neu in der Bibliothek",
+    "lead": "Stücke, die du sofort in Pianist öffnen kannst, jedes mit eigener Seite.",
+    "all": "Zur ganzen Bibliothek"
+  },
   "notFound": {
     "// REVIEW": "gegenlesen",
     "title": "Seite nicht gefunden",

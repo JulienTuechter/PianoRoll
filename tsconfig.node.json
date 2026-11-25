@@ -15,5 +15,11 @@
     "noUncheckedIndexedAccess": true,
     "types": ["node"]
   },
-  "include": ["vite.config.ts", "eslint.config.js", "scripts/*.ts"]
+  "include": [
+    "vite.config.ts",
+    "eslint.config.js",
+    "scripts/*.ts",
+    "scripts/library/*.ts",
+    "library.config.ts"
+  ]
 }

@@ -4,12 +4,13 @@ import { renderToString } from 'react-dom/server';
 import type { Locale } from '../../src/i18n';
 import { App } from './App';
 import { LangProvider } from './i18n';
+import type { LatestPiece } from './components/LibraryNew';
 
-export function renderBody(lang: Locale): string {
+export function renderBody(lang: Locale, latest: LatestPiece[] = []): string {
   return renderToString(
     <StrictMode>
       <LangProvider value={lang}>
-        <App />
+        <App latest={latest} />
       </LangProvider>
     </StrictMode>,
   );

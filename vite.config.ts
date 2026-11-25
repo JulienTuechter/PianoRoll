@@ -6,11 +6,13 @@ import { readFile } from 'node:fs/promises';
 import { siteEnv } from './scripts/site-env.ts';
 import { RENDER_MODULE, type PageRenderer } from './scripts/pages/types.ts';
 import { localeFromPath, localizedPath, PAGE_LOCALES } from './src/i18n/routes.ts';
+import { latestPieces } from './scripts/library/latest.ts';
 
 /**
  * Link-Vorschauen brauchen absolute URLs. Die öffentliche Adresse kommt aus SITE_URL (Umgebungsvariable oder
  * .env), z. B. SITE_URL=https://pianist.example; ersetzt %SITE_URL% in app/index.html.
- * Die Landingpage (/, /de/), 404.html, sitemap.xml und robots.txt rendert scripts/build-pages.ts nach dem Build.
+ * Die Landingpage (/, /de/) und 404.html rendert scripts/build-pages.ts nach dem Build, die Bibliothek,
+ * sitemap.xml und robots.txt erzeugt scripts/library/ (postbuild).
  */
 function seo(): Plugin {
   let siteUrl = '';
@@ -70,7 +72,14 @@ function pages(): Plugin {
           const raw = await readFile(fileURLToPath(new URL('./landing/index.html', import.meta.url)), 'utf8');
           const template = await server.transformIndexHtml('/landing/index.html', raw, req.originalUrl);
           const render = (await server.ssrLoadModule(RENDER_MODULE)).default as PageRenderer;
-          const html = render.renderPage(template, 'home', localeFromPath(path), env);
+          const locale = localeFromPath(path);
+          const html = render.renderPage(
+            template,
+            'home',
+            locale,
+            env,
+            latestPieces(server.config.root, locale),
+          );
           res.setHeader('Content-Type', 'text/html; charset=utf-8');
           res.end(html);
         })().catch((err: Error) => {
@@ -116,7 +125,7 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
     environment: 'node',
   },
 });

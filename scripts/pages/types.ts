@@ -9,11 +9,17 @@ export interface SiteEnv {
   githubUrl: string;
 }
 
+/** Eintrag für „Neu in der Bibliothek“ auf der Startseite (scripts/library/latest.ts) */
+export interface LatestPiece {
+  title: string;
+  composer: string;
+  path: string;
+}
+
+/** sitemap.xml und robots.txt erzeugt scripts/library/ (Sitemap-Index inkl. Bibliothek) */
 export interface PageRenderer {
-  renderPage(template: string, route: RouteName, locale: Locale, env: SiteEnv): string;
+  renderPage(template: string, route: RouteName, locale: Locale, env: SiteEnv, latest: LatestPiece[]): string;
   render404(): string;
-  renderSitemap(env: SiteEnv): string;
-  renderRobots(env: SiteEnv): string;
 }
 
 /** Pfad für server.ssrLoadModule(); default-Export ist ein PageRenderer */

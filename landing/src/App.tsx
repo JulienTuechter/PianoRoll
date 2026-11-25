@@ -12,6 +12,7 @@ import { NotationDemo } from './components/NotationDemo';
 import { QuantizeDemo } from './components/QuantizeDemo';
 import { Rig } from './components/Rig';
 import { Finale } from './components/Finale';
+import { LibraryNew, type LatestPiece } from './components/LibraryNew';
 import { GITHUB_URL } from './links';
 
 const GitHubMark = () => (
@@ -164,7 +165,7 @@ function useReveal() {
   }, []);
 }
 
-export function App() {
+export function App({ latest = [] }: { latest?: LatestPiece[] }) {
   const c = useCopy();
   useReveal();
   return (
@@ -182,6 +183,7 @@ export function App() {
         <QuantizeDemo />
         <Rig />
         <Finale />
+        <LibraryNew pieces={latest} />
       </main>
       <footer className="footer">
         <p>{c.footer.local}</p>

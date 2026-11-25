@@ -1,0 +1,9 @@
+{
+  "//": "Nur für tsx (npm-Skripte der Bibliothek): lenkt @tonejs/midi auf einen Node-Shim. Typprüfung: tsconfig.node.json.",
+  "extends": "../../tsconfig.node.json",
+  "compilerOptions": {
+    "baseUrl": "../..",
+    "paths": { "@tonejs/midi": ["scripts/library/tonejs-midi-node.ts"] }
+  },
+  "include": ["**/*.ts"]
+}

@@ -56,13 +56,27 @@ npm run dev      # http://localhost:5173
 
 Web MIDI only works on `localhost` or over HTTPS.
 
-| Command                           | Purpose                       |
-| --------------------------------- | ----------------------------- |
-| `npm run dev`                     | Dev server                    |
-| `npm run test`                    | Unit tests (Vitest)           |
-| `npm run build`                   | Type check + production build |
-| `npm run preview`                 | Serve the production build    |
-| `npm run lint` / `npm run format` | ESLint / Prettier             |
+| Command                                     | Purpose                                                                                              |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `npm run dev`                               | Dev server (app + landing page with SSR) on port 5173                                                |
+| `npm run build`                             | Type check, Vite build, prerender the landing page (`/`, `/de/`)                                     |
+| ↳ `prebuild` (automatic)                    | Validate the library catalog (TODOs, licenses, readable MIDI), assign new slugs, sync `vercel.json`  |
+| ↳ `postbuild` (automatic)                   | Generate library pages, piano-roll images, feeds and sitemaps, then check everything                 |
+| `npm run build:pages`                       | Re-render only the landing page and 404 (needs an existing `dist/`)                                  |
+| `npm run preview`                           | Serve the production build from `dist/`                                                              |
+| `npm run test` / `npm run test:watch`       | Unit tests (Vitest), once / in watch mode                                                            |
+| `npm run typecheck`                         | TypeScript only                                                                                      |
+| `npm run lint` / `npm run format`           | ESLint / Prettier                                                                                    |
+| `npm run check:i18n`                        | Compare en/de texts and check the built landing pages                                                |
+| `npm run library:stubs`                     | Create TODO catalog entries for new `.mid` files in `public/library/midi/`                           |
+| `npm run library:check`                     | Full build including all library checks                                                              |
+| `npm run library:verify`                    | Check the existing `dist/` without rebuilding                                                        |
+| `npm run library:rename -- <old> <new>`     | Change a piece's slug on purpose (adds a 301 redirect)                                               |
+| `npm run seo:ping`                          | Report new/changed URLs via IndexNow (off by default in `library.config.ts`; `--dry-run` to preview) |
+| `npm run lib -- <command>`                  | Entry point behind the library commands (`prepare`, `generate`, `check`, `stubs`, `rename`, `ping`)  |
+| `npm run merge:main` / `npm run merge:prod` | Pick a branch and merge it into `main` (or via `main` into `prod`)                                   |
+
+Adding pieces to the library: see [docs/ADDING_PIECES.md](docs/ADDING_PIECES.md).
 
 ## Deployment
 

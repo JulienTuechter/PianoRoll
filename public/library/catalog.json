@@ -1,0 +1,60 @@
+[
+  {
+    "file": "beethoven-ode-an-die-freude.mid",
+    "title": "Ode an die Freude",
+    "title_en": "Ode to Joy",
+    "composer": "Ludwig van Beethoven",
+    "aliases": ["Freude, schöner Götterfunken", "Hymn to Joy"],
+    "collection": "Sinfonie Nr. 9, op. 125",
+    "level": 2,
+    "added": "2026-11-18",
+    "license": "Public Domain",
+    "credit": "Werk gemeinfrei; MIDI-Bearbeitung: Pianist-Projekt",
+    "license_class": "free"
+  },
+  {
+    "file": "beethoven-fuer-elise-anfang.mid",
+    "title": "Für Elise (Anfang)",
+    "title_en": "Für Elise (opening)",
+    "composer": "Ludwig van Beethoven",
+    "aliases": ["Bagatelle in A minor, WoO 59", "Bagatelle a-Moll WoO 59"],
+    "level": 3,
+    "added": "2026-11-19",
+    "license": "Public Domain",
+    "credit": "Werk gemeinfrei; MIDI-Bearbeitung: Pianist-Projekt",
+    "license_class": "free"
+  },
+  {
+    "file": "bach-praeludium-c-dur-bwv-846.mid",
+    "title": "Präludium C-Dur BWV 846 (Takte 1–19)",
+    "title_en": "Prelude in C major, BWV 846 (bars 1–19)",
+    "composer": "Johann Sebastian Bach",
+    "aliases": ["Prelude No. 1"],
+    "collection": "Das Wohltemperierte Klavier I",
+    "level": 3,
+    "added": "2026-11-20",
+    "license": "Public Domain",
+    "credit": "Werk gemeinfrei; MIDI-Bearbeitung: Pianist-Projekt",
+    "license_class": "free"
+  },
+  {
+    "file": "petzold-menuett-g-dur.mid",
+    "title": "Menuett G-Dur BWV Anh. 114 (vereinfacht)",
+    "composer": "Christian Petzold",
+    "license": "Public Domain",
+    "credit": "Werk gemeinfrei; MIDI-Bearbeitung: Pianist-Projekt",
+    "added": "2026-11-25",
+    "duration_sec": 26,
+    "tempo_bpm": 112,
+    "time_signature": "3/4",
+    "notes": 80,
+    "bars": 16,
+    "hands": "both",
+    "range": "G2-G5",
+    "title_en": "Minuet in G major, BWV Anh. 114 (simplified)",
+    "aliases": ["Minuet in G", "Menuett in G"],
+    "collection": "Notenbüchlein für Anna Magdalena Bach",
+    "level": 2,
+    "license_class": "free"
+  }
+]

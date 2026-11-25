@@ -1,0 +1,179 @@
+{
+  "langName": "Deutsch",
+  "nav": {
+    "library": "Bibliothek",
+    "openApp": "App öffnen",
+    "langLabel": "Sprache",
+    "breadcrumb": "Brotkrumen-Navigation",
+    "home": "Pianist"
+  },
+  "piece": {
+    "h1": "{title} – {composer}: mit dem MIDI-Keyboard lernen",
+    "titles": [
+      "{title} ({last}) mit dem MIDI-Keyboard lernen | Pianist",
+      "{title} mit dem MIDI-Keyboard lernen | Pianist",
+      "{title} ({last}) | Pianist",
+      "{title} | Pianist",
+      "{title}"
+    ],
+    "desc": {
+      "core": "{title} von {composer} mit dem MIDI-Keyboard lernen: {duration} Min., {meter}-Takt, {key}.",
+      "coreNoKey": "{title} von {composer} mit dem MIDI-Keyboard lernen: {duration} Min. im {meter}-Takt.",
+      "level": "Stufe {level} ({levelName}).",
+      "alias": "Auch bekannt als {alias}.",
+      "wait": "Pianist wartet auf jeden der {notes} Töne.",
+      "tempo": "Im Performance-Modus mit {tempo} BPM und Timing-Wertung.",
+      "hands": "{right} Töne rechte Hand, {left} linke Hand.",
+      "free": "Kostenlos im Browser."
+    },
+    "lead": [
+      "{title} von {composer} gehört zur Pianist-Bibliothek. Die MIDI-Datei dauert {duration} Minuten, läuft mit etwa {tempo} BPM im {meter}-Takt und enthält {notes} Töne in {bars} Takten.",
+      "Auf dieser Seite geht es um {title} von {composer}: {notes} Töne in {bars} Takten, {meter}-Takt, rund {tempo} BPM und {duration} Minuten Spieldauer.",
+      "{title} von {composer} kannst du in Pianist sofort spielen. Die MIDI-Datei hat {notes} Töne in {bars} Takten, einen {meter}-Takt und etwa {tempo} BPM; sie dauert {duration} Minuten."
+    ],
+    "keyFile": "Die Datei ist in {key} notiert.",
+    "keyCatalog": "Das Stück steht in {key}.",
+    "keyEstimated": "Die Datei enthält keine Tonartangabe; nach den Tönen steht sie am ehesten in {key}.",
+    "tempoChanges": "Das Tempo wechselt innerhalb der Datei zwischen {min} und {max} BPM.",
+    "meterChanges": "Die Taktart wechselt im Verlauf; zu Beginn steht ein {meter}-Takt.",
+    "range": "Die Töne reichen von {low} bis {high}, ein Umfang von {span} Halbtönen.",
+    "handsBoth": "Die rechte Hand spielt {right} Töne, die linke {left}.",
+    "handsRight": "Alle {notes} Töne gehören zur rechten Hand.",
+    "handsLeft": "Alle {notes} Töne gehören zur linken Hand.",
+    "aliases": "Bekannt ist es auch als {aliases}.",
+    "collection": "Das Stück gehört zu {collection}.",
+    "level": "In der Pianist-Bibliothek ist es Stufe {level} ({levelName}) zugeordnet.",
+    "practiceH2": "So übst du {title} in Pianist",
+    "wait": [
+      "Im Modus „Warten“ halten die fallenden Noten bei jedem der {notes} Töne an, bis du die richtige Taste drückst. So arbeitest du dich in deinem eigenen Tempo durch {title}.",
+      "Der Modus „Warten“ hält {title} bei jeder Note und jedem Akkord an, bis dein MIDI-Keyboard die richtige Taste meldet. Das Timing zählt hier noch nicht, nur die Töne."
+    ],
+    "loop": [
+      "Zieh über die Taktleiste, um eine Stelle als Loop zu wiederholen. Bei {bars} Takten übst du ein paar davon, bis sie sitzen, und erweiterst dann den Loop.",
+      "Eine Stelle wiederholst du, indem du über die Taktleiste ziehst: zwei oder drei der {bars} Takte als Loop, dann weiter zu den nächsten."
+    ],
+    "tempo": [
+      "Der Tempo-Regler macht das Stück langsamer, ohne die Tonhöhe zu ändern. Du kannst also deutlich unter {tempo} BPM beginnen und dich steigern.",
+      "Fang langsamer an als die ursprünglichen {tempo} BPM: Der Tempo-Regler ändert die Geschwindigkeit, nicht die Tonhöhe."
+    ],
+    "performance": [
+      "Wenn die Töne sitzen, wechsle in den Performance-Modus: {title} läuft in Echtzeit, und Pianist bewertet das Timing jeder gespielten Note.",
+      "Der nächste Schritt ist der Performance-Modus: kein Warten mehr, {title} läuft in Echtzeit, und jede Note bekommt eine Timing-Wertung."
+    ],
+    "colors": "Blaue Noten gehören zur rechten Hand, orange zur linken. Du kannst als fallende Noten, als Notenblatt oder mit beidem gleichzeitig mitlesen.",
+    "rollAlt": "Piano-Roll von {title} ({composer}): {notes} Töne von {low} bis {high} in {duration} Minuten, rechte Hand blau, linke Hand orange",
+    "rollCaption": "Piano-Roll der MIDI-Datei: Die Zeit läuft von links nach rechts, die Tonhöhe von unten nach oben.",
+    "factsH2": "Eckdaten",
+    "facts": {
+      "composer": "Komponist",
+      "duration": "Dauer",
+      "tempo": "Tempo",
+      "key": "Tonart",
+      "meter": "Taktart",
+      "bars": "Takte",
+      "notes": "Töne",
+      "range": "Tonumfang",
+      "hands": "Hände",
+      "level": "Stufe",
+      "collection": "Sammlung",
+      "added": "Hinzugefügt"
+    },
+    "estimated": "geschätzt",
+    "handsValue": {
+      "both": "beide Hände",
+      "right": "rechte Hand",
+      "left": "linke Hand"
+    },
+    "notesValue": "{notes} (rechts {right}, links {left})",
+    "durationValue": "{duration} Min.",
+    "tempoValue": "{tempo} BPM",
+    "tempoRangeValue": "{min}–{max} BPM",
+    "aboutH2": "Über das Stück",
+    "licenseH2": "Lizenz und Quelle",
+    "license": "Lizenz: {license}",
+    "credit": "Quelle: {credit}",
+    "download": "MIDI-Datei herunterladen ({size} KB)",
+    "open": "In Pianist öffnen",
+    "relatedH2": "Verwandte Stücke",
+    "composerLink": "Alle Stücke von {composer}",
+    "composerOverviewLink": "{composer} in der Bibliothek",
+    "collectionLink": "Mehr aus {collection}",
+    "levelLink": "Alle Stücke der Stufe {level}"
+  },
+  "list": {
+    "row": "{duration} Min. · {meter} · {key}{level}",
+    "rowNoKey": "{duration} Min. · {meter}{level}",
+    "rowLevel": " · Stufe {level}",
+    "pieces": "{count} Stücke",
+    "piecesOne": "1 Stück"
+  },
+  "composer": {
+    "titles": [
+      "{composer}: Klavierstücke fürs MIDI-Keyboard | Pianist",
+      "{composer}: Klavierstücke | Pianist",
+      "{composer} | Pianist"
+    ],
+    "h1": "{composer}: Klavierstücke zum Lernen mit dem MIDI-Keyboard",
+    "desc": "{count} Stücke von {composer} zum Lernen mit dem MIDI-Keyboard in Pianist: {list}.",
+    "intro": "Die Pianist-Bibliothek enthält {count} Stücke von {composer} mit zusammen {total} Minuten Spieldauer. Das kürzeste dauert {shortest}, das längste {longest}. Zusammen haben sie {notes} Töne.",
+    "keys": "Tonarten: {keys}.",
+    "levels": "Stufen: {levels}.",
+    "listH2": "Stücke von {composer}"
+  },
+  "collection": {
+    "titles": [
+      "{collection} mit dem MIDI-Keyboard lernen | Pianist",
+      "{collection} | Pianist",
+      "{collection}"
+    ],
+    "h1": "{collection}: mit dem MIDI-Keyboard lernen",
+    "desc": "{count} Stücke aus {collection} zum Lernen mit dem MIDI-Keyboard in Pianist: {list}.",
+    "intro": "Die Pianist-Bibliothek enthält {count} Stücke aus {collection} mit zusammen {total} Minuten Spieldauer und {notes} Tönen.",
+    "composers": "Komponist: {composers}.",
+    "listH2": "Stücke aus {collection}"
+  },
+  "level": {
+    "titles": [
+      "Stufe {level} ({levelName}): Klavierstücke fürs MIDI-Keyboard | Pianist",
+      "Stufe {level} ({levelName}): Klavierstücke | Pianist",
+      "Stufe {level}: Klavierstücke | Pianist"
+    ],
+    "h1": "Stufe {level} ({levelName}): Klavierstücke für dein MIDI-Keyboard",
+    "desc": "{pieces} der Stufe {level} ({levelName}) in der Pianist-Bibliothek zum Lernen mit dem MIDI-Keyboard: {list}.",
+    "intro": "Stufe {level} ({levelName}) der Pianist-Bibliothek umfasst {pieces} von {composers} mit zusammen {total} Minuten Spieldauer. Die Tempi liegen zwischen {minTempo} und {maxTempo} BPM.",
+    "keys": "Tonarten: {keys}.",
+    "listH2": "Stücke der Stufe {level}",
+    "name": "Stufe {level}"
+  },
+  "overview": {
+    "title": "Klavier-Bibliothek: Stücke fürs MIDI-Keyboard | Pianist",
+    "h1": "Klavier-Bibliothek: Stücke zum Lernen mit dem MIDI-Keyboard",
+    "desc": "{count} kostenlose Stücke von {composers} und mehr zum Lernen mit Pianist am MIDI-Keyboard, mit fallenden Noten, Notenblatt und Modus „Warten“.",
+    "intro": "Jedes Stück dieser Bibliothek öffnet sich direkt in Pianist. Schließ ein MIDI-Keyboard an, wähl ein Stück und spiel mit: Fallende Noten zeigen, was als Nächstes kommt, das Notenblatt läuft mit, und im Modus „Warten“ hält das Stück an, bis du die richtige Taste triffst.",
+    "stats": "Die Bibliothek umfasst derzeit {count} Stücke von {composerCount} Komponisten, zusammen {total} Minuten Musik.",
+    "newH2": "Neu hinzugefügt",
+    "levelsH2": "Stufen",
+    "levelItem": "Stufe {level} ({levelName}): {pieces}",
+    "collectionsH2": "Sammlungen",
+    "collectionItem": "{collection}: {pieces}",
+    "composersH2": "Komponisten und Stücke",
+    "composerPage": "Alle Stücke von {composer}",
+    "search": "Bibliothek durchsuchen",
+    "searchPlaceholder": "Titel oder Komponist",
+    "feed": "Feed mit neuen Stücken"
+  },
+  "footer": {
+    "libraryH": "Bibliothek",
+    "levelsH": "Stufen",
+    "composersH": "Komponisten",
+    "collectionsH": "Sammlungen",
+    "overview": "Alle Stücke",
+    "feed": "Neue Stücke (Atom-Feed)",
+    "home": "Pianist-Startseite",
+    "note": "Pianist ist kostenlos, quelloffen und läuft im Browser. MIDI-Dateien stehen mit ihrer Lizenz in der Bibliothek."
+  },
+  "feed": {
+    "title": "Pianist – neu in der Bibliothek",
+    "subtitle": "Neue Stücke zum Lernen mit dem MIDI-Keyboard"
+  }
+}

@@ -7,7 +7,6 @@ import type { Locale } from '../../src/i18n/locale';
 import { landingCopy } from '../../src/i18n/landing';
 import {
   alternates,
-  BUILT_ROUTES,
   DEFAULT_LOCALE,
   LOCALE_INFO,
   localizedPath,
@@ -15,7 +14,7 @@ import {
   type RouteName,
 } from '../../src/i18n/routes';
 import { renderBody } from '../../landing/src/entry-server';
-import type { PageRenderer, SiteEnv } from './types';
+import type { LatestPiece, PageRenderer, SiteEnv } from './types';
 
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -23,7 +22,7 @@ const esc = (s: string) =>
 /** JSON sicher in <script> einbetten */
 const jsonScript = (data: unknown) => JSON.stringify(data, null, 2).replace(/</g, '\\u003c');
 
-function pageHead(route: RouteName, locale: Locale, env: SiteEnv): string {
+function pageHead(route: RouteName, locale: Locale, env: SiteEnv, latest: LatestPiece[]): string {
   const c = landingCopy(locale);
   const abs = (path: string) => env.siteUrl + path;
   const url = abs(localizedPath(route, locale));
@@ -72,8 +71,12 @@ function pageHead(route: RouteName, locale: Locale, env: SiteEnv): string {
     `<meta name="twitter:image" content="${esc(image)}" />`,
     `<meta name="twitter:image:alt" content="${esc(c.meta.ogImageAlt)}" />`,
     '',
+    `<link rel="alternate" type="application/atom+xml" title="${esc(c.libraryNew.title)}" href="${localizedPath('libraryFeed', locale)}" />`,
+    '',
     '<!-- Strukturierte Daten -->',
     `<script type="application/ld+json">\n${jsonScript(jsonLd)}\n</script>`,
+    // Daten für „Neu in der Bibliothek“: dieselben wie im vorgerenderten HTML, damit die Hydrierung passt
+    `<script type="application/json" id="library-latest">${jsonScript(latest).replace(/\s*\n\s*/g, '')}</script>`,
   ].join('\n    ');
 }
 
@@ -81,14 +84,20 @@ const HEAD = '<!--page-head-->';
 const BODY = '<!--page-body-->';
 
 /** Eine Sprachfassung einer Seite: Template (von Vite verarbeitet) + Head + vorgerenderter Inhalt */
-function renderPage(template: string, route: RouteName, locale: Locale, env: SiteEnv): string {
+function renderPage(
+  template: string,
+  route: RouteName,
+  locale: Locale,
+  env: SiteEnv,
+  latest: LatestPiece[],
+): string {
   for (const marker of [HEAD, BODY, '{{lang}}'])
     if (!template.includes(marker)) throw new Error(`Template ohne ${marker} – zuerst vite build ausführen`);
   if (route !== 'home') throw new Error(`Für die Route „${route}“ gibt es noch kein Template`);
   return template
     .replace('{{lang}}', locale)
-    .replace(HEAD, pageHead(route, locale, env))
-    .replace(BODY, renderBody(locale));
+    .replace(HEAD, pageHead(route, locale, env, latest))
+    .replace(BODY, renderBody(locale, latest));
 }
 
 /** Gemeinsame 404-Seite für alle Sprachen: jede Sprache als eigener Abschnitt mit lang-Attribut */
@@ -131,32 +140,5 @@ ${all
 `;
 }
 
-/** sitemap.xml: jede Sprachfassung als eigene URL, jeweils mit allen Alternativen (hreflang) */
-function renderSitemap(env: SiteEnv, today = new Date().toISOString().slice(0, 10)): string {
-  const abs = (path: string) => esc(env.siteUrl + path);
-  const urls = BUILT_ROUTES.flatMap((route) =>
-    PAGE_LOCALES.map((locale) => {
-      const links = alternates(route)
-        .map((a) => `    <xhtml:link rel="alternate" hreflang="${a.hreflang}" href="${abs(a.path)}" />`)
-        .join('\n');
-      return `  <url>\n    <loc>${abs(localizedPath(route, locale))}</loc>\n    <lastmod>${today}</lastmod>\n${links}\n  </url>`;
-    }),
-  );
-  // Die App selbst ist sprachneutral (eine URL, canonical /app/) und hat daher keine Alternativen
-  urls.push(`  <url>\n    <loc>${abs('/app/')}</loc>\n    <lastmod>${today}</lastmod>\n  </url>`);
-  return (
-    '<?xml version="1.0" encoding="UTF-8"?>\n' +
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n' +
-    urls.join('\n') +
-    '\n</urlset>\n'
-  );
-}
-
-function renderRobots(env: SiteEnv): string {
-  const lines = ['User-agent: *', 'Allow: /'];
-  if (env.siteUrl) lines.push('', `Sitemap: ${env.siteUrl}/sitemap.xml`);
-  return lines.join('\n') + '\n';
-}
-
-const renderer: PageRenderer = { renderPage, render404, renderSitemap, renderRobots };
+const renderer: PageRenderer = { renderPage, render404 };
 export default renderer;
