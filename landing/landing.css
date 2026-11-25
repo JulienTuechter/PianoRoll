@@ -261,17 +261,17 @@ h3 {
   border-radius: 999px;
   padding: 3px;
 }
-.lang button {
+.lang a {
   padding: 4px 10px;
-  border: 0;
   border-radius: 999px;
-  background: none;
   color: var(--muted);
   font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
+  text-decoration: none;
 }
-.lang button[aria-pressed='true'] {
+.lang a:hover,
+.lang a:focus-visible {
   background: var(--paper-3);
   color: var(--ink);
 }
@@ -346,8 +346,12 @@ h3 {
   color: var(--ink-2);
   text-decoration: none;
 }
-.footer-gh:hover {
+.footer-gh:hover,
+.footer-lang a:hover {
   color: var(--accent-hot);
+}
+.footer-lang a {
+  color: var(--ink-2);
 }
 .rig-link {
   display: inline-flex;
@@ -556,6 +560,13 @@ h3 {
   line-height: 0.9;
   letter-spacing: -0.035em;
   font-variation-settings: 'opsz' 144;
+}
+/* Keyword-Zeile der H1, sieht aus wie die bisherige Eyebrow */
+.hero-title .eyebrow {
+  display: block;
+  font-family: var(--font-body);
+  line-height: 1.4;
+  font-variation-settings: normal;
 }
 .hero-title .line {
   display: block;

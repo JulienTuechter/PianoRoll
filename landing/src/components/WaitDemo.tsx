@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { useCopy, useLang } from '../i18n';
+import { fmt, useCopy, useLang } from '../i18n';
 import { useCanvasLoop, useVisible, prefersReducedMotion } from '../hooks';
 import { useKeyboardInput } from '../input';
 import { sound, wakeSound } from '../audio';
@@ -318,7 +318,7 @@ export function WaitDemo() {
           <canvas ref={notesRef} className="notes-canvas" aria-hidden="true" />
           {ui.done && (
             <div className="done">
-              <p>{ui.mode === 'wait' ? c.wait.done(acc) : '♪'}</p>
+              <p>{ui.mode === 'wait' ? fmt(c.wait.done, { acc }) : '♪'}</p>
               <button type="button" className="cta small" onClick={() => restart(ui.mode)}>
                 {c.wait.restart}
               </button>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useCopy } from '../i18n';
+import { fmt, useCopy } from '../i18n';
 import { useCanvasLoop, useNear, prefersReducedMotion } from '../hooks';
 import { sound, wakeSound } from '../audio';
 import { demoSong, handColor, keyboardFrame, strikeLine } from '../stage';
@@ -221,7 +221,7 @@ export function NotationDemo() {
             <span aria-hidden="true">{playing ? '❚❚' : '▶'}</span>
             {playing ? c.notation.pause : c.notation.play}
           </button>
-          <span className={`pill ${playing ? 'on' : ''}`}>{c.notation.bar(bar, bars)}</span>
+          <span className={`pill ${playing ? 'on' : ''}`}>{fmt(c.notation.bar, { n: bar, of: bars })}</span>
         </div>
         <canvas ref={stripRef} className="notation-strip" aria-hidden="true" />
         <div className="paper" ref={paperRef}>

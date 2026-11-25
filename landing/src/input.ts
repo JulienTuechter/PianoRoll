@@ -1,4 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, type RefObject } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
+import { useIsoLayoutEffect } from './hooks';
 import { keyCodeToMidi } from '../../src/core/input/keyboard-map';
 
 /**
@@ -69,7 +70,7 @@ function install(): void {
 /** Meldet eine Demo als Empfänger der Computertastatur an, solange sie sichtbar ist. */
 export function useKeyboardInput(ref: RefObject<HTMLElement | null>, handler: KeyHandler): void {
   const latest = useRef(handler);
-  useLayoutEffect(() => {
+  useIsoLayoutEffect(() => {
     latest.current = handler;
   });
   useEffect(() => {

@@ -8,7 +8,9 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && tsx scripts/build-pages.ts",
+    "build:pages": "tsx scripts/build-pages.ts",
+    "check:i18n": "tsx scripts/check-i18n.ts",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -46,6 +48,7 @@
     "fake-indexeddb": "^6.2.8",
     "globals": "^17.14.0",
     "prettier": "^3.10.1",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.72.2",
     "vite": "^8.3.8",

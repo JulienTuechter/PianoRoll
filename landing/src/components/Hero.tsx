@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { useCopy } from '../i18n';
+import { useCopy, useLang } from '../i18n';
+import { appPath } from '../../../src/i18n/routes';
 import { prefersReducedMotion, useCanvasLoop } from '../hooks';
 import { glowCapsule } from '../stage';
 import { handColors } from '../../../src/ui/theme';
@@ -58,6 +59,7 @@ function makeRain(w: number, h: number): Rain[] {
 
 export function Hero() {
   const c = useCopy();
+  const lang = useLang();
   const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouse = useRef({ x: 0, y: 0, tx: 0, ty: 0 });
@@ -230,10 +232,10 @@ export function Hero() {
     <header className="hero" ref={sectionRef}>
       <canvas ref={canvasRef} className="hero-canvas" aria-hidden="true" />
       <div className="hero-inner">
-        <p className="eyebrow reveal-up" style={{ animationDelay: '120ms' }}>
-          {c.hero.eyebrow}
-        </p>
         <h1 className="hero-title">
+          <span className="eyebrow reveal-up" style={{ animationDelay: '120ms' }}>
+            {c.hero.kicker}
+          </span>
           <span className="line reveal-up" style={{ animationDelay: '220ms' }}>
             {c.hero.title1}
           </span>
@@ -245,7 +247,7 @@ export function Hero() {
           {c.hero.lead}
         </p>
         <div className="hero-actions reveal-up" style={{ animationDelay: '700ms' }}>
-          <a className="cta" href="/app/">
+          <a className="cta" href={appPath(lang)}>
             {c.hero.cta}
             <span aria-hidden="true">→</span>
           </a>

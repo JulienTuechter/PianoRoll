@@ -1,5 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type RefObject } from 'react';
 
+/** useLayoutEffect im Browser, useEffect beim Vorrendern (dort laufen ohnehin keine Effekte, aber ohne Warnung) */
+export const useIsoLayoutEffect = typeof document === 'undefined' ? useEffect : useLayoutEffect;
+
 const RM = '(prefers-reduced-motion: reduce)';
 
 export function useReducedMotion(): boolean {
@@ -63,7 +66,7 @@ export function useCanvasLoop(
   draw: (ctx: CanvasRenderingContext2D, size: CanvasSize, dt: number, now: number) => void,
 ): void {
   const latest = useRef(draw);
-  useLayoutEffect(() => {
+  useIsoLayoutEffect(() => {
     latest.current = draw;
   });
   useEffect(() => {

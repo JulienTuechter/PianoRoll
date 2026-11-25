@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useCopy, useLang } from '../i18n';
 import { useKeyboardInput } from '../input';
+import { useIsoLayoutEffect } from '../hooks';
 import { sound, wakeSound } from '../audio';
 import { keyboardFrame } from '../stage';
 import { Keys } from './Keys';
@@ -134,7 +135,7 @@ export function HarmonyDemo() {
   const heldRef = useRef(held);
   const ghostRef = useRef(ghost);
   const scaleRef = useRef(scale);
-  useLayoutEffect(() => {
+  useIsoLayoutEffect(() => {
     heldRef.current = held;
     ghostRef.current = ghost;
     scaleRef.current = scale;

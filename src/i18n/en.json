@@ -1,0 +1,157 @@
+{
+  "langName": "English",
+  "meta": {
+    "title": "Pianist – Learn Piano with Your MIDI Keyboard | Free & Open Source",
+    "description": "Learn piano with your MIDI keyboard: falling notes, sheet music and chord hints. Pianist waits until you hit the right key. Free, open source, in your browser.",
+    "ogImageAlt": "Pianist: glowing falling notes land on a piano keyboard, sparks fly on a correct note.",
+    "keywords": "learn piano, MIDI keyboard, piano app, falling notes, sheet music, chords, open source"
+  },
+  "nav": {
+    "open": "Open the app",
+    "soundOn": "Sound on",
+    "soundOff": "Sound off",
+    "loading": "Loading sound…",
+    "langLabel": "Language"
+  },
+  "hero": {
+    "kicker": "Learn piano with your MIDI keyboard · free & open source",
+    "title1": "The stage",
+    "title2": "is yours.",
+    "lead": "Pianist turns your MIDI keyboard into a lit stage. Notes fall, time waits until you hit the right key, and every hit throws sparks.",
+    "cta": "Open the app",
+    "try": "Play right here",
+    "scroll": "Scroll down to the keys"
+  },
+  "descent": {
+    "label": "From the stage to the keys",
+    "steps": [
+      { "k": "Lights", "t": "Every piece becomes a stage. Load any MIDI file or start with the demo." },
+      {
+        "k": "Lanes",
+        "t": "Notes fall in glowing lanes, one per key. Blue is the right hand, orange the left."
+      },
+      {
+        "k": "Landing",
+        "t": "They land exactly on the key you play. Beginner beams show where the next note lands."
+      },
+      { "k": "Sparks", "t": "Every note you hit throws sparks. The harder you play, the brighter they get." }
+    ],
+    "hint": "Scroll to play the demo"
+  },
+  "wait": {
+    "kicker": "Wait mode",
+    "title": "Time waits for you.",
+    "lead": "The music stops on every note until you play it. The left hand plays along for you. Try it: click the glowing key or use your computer keyboard.",
+    "watch": "Watch",
+    "play": "Play",
+    "restart": "Again",
+    "hits": "Hits",
+    "errors": "Wrong keys",
+    "done": "Done. {acc} % accuracy.",
+    "waiting": "Waiting for you",
+    "keysHint": "Letters on the keys = your computer keyboard"
+  },
+  "perf": {
+    "kicker": "Performance mode",
+    "title": "Or keep time, for real.",
+    "lead": "In real time, every hit counts to the millisecond: Perfect within ±50 ms, Good within ±120 ms. Press Space, any key, or tap the lane when the note lands.",
+    "start": "Start",
+    "again": "Again",
+    "perfect": "Perfect",
+    "good": "Good",
+    "miss": "Miss",
+    "early": "early",
+    "late": "late",
+    "spread": "Your timing spread",
+    "tap": "Tap"
+  },
+  "harmony": {
+    "kicker": "Harmony Assist",
+    "title": "Which chord comes next?",
+    "lead": "Play a chord. Pianist names it, finds the key, and suggests what fits next, with Roman numerals and ghost notes on the keys.",
+    "playing": "You play",
+    "none": "Click three or more keys",
+    "key": "Key",
+    "next": "Fits next",
+    "trail": "Your progression",
+    "clear": "Clear",
+    "latch": "Keys stay down when clicked. Click again to release.",
+    "fn": { "tonic": "tonic", "subdominant": "subdominant", "dominant": "dominant" }
+  },
+  "notation": {
+    "kicker": "Notation",
+    "title": "Falling notes or sheet music. Or both.",
+    "lead": "The same piece as real notation, with a cursor that runs along and lights up every sounding note.",
+    "play": "Play",
+    "pause": "Pause",
+    "loading": "Setting the score…",
+    "bar": "Bar {n} of {of}"
+  },
+  "quant": {
+    "kicker": "Record & quantize",
+    "title": "Play it loose. Get it clean.",
+    "lead": "Record what you play. The quantizer snaps it to the grid you choose, with triplets, swing and hands kept apart. Then export it.",
+    "loose": "As played",
+    "clean": "Quantized",
+    "shuffle": "Play it again, looser",
+    "grid": "Grid",
+    "listen": "Listen",
+    "midi": "Download MIDI",
+    "formats": "Exports MIDI, MusicXML, SVG and PNG"
+  },
+  "rig": {
+    "kicker": "Backstage",
+    "title": "Everything else you need to practice.",
+    "items": [
+      {
+        "t": "Plug and play",
+        "d": "Web MIDI with hot-plug, velocity and sustain pedal. No driver, no install."
+      },
+      {
+        "t": "No piano? No problem",
+        "d": "Play with your computer keys or the mouse. The app works the same."
+      },
+      { "t": "Practice tools", "d": "Tempo 25–150 %, loop any bars, metronome, count-in and auto-tempo." },
+      {
+        "t": "Your library",
+        "d": "Pieces and recordings stay in your browser, with progress and best accuracy."
+      },
+      {
+        "t": "Made for every eye",
+        "d": "Color-blind-safe colors, symbols on every judgement, reduced motion respected."
+      },
+      {
+        "t": "Completely open source",
+        "d": "Every line of code is public on GitHub. Read it, fork it, make it better."
+      }
+    ]
+  },
+  "finale": {
+    "title": "Now it’s your turn.",
+    "lead": "All 88 keys. Play them here, or bring your own piano.",
+    "cta": "Open the app",
+    "note": "Free, no sign-up. Runs in Chrome, Edge, Firefox and Brave."
+  },
+  "rail": [
+    "Stage",
+    "From stage to keys",
+    "Wait mode",
+    "Performance mode",
+    "Harmony Assist",
+    "Notation",
+    "Record & quantize",
+    "Backstage",
+    "Your turn"
+  ],
+  "github": "View source on GitHub",
+  "railLabel": "Sections",
+  "footer": {
+    "samples": "Piano samples: Salamander Grand Piano V3 by Alexander Holm, CC-BY 3.0",
+    "local": "Runs entirely in your browser. Nothing is uploaded."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "text": "This page doesn’t exist (anymore).",
+    "home": "Back to the English start page"
+  }
+}

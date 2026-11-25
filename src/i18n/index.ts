@@ -8,15 +8,21 @@
 import { de, type Messages } from './locales/de';
 import { en } from './locales/en';
 
-export type { Messages };
-export type Locale = 'de' | 'en';
+import type { Locale } from './locale';
+
+export type { Messages, Locale };
 export type LocalePref = Locale | 'auto';
 
 export const LOCALES: readonly Locale[] = ['de', 'en'];
 const catalogs: Record<Locale, Messages> = { de, en };
 
-/** Browsersprache: Deutsch für jede „de-*“-Variante, sonst Englisch. */
+/**
+ * Automatische Sprache: zuerst ?lang= aus der Adresse (Links der Landingpage: /de/ → /app/?lang=de),
+ * dann die Browsersprache (Deutsch für jede „de-*“-Variante), sonst Englisch.
+ */
 export function detectLocale(): Locale {
+  const fromUrl = typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('lang');
+  if (fromUrl === 'de' || fromUrl === 'en') return fromUrl;
   const langs =
     typeof navigator === 'undefined'
       ? []

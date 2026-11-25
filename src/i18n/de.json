@@ -1,0 +1,195 @@
+{
+  "// REVIEW": "Alle deutschen Texte sind neu formuliert (nicht Wort für Wort übersetzt) – bitte gegenlesen. Schlüssel, die mit // beginnen, sind Kommentare und werden beim Build ignoriert.",
+  "langName": "Deutsch",
+  "meta": {
+    "// REVIEW": "Title 51–70 Zeichen, Description 120–160 Zeichen (npm run check:i18n)",
+    "title": "Pianist – Klavier lernen mit dem MIDI-Keyboard | Gratis & Open Source",
+    "description": "Klavier lernen mit dem MIDI-Keyboard: fallende Noten, Notenblatt und Akkord-Tipps. Pianist wartet, bis du die richtige Taste triffst. Gratis und Open Source.",
+    "ogImageAlt": "Pianist: Leuchtende Noten fallen auf eine Klaviatur, bei jedem Treffer sprühen Funken.",
+    "keywords": "Klavier lernen, MIDI-Keyboard, Klavier-App, fallende Noten, Noten lesen, Akkorde, Open Source"
+  },
+  "nav": {
+    "// REVIEW": "gegenlesen",
+    "open": "App öffnen",
+    "soundOn": "Ton an",
+    "soundOff": "Ton aus",
+    "loading": "Klang wird geladen…",
+    "langLabel": "Sprache"
+  },
+  "hero": {
+    "// REVIEW": "kicker ist Teil der H1 (Keyword „Klavier lernen“)",
+    "kicker": "Klavier lernen mit dem MIDI-Keyboard · gratis & Open Source",
+    "title1": "Die Bühne",
+    "title2": "gehört dir.",
+    "lead": "Pianist macht dein MIDI-Keyboard zur Bühne im Scheinwerferlicht. Die Noten fallen, die Musik wartet, bis du die richtige Taste triffst – und jeder Treffer sprüht Funken.",
+    "cta": "App öffnen",
+    "try": "Gleich hier ausprobieren",
+    "scroll": "Runter zu den Tasten"
+  },
+  "descent": {
+    "// REVIEW": "gegenlesen",
+    "label": "Von der Bühne bis auf die Tasten",
+    "steps": [
+      {
+        "// REVIEW": "gegenlesen",
+        "k": "Licht an",
+        "t": "Jedes Stück bekommt seine Bühne. Lade eine beliebige MIDI-Datei oder fang mit der Demo an."
+      },
+      {
+        "// REVIEW": "gegenlesen",
+        "k": "Bahnen",
+        "t": "Die Noten fallen in leuchtenden Bahnen herab, eine pro Taste. Blau ist die rechte Hand, Orange die linke."
+      },
+      {
+        "// REVIEW": "gegenlesen",
+        "k": "Landung",
+        "t": "Sie landen genau auf der Taste, die du anschlägst. Lichtstrahlen zeigen dir, wo die nächste Note ankommt."
+      },
+      {
+        "// REVIEW": "gegenlesen",
+        "k": "Funken",
+        "t": "Jeder Treffer sprüht Funken. Je kräftiger du spielst, desto heller."
+      }
+    ],
+    "hint": "Scroll weiter, dann läuft die Demo"
+  },
+  "wait": {
+    "// REVIEW": "„Warte-Modus“ wie in der App",
+    "kicker": "Warte-Modus",
+    "title": "Die Musik wartet auf dich.",
+    "lead": "Bei jeder Note hält die Musik an, bis du sie spielst. Die linke Hand übernimmt Pianist für dich. Probier’s aus: Klick auf die leuchtende Taste oder spiel auf der Computertastatur.",
+    "watch": "Anschauen",
+    "play": "Selbst spielen",
+    "restart": "Nochmal",
+    "hits": "Treffer",
+    "errors": "Daneben",
+    "done": "Geschafft! {acc} % getroffen.",
+    "waiting": "Wartet auf dich",
+    "keysHint": "Die Buchstaben auf den Tasten = deine Computertastatur"
+  },
+  "perf": {
+    "// REVIEW": "Perfect/Good/Miss bleiben englisch wie in der App",
+    "kicker": "Performance-Modus",
+    "title": "Oder spiel im Takt – ohne Netz.",
+    "lead": "In Echtzeit zählt jede Millisekunde: Perfect bis ±50 ms, Good bis ±120 ms. Drück die Leertaste, irgendeine Taste oder tipp auf die Bahn, sobald die Note landet.",
+    "start": "Los",
+    "again": "Nochmal",
+    "perfect": "Perfect",
+    "good": "Good",
+    "miss": "Miss",
+    "early": "zu früh",
+    "late": "zu spät",
+    "spread": "So streut dein Timing",
+    "tap": "Tippen"
+  },
+  "harmony": {
+    "// REVIEW": "gegenlesen",
+    "kicker": "Harmony Assist",
+    "title": "Welcher Akkord kommt als Nächstes?",
+    "lead": "Spiel einen Akkord. Pianist erkennt ihn und die Tonart und schlägt vor, welche Akkorde jetzt passen – mit Stufen und Geisternoten auf den Tasten.",
+    "playing": "Du spielst",
+    "none": "Klick drei oder mehr Tasten an",
+    "key": "Tonart",
+    "next": "Passt als Nächstes",
+    "trail": "Deine Akkordfolge",
+    "clear": "Zurücksetzen",
+    "latch": "Angeklickte Tasten bleiben gedrückt. Ein zweiter Klick lässt sie los.",
+    "fn": {
+      "// REVIEW": "gegenlesen",
+      "tonic": "Tonika",
+      "subdominant": "Subdominante",
+      "dominant": "Dominante"
+    }
+  },
+  "notation": {
+    "// REVIEW": "gegenlesen",
+    "kicker": "Noten",
+    "title": "Fallende Noten oder Notenblatt. Oder beides.",
+    "lead": "Dasselbe Stück in echter Notenschrift. Ein Cursor läuft mit und lässt jede klingende Note aufleuchten.",
+    "play": "Abspielen",
+    "pause": "Pause",
+    "loading": "Noten werden gesetzt…",
+    "bar": "Takt {n} von {of}"
+  },
+  "quant": {
+    "// REVIEW": "gegenlesen",
+    "kicker": "Aufnehmen & quantisieren",
+    "title": "Locker spielen. Sauber notiert.",
+    "lead": "Nimm auf, was du spielst. Der Quantisierer rückt es aufs Raster deiner Wahl – mit Triolen, Swing und getrennten Händen. Danach exportierst du das Ergebnis.",
+    "loose": "Wie gespielt",
+    "clean": "Quantisiert",
+    "shuffle": "Nochmal, etwas lockerer",
+    "grid": "Raster",
+    "listen": "Anhören",
+    "midi": "MIDI herunterladen",
+    "formats": "Export als MIDI, MusicXML, SVG und PNG"
+  },
+  "rig": {
+    "// REVIEW": "gegenlesen",
+    "kicker": "Hinter der Bühne",
+    "title": "Alles, was du sonst noch zum Üben brauchst.",
+    "items": [
+      {
+        "// REVIEW": "gegenlesen",
+        "t": "Einstecken und loslegen",
+        "d": "Web MIDI mit Hot-Plug, Anschlagdynamik und Haltepedal. Kein Treiber, keine Installation."
+      },
+      {
+        "// REVIEW": "gegenlesen",
+        "t": "Kein Keyboard? Kein Problem",
+        "d": "Spiel mit der Computertastatur oder der Maus. Die App funktioniert genauso."
+      },
+      {
+        "// REVIEW": "gegenlesen",
+        "t": "Werkzeuge zum Üben",
+        "d": "Tempo 25–150 %, beliebige Takte in Schleife, Metronom, Einzähler und Auto-Tempo."
+      },
+      {
+        "// REVIEW": "gegenlesen",
+        "t": "Deine Bibliothek",
+        "d": "Stücke und Aufnahmen bleiben in deinem Browser – samt Fortschritt und Bestwert."
+      },
+      {
+        "// REVIEW": "gegenlesen",
+        "t": "Gut für alle Augen",
+        "d": "Farben, die auch bei Farbenblindheit funktionieren, Symbole bei jeder Bewertung, reduzierte Bewegung wird beachtet."
+      },
+      {
+        "// REVIEW": "gegenlesen",
+        "t": "Komplett Open Source",
+        "d": "Jede Zeile Code liegt offen auf GitHub. Reinschauen, forken, besser machen."
+      }
+    ]
+  },
+  "finale": {
+    "// REVIEW": "gegenlesen",
+    "title": "Jetzt bist du dran.",
+    "lead": "Alle 88 Tasten. Spiel sie gleich hier oder schließ dein eigenes Keyboard an.",
+    "cta": "App öffnen",
+    "note": "Gratis, ohne Anmeldung. Läuft in Chrome, Edge, Firefox und Brave."
+  },
+  "rail": [
+    "Bühne",
+    "Von der Bühne auf die Tasten",
+    "Warte-Modus",
+    "Performance-Modus",
+    "Harmony Assist",
+    "Noten",
+    "Aufnehmen & quantisieren",
+    "Hinter der Bühne",
+    "Du bist dran"
+  ],
+  "github": "Quellcode auf GitHub",
+  "railLabel": "Abschnitte",
+  "footer": {
+    "// REVIEW": "gegenlesen",
+    "samples": "Klavier-Samples: Salamander Grand Piano V3 von Alexander Holm, CC-BY 3.0",
+    "local": "Läuft komplett in deinem Browser. Nichts wird hochgeladen."
+  },
+  "notFound": {
+    "// REVIEW": "gegenlesen",
+    "title": "Seite nicht gefunden",
+    "text": "Diese Seite gibt es nicht (mehr).",
+    "home": "Zur deutschen Startseite"
+  }
+}

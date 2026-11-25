@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useCopy, useLang } from '../i18n';
+import { appPath } from '../../../src/i18n/routes';
 import { useCanvasLoop, prefersReducedMotion } from '../hooks';
 import { useKeyboardInput } from '../input';
 import { sound, wakeSound } from '../audio';
@@ -130,7 +131,7 @@ export function Finale() {
       <div className="finale-copy">
         <h2>{c.finale.title}</h2>
         <p className="lead">{c.finale.lead}</p>
-        <a className="cta big" href="/app/">
+        <a className="cta big" href={appPath(lang)}>
           {c.finale.cta}
           <span aria-hidden="true">→</span>
         </a>

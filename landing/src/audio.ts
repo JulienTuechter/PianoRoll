@@ -85,5 +85,6 @@ export function useSoundState(): State {
       return () => listeners.delete(fn);
     },
     () => state,
+    () => 'off',
   );
 }
