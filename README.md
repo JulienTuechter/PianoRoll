@@ -19,7 +19,7 @@ Built with React and TypeScript.
 - **Export** to MIDI, MusicXML, SVG or PNG, for recordings and for loaded songs.
 - **Library** stored in IndexedDB that tracks your progress (last practiced, best accuracy). Recordings are saved there too.
 - **Progress history** per piece: best accuracy per practice day, every run with mode, hands and tempo, and a bar-by-bar comparison of your last runs with the ones before.
-- **Piece catalogue** with public-domain pieces (folk songs, Beethoven, Petzold, Bach). Extend it by dropping MIDI files into `catalog/` (see [catalog/README.md](catalog/README.md)).
+- **Piece catalogue** with public-domain pieces (folk songs, Beethoven, Petzold, Bach). Same source as the online library pages: `public/library/` (see [docs/ADDING_PIECES.md](docs/ADDING_PIECES.md)).
 - **Backup:** export library, recordings, history and settings to one JSON file and restore it on any device. Restoring merges instead of overwriting.
 - **Languages:** English and German. "Automatic" follows the browser language.
 
@@ -99,7 +99,8 @@ src/core/         Pure logic, no UI, fully tested
 src/ui/           React components, Zustand stores, Canvas/WebGL and VexFlow rendering
 src/i18n/locales/ Translations
 public/           Icons, preview image, piano samples
-catalog/          Bundled MIDI pieces, picked up automatically (Category/Composer - Title.mid)
+library/          slugs.json (stable URLs) and redirects.json for the library pages
+public/library/   catalog.json + midi/: pieces for the app catalogue and the library pages
 ```
 
 `src/core` covers MIDI input, file loading, the note model, transport, the wait and performance engines, scoring, chord and key detection, harmony suggestions, the notation builder, recorder, quantizer, MIDI/MusicXML export and audio. It must not import React, and ESLint enforces this.

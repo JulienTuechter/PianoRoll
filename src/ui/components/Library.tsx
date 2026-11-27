@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { catalogDisplayTitle, type CatalogItem } from '../../core/catalog/catalog';
 import { sortEntries } from '../../core/library/library';
 import type { LibraryEntry } from '../../core/library/types';
-import { catalog } from '../catalog';
+import { useCatalog } from '../catalog';
+import { getLocale } from '../../i18n';
+import libraryConfig from '../../../library.config';
 import { pickMidiFile } from '../file-picker';
 import { formatTime } from '../format';
 import {
@@ -181,20 +183,26 @@ function Row({ entry, current }: { entry: LibraryEntry; current: boolean }) {
 function CatalogList() {
   const t = useT();
   const library = useApp((s) => s.library);
+  const catalog = useCatalog();
   const owned = new Set(library.filter((e) => e.source === 'catalog').map((e) => e.fileName));
   const open = (item: CatalogItem) => void loadCatalogItem(item);
+  const levelName = (level: number | null) =>
+    level === null
+      ? t.library.catalogUncategorized
+      : (libraryConfig.levels[level]?.[getLocale()] ?? t.library.catalogLevel(level));
 
+  if (catalog === null) return <p className="muted">{t.library.catalogLoading}</p>;
   if (catalog.length === 0) return <p className="muted">{t.library.catalogEmpty}</p>;
   return (
     <div className="catalog">
       <p className="muted small catalog-intro">{t.library.catalogIntro}</p>
       <div className="catalog-cols">
         {catalog.map((g) => (
-          <section key={g.category} className="catalog-group">
-            <h3>{g.category || t.library.catalogUncategorized}</h3>
+          <section key={g.level ?? 'none'} className="catalog-group">
+            <h3>{levelName(g.level)}</h3>
             <ul>
               {g.items.map((item) => (
-                <li key={item.path}>
+                <li key={item.file}>
                   <button
                     type="button"
                     className="catalog-item"
@@ -203,8 +211,8 @@ function CatalogList() {
                   >
                     <span className="catalog-title">{item.title}</span>
                     <span className="catalog-meta">
-                      {item.composer && <span className="catalog-composer">{item.composer}</span>}
-                      {owned.has(item.path) && <span className="tag">{t.library.inLibrary}</span>}
+                      <span className="catalog-composer">{item.composer}</span>
+                      {owned.has(item.file) && <span className="tag">{t.library.inLibrary}</span>}
                     </span>
                   </button>
                 </li>
@@ -226,9 +234,7 @@ export function LibraryList() {
   const currentId = useApp((s) => s.song?.id ?? null);
   const [sort, setSort] = useState<SortKey>('recent');
   // Ohne eigene Stücke direkt den Katalog zeigen
-  const [tab, setTab] = useState<Tab>(() =>
-    library.length === 0 && catalog.length > 0 ? 'catalog' : 'library',
-  );
+  const [tab, setTab] = useState<Tab>(() => (library.length === 0 ? 'catalog' : 'library'));
   const entries = sortEntries(library, sort);
 
   return (

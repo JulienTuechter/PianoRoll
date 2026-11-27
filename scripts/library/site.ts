@@ -61,14 +61,16 @@ export interface Group {
   pieces: Piece[];
 }
 
+export type ComposerGroup = Group & { short: string; names: Piece['composers'] };
+
 export interface Groups {
-  composers: Map<string, Group & { short: string }>;
+  composers: Map<string, ComposerGroup>;
   collections: Map<string, Group>;
   levels: Map<number, Piece[]>;
 }
 
 export function groupPieces(pieces: readonly Piece[]): Groups {
-  const composers = new Map<string, Group & { short: string }>();
+  const composers = new Map<string, ComposerGroup>();
   const collections = new Map<string, Group>();
   const levels = new Map<number, Piece[]>();
   for (const p of pieces) {
@@ -76,6 +78,7 @@ export function groupPieces(pieces: readonly Piece[]): Groups {
       slug: p.composerSlug,
       name: p.composer,
       short: p.composerShort,
+      names: p.composers,
       pieces: [],
     };
     c.pieces.push(p);
@@ -179,7 +182,7 @@ function pieceList(
   return `<ul class="pieces">${pieces
     .map(
       (p) =>
-        `<li><a href="${piecePath(p, l)}">${esc(p.titles[l])}</a>${opts.composer ? ` <span class="by">– ${esc(p.composer)}</span>` : ''}<span class="row">${esc(listRow(p, l, c, opts.level ?? true))}</span></li>`,
+        `<li><a href="${piecePath(p, l)}">${esc(p.titles[l])}</a>${opts.composer ? ` <span class="by">– ${esc(p.composers[l].name)}</span>` : ''}<span class="row">${esc(listRow(p, l, c, opts.level ?? true))}</span></li>`,
     )
     .join('')}</ul>`;
 }
@@ -198,8 +201,8 @@ function piecePage(p: Piece, l: Locale, all: readonly Piece[], g: Groups, conten
   const high = noteName(s.highest, s.key, l);
   const vars = {
     title,
-    composer: p.composer,
-    last: p.composerShort,
+    composer: p.composers[l].name,
+    last: p.composers[l].short,
     duration: clock(s.durationSec),
     tempo: s.tempoBpm,
     meter: s.timeSignature,
@@ -252,7 +255,7 @@ function piecePage(p: Piece, l: Locale, all: readonly Piece[], g: Groups, conten
   const rollAlt = fmt(c.piece.rollAlt, vars);
 
   const factRows: [string, string][] = [
-    [c.piece.facts.composer, `<a href="${composerHref(g, p, l)}">${esc(p.composer)}</a>`],
+    [c.piece.facts.composer, `<a href="${composerHref(g, p, l)}">${esc(p.composers[l].name)}</a>`],
     [c.piece.facts.duration, t(c.piece.durationValue)],
     [
       c.piece.facts.tempo,
@@ -352,7 +355,7 @@ function piecePage(p: Piece, l: Locale, all: readonly Piece[], g: Groups, conten
     '@type': 'MusicComposition',
     name: title,
     ...(aliases.length ? { alternateName: aliases } : {}),
-    composer: { '@type': 'Person', name: p.composer },
+    composer: { '@type': 'Person', name: p.composers[l].name },
     inLanguage: l,
     ...(s.key && s.key.source !== 'estimated' ? { musicalKey: schemaKey(s.key) } : {}),
     license: e.license_url ?? e.license,
@@ -365,7 +368,10 @@ function piecePage(p: Piece, l: Locale, all: readonly Piece[], g: Groups, conten
     kind: 'piece',
     locale: l,
     path: piecePath(p, l),
-    titleCandidates: c.piece.titles.map((x) => fmt(x, vars)),
+    // „Menuett (vereinfacht) (Petzold)“ vermeiden: endet der Titel auf eine Klammer, „– Petzold“ statt „(Petzold)“
+    titleCandidates: c.piece.titles.map((x) =>
+      fmt(title.endsWith(')') ? x.replace('({last})', '– {last}') : x, vars),
+    ),
     title: '',
     description,
     h1: fmt(c.piece.h1, vars),
@@ -471,12 +477,12 @@ function listPage(
   };
 }
 
-function composerPage(gr: Group & { short: string }, l: Locale, content: ContentLookup): SitePage {
+function composerPage(gr: ComposerGroup, l: Locale, content: ContentLookup): SitePage {
   const c = libraryCopy(l);
   const ps = gr.pieces;
   const durations = ps.map((p) => p.stats.durationSec);
   const vars = {
-    composer: gr.name,
+    composer: gr.names[l].name,
     count: ps.length,
     total: minutes(
       sum(ps, (p) => p.stats.durationSec),
@@ -488,7 +494,7 @@ function composerPage(gr: Group & { short: string }, l: Locale, content: Content
       sum(ps, (p) => p.stats.notes),
       l,
     ),
-    crumb: gr.name,
+    crumb: gr.names[l].name,
   };
   const intro = [fmt(c.composer.intro, vars)];
   const keys = keysOf(ps, l);
@@ -527,7 +533,7 @@ function collectionPage(gr: Group, l: Locale): SitePage {
     crumb: gr.name,
   };
   const intro = [fmt(c.collection.intro, vars)];
-  const composers = [...new Set(ps.map((p) => p.composer))];
+  const composers = [...new Set(ps.map((p) => p.composers[l].name))];
   intro.push(fmt(c.collection.composers, { composers: joinList(composers, andWord(l)) }));
   return listPage(
     'collection',
@@ -551,7 +557,7 @@ function levelPage(level: number, ps: Piece[], l: Locale): SitePage {
     count: ps.length,
     pieces: piecesWord(ps.length, l),
     composers: (() => {
-      const names = [...new Set(ps.map((p) => p.composerShort))].sort((a, b) => a.localeCompare(b, l));
+      const names = [...new Set(ps.map((p) => p.composers[l].short))].sort((a, b) => a.localeCompare(b, l));
       const shown = names.slice(0, 5);
       return names.length > 5
         ? `${shown.join(', ')} ${l === 'de' ? 'u. a.' : 'and others'}`
@@ -577,12 +583,14 @@ function overviewPage(pieces: readonly Piece[], g: Groups, l: Locale): SitePage 
   const c = libraryCopy(l);
   const o = c.overview;
   const composers = [...g.composers.values()].sort(
-    (a, b) => a.short.localeCompare(b.short, l) || a.name.localeCompare(b.name, l),
+    (a, b) =>
+      a.names[l].short.localeCompare(b.names[l].short, l) ||
+      a.names[l].name.localeCompare(b.names[l].name, l),
   );
   const top = [...g.composers.values()]
     .sort((a, b) => b.pieces.length - a.pieces.length)
     .slice(0, 3)
-    .map((x) => x.short);
+    .map((x) => x.names[l].short);
   const vars = {
     count: pieces.length,
     composerCount: g.composers.size,
@@ -633,13 +641,13 @@ function overviewPage(pieces: readonly Piece[], g: Groups, l: Locale): SitePage 
       `<section id="all"><h2>${esc(o.composersH2)}</h2>${composers
         .map((x) => {
           const head = hasComposerPage(g, x.slug)
-            ? `<h3 id="c-${x.slug}"><a href="${composerPath(x.slug, l)}">${esc(x.name)}</a></h3>`
-            : `<h3 id="c-${x.slug}">${esc(x.name)}</h3>`;
+            ? `<h3 id="c-${x.slug}"><a href="${composerPath(x.slug, l)}">${esc(x.names[l].name)}</a></h3>`
+            : `<h3 id="c-${x.slug}">${esc(x.names[l].name)}</h3>`;
           const items = [...x.pieces]
             .sort(byTitle(l))
             .map(
               (p) =>
-                `<li data-s="${esc([p.titles.en, p.titles.de, p.composer, ...p.aliases].join(' ').toLowerCase())}"><a href="${piecePath(p, l)}">${esc(p.titles[l])}</a><span class="row">${esc(listRow(p, l, c))}</span></li>`,
+                `<li data-s="${esc([p.titles.en, p.titles.de, p.composers.en.name, p.composers.de.name, ...p.aliases].join(' ').toLowerCase())}"><a href="${piecePath(p, l)}">${esc(p.titles[l])}</a><span class="row">${esc(listRow(p, l, c))}</span></li>`,
             )
             .join('');
           return `<div class="composer">${head}<ul class="pieces">${items}</ul></div>`;
@@ -796,7 +804,7 @@ export function footerHtml(g: Groups, l: Locale): string {
     ),
     col(
       f.composersH,
-      composers.map((x) => `<li><a href="${composerPath(x.slug, l)}">${esc(x.name)}</a></li>`),
+      composers.map((x) => `<li><a href="${composerPath(x.slug, l)}">${esc(x.names[l].name)}</a></li>`),
     ),
     col(
       f.collectionsH,

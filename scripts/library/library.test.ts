@@ -82,7 +82,7 @@ describe('Titel und Description', () => {
 
 describe('MIDI-Analyse und Bilder', () => {
   const bytes = new Uint8Array(
-    readFileSync(new URL('../../catalog/03 Mittel/Beethoven - Für Elise (Anfang).mid', import.meta.url)),
+    readFileSync(new URL('../../public/library/midi/beethoven-fuer-elise-anfang.mid', import.meta.url)),
   );
 
   it('Eckdaten aus der Datei', () => {

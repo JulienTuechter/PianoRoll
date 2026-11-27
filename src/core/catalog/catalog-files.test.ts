@@ -1,34 +1,25 @@
 /**
- * Prüft jede Datei im Ordner catalog/: lässt sie sich laden und hat sie Noten?
- * Schlägt fehl, wenn eine neu abgelegte Datei kaputt ist oder nicht der Namenskonvention folgt.
+ * Prüft jede Datei aus public/library/catalog.json: vorhanden, ladbar, mit Noten.
+ * (Vollständig prüft der Build: npm run library:check.)
  */
 /// <reference types="node" />
-import { readdirSync, readFileSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { loadMidiFile } from '../midi-file-loader/load';
-import { buildCatalog, parseCatalogPath } from './catalog';
+import { buildCatalog, type LibraryCatalogEntry } from './catalog';
 
-const ROOT = fileURLToPath(new URL('../../../catalog', import.meta.url));
+const LIBRARY = fileURLToPath(new URL('../../../public/library/', import.meta.url));
+const entries = JSON.parse(readFileSync(`${LIBRARY}catalog.json`, 'utf8')) as LibraryCatalogEntry[];
+const files = buildCatalog(entries, 'de').flatMap((g) => g.items.map((i) => i.file));
 
-function walk(dir: string): string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((d) =>
-    d.isDirectory() ? walk(join(dir, d.name)) : [join(dir, d.name)],
-  );
-}
-
-const files = walk(ROOT)
-  .map((f) => relative(ROOT, f).split('\\').join('/'))
-  .filter((f) => parseCatalogPath(f) !== null);
-
-describe('mitgelieferte Katalogstücke', () => {
+describe('Stücke der Online-Bibliothek', () => {
   it('es gibt Stücke', () => {
-    expect(buildCatalog(files).length).toBeGreaterThan(0);
+    expect(files.length).toBeGreaterThan(0);
   });
 
   it.each(files)('%s lässt sich laden', (f) => {
-    const song = loadMidiFile(readFileSync(join(ROOT, f)));
+    const song = loadMidiFile(readFileSync(`${LIBRARY}midi/${f}`));
     expect(song.notes.length).toBeGreaterThan(0);
     expect(song.durationSec).toBeGreaterThan(0);
   });

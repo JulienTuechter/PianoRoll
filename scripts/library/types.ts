@@ -14,6 +14,9 @@ export interface CatalogEntry {
   file: string;
   title: string;
   composer: string;
+  /** Komponist je Sprache, z. B. „Volkslied“ / „Traditional“ (sonst composer) */
+  composer_en?: string;
+  composer_de?: string;
   license: string;
   license_url?: string;
   credit?: string;
@@ -45,6 +48,8 @@ export const ENTRY_FIELDS: readonly (keyof CatalogEntry)[] = [
   'file',
   'title',
   'composer',
+  'composer_en',
+  'composer_de',
   'license',
   'license_url',
   'credit',
@@ -98,8 +103,11 @@ export interface Piece {
   entry: CatalogEntry;
   slug: string;
   titles: Record<Locale, string>;
+  /** Hauptname (Gruppierung, Slug) */
   composer: string;
   composerShort: string;
+  /** Anzeige je Sprache: voller Name und Kurzname (Titel) */
+  composers: Record<Locale, { name: string; short: string }>;
   composerSlug: string;
   collection: string | null;
   collectionSlug: string | null;

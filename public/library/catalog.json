@@ -56,5 +56,29 @@
     "collection": "Notenbüchlein für Anna Magdalena Bach",
     "level": 2,
     "license_class": "free"
+  },
+  {
+    "file": "volkslied-alle-meine-entchen.mid",
+    "title": "Alle meine Entchen",
+    "composer": "Volkslied",
+    "composer_en": "Traditional",
+    "aliases": ["All My Little Ducklings"],
+    "level": 1,
+    "added": "2026-11-27",
+    "license": "Public Domain",
+    "credit": "Werk gemeinfrei; MIDI-Bearbeitung: Pianist-Projekt",
+    "license_class": "free"
+  },
+  {
+    "file": "volkslied-ah-vous-dirai-je-maman.mid",
+    "title": "Ah, vous dirai-je, Maman",
+    "composer": "Volkslied",
+    "composer_en": "Traditional",
+    "aliases": ["Twinkle, Twinkle, Little Star", "Morgen kommt der Weihnachtsmann"],
+    "level": 1,
+    "added": "2026-11-27",
+    "license": "Public Domain",
+    "credit": "Werk gemeinfrei; MIDI-Bearbeitung: Pianist-Projekt",
+    "license_class": "free"
   }
 ]

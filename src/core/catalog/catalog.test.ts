@@ -1,29 +1,38 @@
 import { describe, expect, it } from 'vitest';
-import { buildCatalog, catalogDisplayTitle, parseCatalogPath } from './catalog';
+import { buildCatalog, catalogDisplayTitle, type LibraryCatalogEntry } from './catalog';
 
-describe('Stückkatalog', () => {
-  it('liest Kategorie, Komponist und Titel aus dem Pfad', () => {
-    expect(parseCatalogPath('01 Einstieg/Volkslied - Alle meine Entchen.mid')).toMatchObject({
-      category: 'Einstieg',
-      composer: 'Volkslied',
-      title: 'Alle meine Entchen',
-    });
-    expect(parseCatalogPath('Klassik/02_J. S. Bach – Präludium C-Dur.MIDI')).toMatchObject({
-      category: 'Klassik',
-      composer: 'J. S. Bach',
-      title: 'Präludium C-Dur',
-    });
-    expect(parseCatalogPath('Ohne Komponist.mid')).toMatchObject({ category: '', composer: null });
-    expect(parseCatalogPath('README.md')).toBeNull();
+const entries: LibraryCatalogEntry[] = [
+  { file: 'b.mid', title: 'Zebra', composer: 'Ludwig van Beethoven', level: 3 },
+  { file: 'a.mid', title: 'Alle meine Entchen', composer: 'Volkslied', composer_en: 'Traditional', level: 1 },
+  {
+    file: 'c.mid',
+    title: 'Ode an die Freude',
+    title_en: 'Ode to Joy',
+    composer: 'Ludwig van Beethoven',
+    level: 3,
+  },
+  { file: 'd.mid', title: 'Ohne Stufe', composer: 'X' },
+  { file: 'e.mid', title: 'Versteckt', composer: 'X', level: 1, publish: false },
+  { file: 'f.mid', title: 'TODO', composer: 'TODO', level: 1 },
+];
+
+describe('Stückkatalog (Online-Bibliothek)', () => {
+  it('gruppiert nach Stufe, ohne Stufe zuletzt, alphabetisch je Stufe', () => {
+    const groups = buildCatalog(entries, 'en');
+    expect(groups.map((g) => g.level)).toEqual([1, 3, null]);
+    expect(groups[1]!.items.map((i) => i.title)).toEqual(['Ode to Joy', 'Zebra']);
   });
 
-  it('gruppiert und sortiert numerisch', () => {
-    const groups = buildCatalog(['10 Mittel/b.mid', '2 Leicht/z.mid', '2 Leicht/a.mid', 'notiz.txt']);
-    expect(groups.map((g) => g.category)).toEqual(['Leicht', 'Mittel']);
-    expect(groups[0]!.items.map((i) => i.title)).toEqual(['a', 'z']);
+  it('Titel und Komponist je Sprache, unveröffentlichte und TODO-Einträge fehlen', () => {
+    expect(buildCatalog(entries, 'en')[0]!.items).toEqual([
+      { file: 'a.mid', title: 'Alle meine Entchen', composer: 'Traditional', level: 1 },
+    ]);
+    expect(buildCatalog(entries, 'de')[0]!.items[0]!.composer).toBe('Volkslied');
   });
 
-  it('Anzeigetitel', () => {
-    expect(catalogDisplayTitle(parseCatalogPath('x/Beethoven - Ode.mid')!)).toBe('Beethoven: Ode');
+  it('Anzeigetitel mit Nachname', () => {
+    expect(catalogDisplayTitle(buildCatalog(entries, 'de')[1]!.items[0]!)).toBe(
+      'Beethoven: Ode an die Freude',
+    );
   });
 });

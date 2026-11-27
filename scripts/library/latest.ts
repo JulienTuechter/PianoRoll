@@ -40,7 +40,7 @@ export function latestPieces(root: string, locale: Locale, n = config.latestOnHo
     .slice(0, n)
     .map(({ e, title }) => ({
       title,
-      composer: e.composer,
+      composer: (locale === 'de' ? e.composer_de : e.composer_en) ?? e.composer,
       path: localizedPath('piece', locale, { slug: slugs[e.file]! }),
     }));
 }

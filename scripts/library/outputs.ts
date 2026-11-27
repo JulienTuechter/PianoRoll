@@ -97,12 +97,12 @@ export function atomFeed(
       const page = pages.get(`piece:${p.slug}`);
       const href = siteUrl + piecePath(p, locale);
       return `  <entry>
-    <title>${esc(`${p.titles[locale]} – ${p.composer}`)}</title>
+    <title>${esc(`${p.titles[locale]} – ${p.composers[locale].name}`)}</title>
     <link rel="alternate" type="text/html" hreflang="${locale}" href="${esc(href)}" />
     <id>tag:pianist,${p.added}:library/${p.slug}</id>
     <published>${p.added}T00:00:00Z</published>
     <updated>${p.lastmod}T00:00:00Z</updated>
-    <author><name>${esc(p.composer)}</name></author>
+    <author><name>${esc(p.composers[locale].name)}</name></author>
     <summary>${esc(page?.description ?? '')}</summary>
   </entry>`;
     })

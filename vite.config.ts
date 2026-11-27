@@ -3,6 +3,8 @@ import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'node:url';
 import { readFile } from 'node:fs/promises';
+import { existsSync, statSync } from 'node:fs';
+import { extname, join, relative, sep } from 'node:path';
 import { siteEnv } from './scripts/site-env.ts';
 import { RENDER_MODULE, type PageRenderer } from './scripts/pages/types.ts';
 import { localeFromPath, localizedPath, PAGE_LOCALES } from './src/i18n/routes.ts';
@@ -65,6 +67,7 @@ function pages(): Plugin {
     enforce: 'post',
     configureServer(server) {
       const env = siteEnv(server.config.mode, server.config.root);
+      server.middlewares.use(libraryDevMiddleware(server, env.siteUrl));
       server.middlewares.use((req, res, next) => {
         const path = route(req, res, next);
         if (!path) return;
@@ -98,6 +101,85 @@ function pages(): Plugin {
         res.setHeader('Location', target + (query ? `?${query}` : ''));
         res.end();
       }),
+  };
+}
+
+/**
+ * Bibliotheksseiten im Dev-Server: derselbe Generator wie im postbuild (scripts/library/generate.ts, über Vites
+ * SSR-Loader), Ausgabe in node_modules/.cache/library-dev/. Neu erzeugt bei der nächsten Anfrage, sobald sich
+ * Katalog, MIDI-Dateien, Slugs, handgeschriebene Texte, Bibliothekstexte oder der Generator ändern.
+ * Dateien, die dort nicht liegen (midi/, library.css, catalog.json), liefert Vite wie gewohnt aus public/.
+ */
+const LIBRARY_GENERATOR = '/scripts/library/generate.ts';
+const MIME: Record<string, string> = {
+  '.html': 'text/html; charset=utf-8',
+  '.xml': 'application/xml; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.txt': 'text/plain; charset=utf-8',
+};
+
+function libraryDevMiddleware(server: import('vite').ViteDevServer, siteUrl: string) {
+  const root = server.config.root;
+  const out = join(root, 'node_modules/.cache/library-dev');
+  const prefixes = PAGE_LOCALES.map((l) => localizedPath('library', l));
+  const watched = [
+    'public/library',
+    'library',
+    'content',
+    'scripts/library',
+    'src/i18n/library',
+    'library.config.ts',
+  ];
+  let built: Promise<void> | null = null;
+  server.watcher.add(watched.map((w) => join(root, w)));
+  server.watcher.on('all', (_event, file) => {
+    const rel = relative(root, file).split(sep).join('/');
+    if (watched.some((w) => rel === w || rel.startsWith(`${w}/`))) built = null;
+  });
+  const build = () =>
+    (built ??= (async () => {
+      const { generate } = (await server.ssrLoadModule(
+        LIBRARY_GENERATOR,
+      )) as typeof import('./scripts/library/generate.ts');
+      const { libraryPaths } = (await server.ssrLoadModule(
+        '/scripts/library/types.ts',
+      )) as typeof import('./scripts/library/types.ts');
+      await generate({ ...libraryPaths(root), dist: out }, siteUrl);
+    })().catch((err: unknown) => {
+      built = null;
+      throw err;
+    }));
+
+  return (
+    req: import('node:http').IncomingMessage,
+    res: import('node:http').ServerResponse,
+    next: () => void,
+  ) => {
+    const path = decodeURIComponent((req.url ?? '').split('?')[0] ?? '');
+    if (!prefixes.some((p) => path.startsWith(p) || `${path}/` === p)) return next();
+    build()
+      .then(() => {
+        let file = join(out, path);
+        if (existsSync(file) && statSync(file).isDirectory()) {
+          if (!path.endsWith('/')) {
+            res.statusCode = 301;
+            res.setHeader('Location', `${path}/`);
+            return res.end();
+          }
+          file = join(file, 'index.html');
+        }
+        if (!existsSync(file)) return next();
+        res.setHeader('Content-Type', MIME[extname(file)] ?? 'application/octet-stream');
+        void readFile(file).then((data) => res.end(data));
+      })
+      .catch((err: unknown) => {
+        // Katalogfehler (TODO, Lizenz …) lesbar im Browser zeigen
+        const problems = (err as { problems?: string[] }).problems;
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        res.end(problems ? `Bibliothek:\n- ${problems.join('\n- ')}\n` : String((err as Error).stack ?? err));
+      });
   };
 }
 

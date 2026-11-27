@@ -53,7 +53,7 @@ import {
 import { PerformanceEngine } from '../core/practice-engine/performance-engine';
 import { countsOf, passSummary, type StatCounts } from '../core/scoring/scoring';
 import { performanceClock } from '../core/time/clock';
-import { t } from '../i18n';
+import { getLocale, t } from '../i18n';
 import {
   defaultWaitConfig,
   isPracticed,
@@ -62,6 +62,7 @@ import {
 } from '../core/wait-mode-engine/wait-mode-engine';
 import type { KeyFlash } from './canvas/keyboard-renderer';
 import { fetchCatalogBytes } from './catalog';
+import { clearPieceFromUrl, fetchLibraryPiece, pieceFromUrl } from './library-link';
 import { libraryRepo } from './library-repo';
 import { pushFx } from './scene/fx-queue';
 import { useApp } from './store/app-store';
@@ -293,7 +294,10 @@ export function startRuntime(): () => void {
     setHandColors(s.rightColor, s.leftColor);
     void webMidi.connect(s.midiDeviceId);
     await refreshLibrary();
-    if (s.lastSongId && !useApp.getState().song) await openFromLibrary(s.lastSongId).catch(() => {});
+    // Link von einer Bibliotheksseite (/app/?piece=<slug>) hat Vorrang vor dem zuletzt geöffneten Stück
+    const piece = pieceFromUrl();
+    if (piece) await loadLibraryPiece(piece);
+    else if (s.lastSongId && !useApp.getState().song) await openFromLibrary(s.lastSongId).catch(() => {});
     useApp.getState().set({ ready: true });
   });
 
@@ -614,10 +618,27 @@ export async function loadDemo(): Promise<void> {
 export async function loadCatalogItem(item: CatalogItem): Promise<void> {
   try {
     const bytes = await fetchCatalogBytes(item);
-    await importAndOpen(bytes, item.path, 'catalog', catalogDisplayTitle(item));
+    await importAndOpen(bytes, item.file, 'catalog', catalogDisplayTitle(item));
     useApp.getState().set({ libraryOpen: false });
   } catch (err) {
     showError(err);
+  }
+}
+
+/**
+ * Öffnet ein Stück der Online-Bibliothek über seinen Slug (Links „In Pianist öffnen“ auf /library/<slug>/).
+ * Danach verschwindet ?piece= aus der Adresse, damit ein Neuladen nicht erneut importiert.
+ */
+export async function loadLibraryPiece(slug: string): Promise<void> {
+  try {
+    const piece = await fetchLibraryPiece(slug, getLocale());
+    if (!piece) throw new Error(t().errors.pieceMissing(slug));
+    await importAndOpen(piece.bytes, piece.file, 'catalog', piece.title);
+    useApp.getState().set({ libraryOpen: false });
+  } catch (err) {
+    showError(err);
+  } finally {
+    clearPieceFromUrl();
   }
 }
 

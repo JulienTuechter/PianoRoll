@@ -18,6 +18,9 @@ import {
   type RollNote,
 } from './types';
 
+/** Name + Kurzname (Nachname) für die Anzeige */
+const localName = (name: string) => ({ name: name.trim(), short: composerLastName(name.trim()) });
+
 export async function readJson<T>(file: string, fallback: T): Promise<T> {
   if (!existsSync(file)) return fallback;
   try {
@@ -180,6 +183,10 @@ export async function loadLibrary(paths: LibraryPaths, opts: LoadOptions): Promi
       titles: { en: (e.title_en ?? e.title).trim(), de: (e.title_de ?? e.title).trim() },
       composer,
       composerShort: composerLastName(composer),
+      composers: {
+        en: localName(e.composer_en ?? composer),
+        de: localName(e.composer_de ?? composer),
+      },
       composerSlug: composerSlug(composer),
       collection: e.collection?.trim() || null,
       collectionSlug: e.collection?.trim() ? slugify(e.collection) : null,
@@ -199,6 +206,8 @@ export async function loadLibrary(paths: LibraryPaths, opts: LoadOptions): Promi
 
   // Slugs nur für Dateien behalten, die noch im Katalog stehen? Nein: alte Zuordnungen bleiben,
   // damit ein Stück nach publish:false → true seinen Slug behält.
-  if (opts.writeSlugs && created.length) await writeJson(paths.slugs, sortedObject(slugs));
+  // auch leer anlegen: die App importiert library/slugs.json für /app/?piece=<slug>
+  if (opts.writeSlugs && (created.length || !existsSync(paths.slugs)))
+    await writeJson(paths.slugs, sortedObject(slugs));
   return { pieces, entries, slugs, redirects, newSlugs: created, warnings };
 }
