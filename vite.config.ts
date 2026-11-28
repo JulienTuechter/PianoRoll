@@ -194,6 +194,8 @@ function offline(): Plugin {
   const publicDir = fileURLToPath(new URL('./public', import.meta.url));
   const PUBLIC_FILES = [
     /^samples\/piano\/.+\.mp3$/,
+    /^library\/catalog\.json$/,
+    /^library\/midi\/.+\.mid$/,
     /^(favicon\.svg|icon-\d+\.png|apple-touch-icon\.png)$/,
     /^site\.webmanifest$/,
   ];
