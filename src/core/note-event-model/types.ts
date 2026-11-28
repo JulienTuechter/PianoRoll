@@ -38,6 +38,12 @@ export interface KeySignatureChange {
   scale: 'major' | 'minor';
 }
 
+/** Haltepedal gedrückt von startTick bis endTick */
+export interface PedalSpan {
+  startTick: number;
+  endTick: number;
+}
+
 export type HandAssignment = Hand | 'split';
 
 export interface TrackInfo {
@@ -67,6 +73,8 @@ export interface Song {
   notes: NoteEvent[];
   /** Split-Punkt (MIDI) für Tracks mit handAssignment 'split'; Noten < splitPoint → links */
   splitPoint: number;
+  /** Haltepedal (CC 64), sortiert; fehlt bei Stücken ohne Pedalangaben */
+  pedals?: PedalSpan[];
 }
 
 export const PIANO_MIN_MIDI = 21; // A0

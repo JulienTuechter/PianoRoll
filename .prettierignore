@@ -1,3 +1,7 @@
 dist
 node_modules
 public/samples
+Licence.md
+.vscode
+playwright-report
+test-results

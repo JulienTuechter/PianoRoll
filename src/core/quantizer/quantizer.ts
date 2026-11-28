@@ -1,4 +1,5 @@
-import type { Hand, NoteEvent } from '../note-event-model/types';
+import { pedalSpans } from '../note-event-model/pedal';
+import type { Hand, NoteEvent, PedalSpan } from '../note-event-model/types';
 import type { Recording } from '../recorder/recorder';
 
 export interface QuantizeOptions {
@@ -36,6 +37,8 @@ export interface QuantizedRecording {
   numerator: number;
   denominator: number;
   notes: NoteEvent[];
+  /** Haltepedal, auf das gerade Raster gesetzt */
+  pedals: PedalSpan[];
   measureTicks: number;
   measureCount: number;
 }
@@ -187,12 +190,17 @@ export function quantize(rec: Recording, options: Partial<QuantizeOptions> = {})
     hand: q.hand,
     track: q.hand === 'right' ? 0 : 1,
   }));
+  const pedals = pedalSpans(
+    (rec.pedal ?? []).map((p) => ({ tick: Math.max(0, snap(toTick(p.timeMs), straight)), down: p.down })),
+    measureCount * measureTicks,
+  );
   return {
     ppq,
     bpm: rec.bpm,
     numerator: rec.numerator,
     denominator: rec.denominator,
     notes,
+    pedals,
     measureTicks,
     measureCount,
   };

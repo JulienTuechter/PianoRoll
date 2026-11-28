@@ -7,7 +7,9 @@ import type { Hand, NoteEvent } from '../note-event-model/types';
 import {
   buildNotation,
   chordsForStaff,
+  dynamicLevel,
   splitDuration,
+  voicesForStaff,
   vexKey,
   vexKeySpec,
   type NotationEvent,
@@ -70,7 +72,7 @@ describe('Rastern und Akkorde', () => {
     ]);
   });
 
-  it('kürzt Akkorde bis zum nächsten Anschlag (eine Stimme)', () => {
+  it('chordsForStaff kürzt Akkorde bis zum nächsten Anschlag (eine Stimme)', () => {
     const chords = chordsForStaff([n(48, 0, 1920), n(52, 480, 480)], PPQ, 120);
     expect(chords[0]?.end).toBe(480);
   });
@@ -171,5 +173,114 @@ describe('buildNotation', () => {
         expect(staff.reduce((s, e) => s + e.durationTicks, 0)).toBe(m.endTick - m.startTick);
       }
     }
+  });
+});
+
+const filled = (evs: NotationEvent[]) => evs.reduce((s, e) => s + e.durationTicks, 0);
+
+describe('Mehrere Stimmen pro System', () => {
+  it('setzt einen gehaltenen Basston unter einer Begleitfigur als zweite Stimme', () => {
+    // Bach-Präludium-Muster: C3 halbe, E3 ab der zweiten Achtel bis zur Halben
+    const notes = [n(48, 0, 960, 'left'), n(52, 240, 720, 'left')];
+    const [a, b] = voicesForStaff(notes, PPQ, 120);
+    expect(a.map((c) => [c.start, c.end])).toEqual([[0, 960]]);
+    expect(b.map((c) => [c.start, c.end])).toEqual([[240, 960]]);
+
+    const m = buildNotation(notes, measures44(1), PPQ, { key: null }).measures[0]!;
+    // obere Stimme zuerst: E3, untere: C3
+    expect(show(m.bass)).toEqual(['r:8', 'e/3:8~', 'e/3:4', 'r:2']);
+    expect(show(m.bass2)).toEqual(['c/3:2', 'r:2']);
+    expect(filled(m.bass)).toBe(1920);
+    expect(filled(m.bass2)).toBe(1920);
+  });
+
+  it('hält eine liegende Melodienote über Mittelstimmen', () => {
+    const notes = [n(72, 0, 1920), n(64, 0, 480), n(65, 480, 480), n(67, 960, 960)];
+    const m = buildNotation(notes, measures44(1), PPQ, { key: null }).measures[0]!;
+    expect(show(m.treble)).toEqual(['c/5:1']);
+    expect(show(m.treble2)).toEqual(['e/4:4', 'f/4:4', 'g/4:2']);
+  });
+
+  it('bleibt bei leichtem Legato-Überlappen einstimmig', () => {
+    const notes = [n(60, 0, 560), n(62, 480, 560), n(64, 960, 960)];
+    const [, b] = voicesForStaff(notes, PPQ, 120);
+    expect(b).toEqual([]);
+    const m = buildNotation(notes, measures44(1), PPQ, { key: null }).measures[0]!;
+    expect(show(m.treble)).toEqual(['c/4:4', 'd/4:4', 'e/4:2']);
+    expect(m.treble2).toEqual([]);
+  });
+
+  it('kürzt eine dritte gleichzeitige Stimme', () => {
+    const notes = [
+      n(48, 0, 1920, 'left'),
+      n(55, 480, 1440, 'left'),
+      n(60, 960, 480, 'left'),
+      n(59, 1440, 480, 'left'),
+    ];
+    const [a, b] = voicesForStaff(notes, PPQ, 120);
+    const all = [...a, ...b].sort((x, y) => x.start - y.start);
+    expect(all).toHaveLength(4);
+    // keine Stimme hat überlappende Akkorde
+    for (const layer of [a, b])
+      for (let i = 1; i < layer.length; i++)
+        expect(layer[i]!.start).toBeGreaterThanOrEqual(layer[i - 1]!.end);
+  });
+
+  it('setzt Takte ohne gleichzeitige Stimmen einstimmig', () => {
+    // Takt 1 zweistimmig, Takt 2 nur eine Linie
+    const notes = [n(48, 0, 1920, 'left'), n(55, 480, 480, 'left'), n(53, 1920, 1920, 'left')];
+    const score = buildNotation(notes, measures44(2), PPQ, { key: null });
+    expect(score.measures[0]!.bass2.length).toBeGreaterThan(0);
+    expect(score.measures[1]!.bass2).toEqual([]);
+    expect(show(score.measures[1]!.bass)).toEqual(['f/3:1']);
+  });
+});
+
+describe('Zeichen über und unter dem System', () => {
+  it('leitet Dynamik aus der Anschlagstärke ab, nur bei echten Unterschieden', () => {
+    expect(dynamicLevel(0.2)).toBe('pp');
+    expect(dynamicLevel(0.65)).toBe('mf');
+    expect(dynamicLevel(0.95)).toBe('ff');
+    const loud = (midi: number, tick: number, v: number) => ({ ...n(midi, tick, 480), velocity: v });
+    const notes = [
+      loud(60, 0, 0.4),
+      loud(62, 1920, 0.4),
+      loud(64, 3840, 0.9),
+      loud(65, 5760, 0.9),
+      loud(67, 7680, 0.95),
+    ];
+    const score = buildNotation(notes, measures44(5), PPQ, { key: null, dynamics: true });
+    expect(score.measures.map((m) => m.dynamic)).toEqual(['p', null, 'ff', null, null]);
+    const flat = buildNotation(
+      notes.map((x) => ({ ...x, velocity: 0.8 })),
+      measures44(5),
+      PPQ,
+      { key: null, dynamics: true },
+    );
+    expect(flat.measures.every((m) => m.dynamic === null)).toBe(true);
+    // ohne Option keine Dynamik
+    expect(buildNotation(notes, measures44(5), PPQ, { key: null }).measures[0]!.dynamic).toBeNull();
+  });
+
+  it('verteilt Akkordsymbole auf die Takte und rastert Pedal', () => {
+    const chord = { label: 'C', root: 'C', bass: 'C', quality: 'maj' as const, suffix: '' };
+    const score = buildNotation([n(60, 0, 1920)], measures44(2), PPQ, {
+      key: null,
+      chords: [
+        { ...chord, tick: 3 },
+        { ...chord, tick: 1925, label: 'G7', root: 'G', bass: 'G', quality: 'dom7', suffix: '7' },
+      ],
+      pedals: [
+        { startTick: 5, endTick: 950 },
+        { startTick: 1000, endTick: 99999 },
+        { startTick: 10, endTick: 20 },
+      ],
+    });
+    expect(score.measures[0]!.chords.map((c) => [c.tick, c.label])).toEqual([[0, 'C']]);
+    expect(score.measures[1]!.chords.map((c) => [c.tick, c.label])).toEqual([[1920, 'G7']]);
+    expect(score.pedals).toEqual([
+      { startTick: 0, endTick: 960 },
+      { startTick: 960, endTick: 3840 },
+    ]);
   });
 });

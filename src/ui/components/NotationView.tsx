@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { buildNotation } from '../../core/notation-builder/notation';
 import { normalizeLoop, type LoopRange } from '../../core/practice-engine/loop';
 import { firstNoteIndexAtOrAfter } from '../../core/note-event-model/notes';
 import { cursorAt, renderScore, type ScoreLayout } from '../notation/render-score';
+import { scoreFor } from '../notation/score-for-song';
 import { live, seekToMeasure, setLoop, transport } from '../runtime';
 import { useT } from '../i18n';
 import { useApp } from '../store/app-store';
 import { useHarmony } from '../store/harmony-store';
+import { useSettings } from '../store/settings';
 
 /**
  * Notenschrift des Stücks (Klaviersystem). Cursor läuft synchron mit Wait-/Practice-Modus und scrollt mit.
@@ -18,6 +19,9 @@ export function NotationView() {
   const loop = useApp((s) => s.loop);
   const loopEnabled = useApp((s) => s.loopEnabled);
   const songKey = useHarmony((s) => s.songKey);
+  const chords = useSettings((s) => s.notationChords);
+  const pedal = useSettings((s) => s.notationPedal);
+  const dynamics = useSettings((s) => s.notationDynamics);
   const scrollRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
@@ -29,12 +33,16 @@ export function NotationView() {
 
   const score = useMemo(() => {
     if (!song || live.measures.length === 0) return null;
-    const tm = live.tempoMap;
-    return buildNotation(live.notes, live.measures, song.ppq, {
-      key: songKey,
-      secToTick: tm ? (sec) => tm.secToTick(sec) : undefined,
-    });
-  }, [song, songKey]);
+    return scoreFor(
+      live.notes,
+      live.measures,
+      song.ppq,
+      songKey,
+      live.tempoMap,
+      { chords, pedal, dynamics },
+      song.pedals,
+    );
+  }, [song, songKey, chords, pedal, dynamics]);
 
   // Breite des Notenblatts beobachten (entprellt) – nicht die des Scrollbereichs, der hat Innenabstand
   useEffect(() => {

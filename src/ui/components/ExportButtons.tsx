@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { exportMidi, exportMusicXml, exportPng, exportSvg, type ExportSource } from '../export';
-import { scoreFor } from '../notation/score-for-song';
+import { marksFrom, scoreFor } from '../notation/score-for-song';
 import { live, errorMessage } from '../runtime';
 import { useT } from '../i18n';
 import { useApp } from '../store/app-store';
 import { useHarmony } from '../store/harmony-store';
+import { useSettings } from '../store/settings';
 
 /** Export des geladenen Stücks (MIDI, MusicXML, SVG, PNG). */
 export function ExportButtons() {
@@ -24,7 +25,16 @@ export function ExportButtons() {
       denominator: ts?.denominator ?? 4,
       key: songKey,
       notes: live.notes,
-      score: scoreFor(live.notes, live.measures, song.ppq, songKey, live.tempoMap),
+      pedals: song.pedals ?? [],
+      score: scoreFor(
+        live.notes,
+        live.measures,
+        song.ppq,
+        songKey,
+        live.tempoMap,
+        marksFrom(useSettings.getState()),
+        song.pedals,
+      ),
     };
   };
   const run = async (fn: (s: ExportSource) => Promise<void> | void) => {

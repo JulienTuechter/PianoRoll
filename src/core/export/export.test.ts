@@ -170,6 +170,38 @@ describe('MusicXML-Export', () => {
     expect(xml).toMatch(/<step>B<\/step><alter>-1<\/alter>.*?<accidental>flat<\/accidental>/);
   });
 
+  it('schreibt zweite Stimmen, Akkordsymbole, Dynamik und Pedal', () => {
+    const one = buildMeasures(PPQ, [{ tick: 0, numerator: 4, denominator: 4 }], tempo, 1920 - 1);
+    const s = buildNotation(
+      [
+        { ...n(48, 0, 1920, 'left'), velocity: 0.4 },
+        { ...n(55, 480, 480, 'left'), velocity: 0.9 },
+        { ...n(60, 0, 1920), velocity: 0.4 },
+      ],
+      one,
+      PPQ,
+      {
+        key: null,
+        dynamics: true,
+        chords: [{ tick: 960, label: 'B♭m7/F', root: 'Bb', bass: 'F', quality: 'min7', suffix: 'm7' }],
+        pedals: [{ startTick: 0, endTick: 960 }],
+      },
+    );
+    const x = toMusicXml(s, { title: 'Stimmen', bpm: 100, key: null });
+    expect(wellFormed(x)).toBe(true);
+    // Bass: zwei Stimmen (5 und 6) mit Halsrichtung; zwei backups (Violin, dann Bass oben, dann Bass unten)
+    expect(x).toContain('<voice>6</voice>');
+    expect(x.match(/<backup>/g)).toHaveLength(2);
+    expect(x).toMatch(/<voice>5<\/voice>.*?<stem>up<\/stem>/);
+    expect(x).toMatch(/<voice>6<\/voice>.*?<stem>down<\/stem>/);
+    expect(x).toContain(
+      '<harmony><root><root-step>B</root-step><root-alter>-1</root-alter></root><kind text="m7">minor-seventh</kind><bass><bass-step>F</bass-step></bass><offset>960</offset><staff>1</staff></harmony>',
+    );
+    expect(x).toContain('<dynamics><mp/></dynamics>');
+    expect(x).toContain('<pedal type="start" line="yes"/>');
+    expect(x).toMatch(/<pedal type="stop" line="yes"\/><\/direction-type><offset>960<\/offset>/);
+  });
+
   it('liest VexFlow-Tonhöhen', () => {
     expect(parseVexKey('bb/4')).toEqual({ step: 'B', alter: -1, octave: 4 });
     expect(parseVexKey('f##/5')).toEqual({ step: 'F', alter: 2, octave: 5 });

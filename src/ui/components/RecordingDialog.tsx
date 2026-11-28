@@ -72,7 +72,16 @@ export function RecordingDialog() {
       denominator: q.denominator,
       key,
       notes: q.notes,
-      score: scoreFor(q.notes, measures, q.ppq, key, tempoMap),
+      pedals: q.pedals,
+      score: scoreFor(
+        q.notes,
+        measures,
+        q.ppq,
+        key,
+        tempoMap,
+        { chords: s.notationChords, pedal: s.notationPedal, dynamics: s.notationDynamics },
+        q.pedals,
+      ),
     };
   }, [
     take,
@@ -83,6 +92,9 @@ export function RecordingDialog() {
     s.quantMinNote,
     s.quantResolveOverlaps,
     s.splitPoint,
+    s.notationChords,
+    s.notationPedal,
+    s.notationDynamics,
   ]);
 
   // Vorschau neu setzen (entprellt)

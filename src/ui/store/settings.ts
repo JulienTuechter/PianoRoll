@@ -68,6 +68,10 @@ export interface Settings {
   /** Wahrscheinlichsten Folgeakkord im Freispiel automatisch auf der Klaviatur zeigen */
   harmonyAutoGhost: boolean;
   view: StageView;
+  // Notenschrift: Zeichen über und unter dem System
+  notationChords: boolean;
+  notationPedal: boolean;
+  notationDynamics: boolean;
   // Aufnahme
   recBpm: number;
   recNumerator: number;
@@ -140,6 +144,9 @@ export const defaultSettings: Settings = {
   harmonyAudition: true,
   harmonyAutoGhost: true,
   view: 'split',
+  notationChords: true,
+  notationPedal: true,
+  notationDynamics: true,
   recBpm: 90,
   recNumerator: 4,
   recDenominator: 4,

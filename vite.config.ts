@@ -3,12 +3,13 @@ import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'node:url';
 import { readFile } from 'node:fs/promises';
-import { existsSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative, sep } from 'node:path';
 import { siteEnv } from './scripts/site-env.ts';
 import { RENDER_MODULE, type PageRenderer } from './scripts/pages/types.ts';
 import { localeFromPath, localizedPath, PAGE_LOCALES } from './src/i18n/routes.ts';
 import { latestPieces } from './scripts/library/latest.ts';
+import { createHash } from 'node:crypto';
 
 /**
  * Link-Vorschauen brauchen absolute URLs. Die öffentliche Adresse kommt aus SITE_URL (Umgebungsvariable oder
@@ -183,8 +184,92 @@ function libraryDevMiddleware(server: import('vite').ViteDevServer, siteUrl: str
   };
 }
 
+/**
+ * Offline: erzeugt beim Build /sw.js (Quelle: src/sw/service-worker.js) mit einer Precache-Liste.
+ * Vorgehalten wird alles, was die App unter /app/ braucht (inkl. nachgeladener Chunks wie VexFlow und der
+ * Katalog-Dateien), dazu Piano-Samples, Icons und Manifest aus public/. Die Landingpage wird nicht vorgehalten.
+ */
+function offline(): Plugin {
+  const hash = (data: string | Uint8Array) => createHash('sha256').update(data).digest('hex').slice(0, 12);
+  const publicDir = fileURLToPath(new URL('./public', import.meta.url));
+  const PUBLIC_FILES = [
+    /^samples\/piano\/.+\.mp3$/,
+    /^(favicon\.svg|icon-\d+\.png|apple-touch-icon\.png)$/,
+    /^site\.webmanifest$/,
+  ];
+  return {
+    name: 'pianist-offline',
+    apply: 'build',
+    enforce: 'post',
+    generateBundle(_, bundle) {
+      const entry = Object.values(bundle).find(
+        (c) => c.type === 'chunk' && c.isEntry && c.facadeModuleId?.endsWith('/app/index.html'),
+      );
+      if (!entry || entry.type !== 'chunk')
+        return this.warn('App-Entry nicht gefunden – kein Service Worker');
+
+      // Alles, was vom App-Entry aus (auch dynamisch) erreichbar ist
+      const files = new Set<string>();
+      const visit = (fileName: string) => {
+        if (files.has(fileName)) return;
+        const item = bundle[fileName];
+        if (!item) return;
+        files.add(fileName);
+        if (item.type !== 'chunk') return;
+        [...item.imports, ...item.dynamicImports].forEach(visit);
+        item.viteMetadata?.importedCss.forEach(visit);
+        item.viteMetadata?.importedAssets.forEach(visit);
+      };
+      visit(entry.fileName);
+      // Schriften u. a. werden aus dem CSS referenziert
+      for (const f of [...files]) {
+        const item = bundle[f];
+        if (item?.type === 'asset' && f.endsWith('.css')) {
+          const css = typeof item.source === 'string' ? item.source : new TextDecoder().decode(item.source);
+          for (const [, ref] of css.matchAll(/url\(["']?\/?([^"')]+)["']?\)/g))
+            if (ref && bundle[ref]) files.add(ref);
+        }
+      }
+
+      const precache: [string, string | null][] = [];
+      // HTML der App unter /app/ (Revision = Inhalt), gehashte Dateien ohne Revision
+      const html = bundle['app/index.html'];
+      if (html?.type === 'asset') precache.push(['/app/', hash(html.source)]);
+      for (const f of [...files].sort())
+        precache.push([
+          `/${f}`,
+          /-[\w-]{8}\.\w+$/.test(f)
+            ? null
+            : hash(
+                (() => {
+                  const item = bundle[f]!;
+                  return item.type === 'chunk' ? item.code : item.source;
+                })(),
+              ),
+        ]);
+      const walk = (dir: string, prefix = ''): string[] =>
+        readdirSync(dir, { withFileTypes: true }).flatMap((d) =>
+          d.isDirectory() ? walk(`${dir}/${d.name}`, `${prefix}${d.name}/`) : [`${prefix}${d.name}`],
+        );
+      for (const f of walk(publicDir).sort())
+        if (PUBLIC_FILES.some((re) => re.test(f)))
+          precache.push([`/${f}`, hash(readFileSync(`${publicDir}/${f}`))]);
+
+      const source = readFileSync(
+        fileURLToPath(new URL('./src/sw/service-worker.js', import.meta.url)),
+        'utf8',
+      );
+      this.emitFile({
+        type: 'asset',
+        fileName: 'sw.js',
+        source: source.replace('self.__PRECACHE__', JSON.stringify(precache)),
+      });
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), seo(), pages()],
+  plugins: [react(), seo(), pages(), offline()],
   resolve: {
     alias: {
       // Eingebettete VexFlow-Schriften (Data-URIs) für SVG/PNG-Export; die exports-Map von vexflow gibt sie nicht frei
@@ -207,7 +292,7 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
+    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts'],
     environment: 'node',
   },
 });

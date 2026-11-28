@@ -324,7 +324,26 @@ export const de = {
     goodUpTo: (ms: number) => `Good bis ${ms} ms (danach Miss)`,
     latency: (ms: number) => `Latenzausgleich: ${ms} ms`,
     latencyHelp:
-      'Wird vom Zeitpunkt jedes Anschlags abgezogen. Tipp: Zeigt das Ergebnis im Performance-Modus „im Schnitt X ms zu spät“, obwohl du dich pünktlich fühlst, den Wert um etwa X erhöhen.',
+      'Wird vom Zeitpunkt jedes Anschlags abgezogen. Am einfachsten misst du ihn: mit dem Piano, den Lautsprechern oder Kopfhörern, die du auch beim Üben nutzt.',
+    latencyTest: {
+      start: 'Latenz messen',
+      countIn: (n: number) => `Einzählen … ${n}`,
+      play: 'Spiel auf jeden Klick eine Taste am Piano (oder Leertaste).',
+      tap: 'Tippen',
+      result: (offset: number, spread: number, used: number, total: number) =>
+        `Gemessen: im Mittel ${offset} ms nach dem Klick, Streuung ±${spread} ms (${used} von ${total} Schlägen).`,
+      unreliable: 'Die Anschläge schwanken stark. Für einen genaueren Wert die Messung wiederholen.',
+      early: 'Du spielst im Schnitt vor dem Klick. Das ist keine Latenz, der Ausgleich bleibt dann bei 0 ms.',
+      failed: 'Zu wenige Anschläge erkannt. Spiel möglichst auf jeden Klick und versuch es noch einmal.',
+      apply: (ms: number) => `${ms} ms übernehmen`,
+      again: 'Nochmal messen',
+    },
+    notationHeading: 'Notenschrift',
+    notationChords: 'Akkordsymbole über dem System',
+    notationPedal: 'Pedalzeichen (aus der Datei bzw. Aufnahme)',
+    notationDynamics: 'Dynamik aus der Anschlagstärke (p, mf, f …)',
+    notationHelp:
+      'Akkorde werden aus den Noten erkannt und können danebenliegen. Dynamik erscheint nur bei Stücken mit unterschiedlich lauten Anschlägen.',
     colors: 'Farben',
     colorsDefault: 'Standard',
     colorsContrast: 'Gelb/Lila (hoher Kontrast)',
@@ -476,6 +495,12 @@ export const de = {
     trouble: (list: string) => `Problemstellen: ${list}. In der Taktleiste als Loop ziehen und gezielt üben.`,
     clean: 'Keine Fehler, sauber gespielt.',
     again: 'Nochmal',
+  },
+
+  offline: {
+    ready: 'Pianist ist jetzt auch ohne Internet verfügbar.',
+    update: 'Eine neue Version von Pianist ist da.',
+    reload: 'Neu laden',
   },
 
   errors: {

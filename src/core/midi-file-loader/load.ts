@@ -1,5 +1,6 @@
 import { Midi } from '@tonejs/midi';
 import { keyTonicName, parseKey } from '../key-detection/key';
+import { mergePedalSpans, pedalSpans } from '../note-event-model/pedal';
 import { TempoMap } from '../note-event-model/tempo-map';
 import type {
   KeySignatureChange,
@@ -133,6 +134,19 @@ export function loadMidiFile(data: ArrayBuffer | Uint8Array, options: LoadOption
 
   const durationSec = notes.reduce((m, n) => Math.max(m, n.startSec + n.durationSec), 0);
 
+  // Haltepedal aller nicht-perkussiven Spuren (CC 64, Wert 0..1; ab der Hälfte gilt es als gedrückt)
+  const endTick = tempoMap.secToTick(durationSec);
+  const pedals = mergePedalSpans(
+    midi.tracks
+      .filter((_, i) => !summaries[i]?.isPercussion)
+      .map((t) =>
+        pedalSpans(
+          (t.controlChanges[64] ?? []).map((c) => ({ tick: c.ticks, down: c.value >= 0.5 })),
+          endTick,
+        ),
+      ),
+  );
+
   return {
     id: hashBytes(bytes),
     title: options.title ?? (midi.name || 'Unbenannt'),
@@ -144,6 +158,7 @@ export function loadMidiFile(data: ArrayBuffer | Uint8Array, options: LoadOption
     tracks,
     notes,
     splitPoint,
+    ...(pedals.length ? { pedals } : {}),
   };
 }
 
