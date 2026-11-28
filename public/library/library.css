@@ -1,306 +1,952 @@
+/* Hallmark · shape: catalogue entry (piece), index-first (overview) · genre: editorial · theme: brand (kiln: ember) · redesign: full
+ * paper: oklch(13% 0.012 40) · accent: oklch(70% 0.2 45) · display: Fraunces · body: Geist · hero: Banner (piece, lists), Counter (overview) · nav: edge-aligned, wordmark left, library, language and a ghost pill to the app · footer: index columns, a real sitemap of levels, composers and collections · signature: every piece shown by its own piano roll, full width on its page and as the face of its card in every list
+ * axes: dark/high-contrast-serif/warm · posture: restrained · job: try, the action beside the title and in the nav · contrast: pass · fold: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H5 E4 S5 R4 V3 · weakest: V, the hero still sets text beside actions like the landing page; the piece page leads with its roll at full width instead, so the first screen is the music, not a paragraph */
+/* Hallmark · dropped "How to practise" colour paragraph · moved into the roll legend as Right hand and Left hand */
+/* Hallmark · dropped the three-sentence piece lead and the range, hands and level sentences · 69 names them, every fact now sits once in the figures or the rows */
+/* Hallmark · dropped heading "License and source" · its two lines are rows in Key facts */
+/* Hallmark · reworded overview intro "Every piece in this library opens directly in Pianist. Connect …" to "Every piece opens straight in Pianist: connect a MIDI keyboard, pick a piece and play along." · 58 names the hero */
+/* Hallmark · reworded overview stats sentence "The library currently holds 6 pieces by 4 composers, 3.6 minutes of music in total." to three figures beside the search, 3.6 now set as a figure over its label · 58 names the hero */
+/* Hallmark · reworded piece h1 "Für Elise (opening) – Ludwig van Beethoven: learn it on a MIDI keyboard" to the title over "by Ludwig van Beethoven, to learn on your MIDI keyboard" · 19 names the en dash, 38iii asks for a second line at a second size */
+/* Hallmark · dismissed kept figures · 0:25 is the duration figure with its unit in a span, 3.6 is the minutes figure in the overview stats */
+/* Hallmark · waive 79 · Banner posture on catalogue pages · the piece page's piano roll sits inside the hero from y 520 and fills the fold, and on the overview and list pages the first section's head starts above y 700 */
+/* Hallmark · waive 77 · a level page lists only the pieces it has · with two pieces the card grid holds two rolls; it fills as the library grows */
+/* Hallmark · dismissed 77 · five sections on a piece page is the thin-prompt count: hero with roll, key facts, practice steps, related pieces, footer */
+/* Hallmark · dismissed 58 · the window from y 2750 holds four practice steps of one or two sentences each, laid out as four columns, counted together */
 /*
- * Bibliotheksseiten (statisches HTML aus scripts/library/). Gleiche Farben wie Landingpage und App,
- * aber Systemschriften und kein JavaScript-Bundle: schnell, auch bei tausend Seiten.
+ * Bibliotheksseiten (statisches HTML aus scripts/library/). Gleiche Farben und Schriften wie Landingpage und App
+ * (Kiln: fast schwarzer Grund, Elfenbein, Glut nur als Fläche), kein JavaScript-Bundle. Die zwei Schriften liegen
+ * unter /library/fonts/ (aus @fontsource-variable kopiert, SIL OFL).
  */
+
+@font-face {
+  font-family: 'Fraunces Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('/library/fonts/fraunces-latin-wght-normal.woff2') format('woff2-variations');
+}
+@font-face {
+  font-family: 'Geist Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('/library/fonts/geist-latin-wght-normal.woff2') format('woff2-variations');
+}
+
+/* ── Tokens ─────────────────────────────────────── */
 :root {
-  --paper: oklch(13% 0.012 40);
-  --paper-2: oklch(16% 0.016 40);
-  --paper-3: oklch(21% 0.018 40);
-  --ink: oklch(94% 0.02 80);
-  --ink-2: oklch(84% 0.025 70);
-  --muted: oklch(72% 0.03 60);
-  --rule: oklch(96% 0.01 80 / 0.12);
-  --accent: oklch(70% 0.2 45);
-  --accent-hot: oklch(80% 0.17 60);
-  --accent-ink: oklch(14% 0.02 40);
-  --right: #56b4e9;
-  --left: #d55e00;
-  --font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
-  --font-body: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --gutter: clamp(16px, 4vw, 40px);
+  --color-paper: oklch(13% 0.012 40);
+  --color-paper-2: oklch(17.5% 0.016 40);
+  --color-paper-3: oklch(22% 0.018 40);
+  --color-ink: oklch(94% 0.02 80);
+  --color-ink-2: oklch(84% 0.025 70);
+  --color-muted: oklch(72% 0.03 60);
+  --color-rule: oklch(96% 0.01 80 / 0.12);
+  --color-rule-2: oklch(96% 0.01 80 / 0.22);
+  --color-accent: oklch(70% 0.2 45);
+  --color-accent-hot: oklch(76% 0.19 56);
+  --color-accent-ink: oklch(14% 0.02 40);
+  --color-focus: oklch(76% 0.19 56);
+  --color-shadow: oklch(8% 0.01 40 / 0.5);
+  /* Handfarben der App (Piano-Roll, fallende Noten): Daten, keine Dekoration */
+  --color-hand-right: oklch(73% 0.12 235);
+  --color-hand-left: oklch(61% 0.18 45);
+
+  --font-display: 'Fraunces Variable', 'Iowan Old Style', Georgia, serif;
+  --font-body: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --space-3xs: 2px;
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+  --space-2xl: 64px;
+  --space-3xl: 96px;
+  --space-4xl: 144px;
+
+  --text-xs: 0.8125rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5625rem;
+  --text-2xl: 1.953rem;
+  --text-3xl: 2.441rem;
+  --text-display-s: clamp(2.25rem, 4vw + 0.5rem, 3.75rem);
+  --text-display: clamp(2.75rem, 5vw + 1rem, 5.25rem);
+  --text-section: clamp(2rem, 2.5vw + 1rem, 3.25rem);
+  --text-title: clamp(1.125rem, 0.6vw + 0.875rem, 1.5rem);
+  --text-lead: clamp(1.125rem, 0.35vw + 1rem, 1.375rem);
+  --text-numeral: clamp(4rem, 6vw + 1rem, 6.5rem);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+
+  --container: 1440px;
+  --gutter: 64px;
+  --gap-columns: 32px;
+  --section-gap-s: 120px;
+  --section-gap: 144px;
+  --section-gap-l: 176px;
+
+  --radius-card: 28px;
+  --radius-well: 16px;
+  --radius-inner: 10px;
+  --radius-pill: 999px;
+  --rule-hair: 1px;
+  --shadow-card: 0 50px 90px -30px var(--color-shadow);
+  --tracking-display: -0.02em;
+  --display-weight: 500;
   color-scheme: dark;
 }
 
-* {
+/* ── Base ───────────────────────────────────────── */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
+html,
+body {
+  overflow-x: clip;
+}
 html {
-  background: var(--paper);
+  background: var(--color-paper);
+  scrollbar-color: var(--color-muted) var(--color-paper);
   -webkit-text-size-adjust: 100%;
 }
 body {
   margin: 0;
-  color: var(--ink);
-  font: 17px/1.6 var(--font-body);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
-a {
-  color: var(--accent-hot);
-  text-underline-offset: 3px;
-  text-decoration-thickness: 1px;
-}
-a:hover {
-  color: var(--ink);
+::selection {
+  background: color-mix(in oklab, var(--color-accent) 35%, transparent);
+  color: var(--color-ink);
 }
 :focus-visible {
-  outline: 2px solid var(--accent-hot);
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
+a {
+  color: inherit;
+  text-decoration-color: var(--color-rule-2);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color var(--dur-short) var(--ease-out);
+}
+a:hover {
+  text-decoration-color: var(--color-accent);
+}
+a:active {
+  color: var(--color-ink-2);
+}
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-synthesis: none;
+  letter-spacing: var(--tracking-display);
+  line-height: 1.05;
+  overflow-wrap: break-word;
+  min-width: 0;
+  text-wrap: balance;
+}
+h1 {
+  max-width: 20ch;
+  font-size: var(--text-display);
+}
+h2 {
+  max-width: 24ch;
+  font-size: var(--text-section);
+}
+h3 {
+  max-width: 40ch;
+  font-size: var(--text-title);
+  line-height: 1.2;
+}
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+p:not([class]) {
+  max-width: 65ch;
+}
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+[hidden] {
+  display: none !important;
+}
+input {
+  font: inherit;
+}
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.figure,
+.num {
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.lead {
+  max-width: 56ch;
+  color: var(--color-ink-2);
+  font-size: var(--text-lead);
+  line-height: 1.45;
+}
 
+/* ── Controls ───────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  padding: 0 var(--space-lg);
+  border-radius: var(--radius-pill);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-short) var(--ease-out),
+    box-shadow var(--dur-short) var(--ease-out),
+    transform var(--dur-micro) var(--ease-out);
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+.btn-primary {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+.btn-primary:hover {
+  background: var(--color-accent-hot);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--color-ink);
+  box-shadow: inset 0 0 0 var(--rule-hair) var(--color-rule-2);
+}
+.btn-ghost:hover {
+  background: var(--color-paper-2);
+  box-shadow: inset 0 0 0 var(--rule-hair) var(--color-muted);
+}
+.btn-s {
+  min-height: 44px;
+  padding: 0 var(--space-md);
+  font-size: var(--text-sm);
+}
+
+/* ── Nav ────────────────────────────────────────── */
 .site-header {
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+}
+.nav {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px 24px;
-  padding: 16px var(--gutter);
-  border-bottom: 1px solid var(--rule);
+  gap: var(--space-sm) var(--space-lg);
+  min-height: 72px;
+  padding-block: var(--space-sm);
 }
 .wordmark {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  color: var(--ink);
-  font: 600 20px/1 var(--font-display);
+  gap: var(--space-xs);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
   text-decoration: none;
+}
+.wordmark img {
+  flex-shrink: 0;
 }
 .site-header nav {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 20px;
-  font-size: 15px;
+  gap: var(--space-xs) var(--space-lg);
+  font-size: var(--text-sm);
 }
-.site-header nav a {
-  color: var(--ink-2);
+.site-header nav > a:not(.btn),
+.lang a {
+  color: var(--color-ink-2);
   text-decoration: none;
+  white-space: nowrap;
 }
-.site-header nav a:hover {
-  color: var(--accent-hot);
+.site-header nav > a:not(.btn):hover,
+.lang a:hover {
+  color: var(--color-ink);
 }
-.site-header .cta,
-.button {
-  display: inline-block;
-  padding: 9px 18px;
-  border-radius: 999px;
-  background: var(--accent);
-  color: var(--accent-ink) !important;
-  font-weight: 600;
-  text-decoration: none;
-}
-.site-header .cta:hover,
-.button:hover {
-  background: var(--accent-hot);
+.site-header nav > a[aria-current='page'] {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent);
 }
 
+/* ── Hero ───────────────────────────────────────── */
+.hero {
+  padding-block: var(--space-2xl) var(--space-3xl);
+}
+.lib-overview .hero {
+  padding-bottom: 0;
+}
+.hero-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gap-columns);
+  row-gap: var(--space-xl);
+  align-items: end;
+}
+.hero-text {
+  grid-column: 1 / 9;
+  display: grid;
+  gap: var(--space-lg);
+  min-width: 0;
+}
+.hero-solo .hero-text {
+  grid-column: 1 / 11;
+}
+.hero-grid > :not(.hero-text) {
+  grid-column: 9 / 13;
+  min-width: 0;
+}
 .crumbs ol {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  margin: 0 auto;
-  padding: 18px var(--gutter) 0;
-  max-width: 820px;
+  gap: var(--space-2xs) var(--space-xs);
+  margin: 0;
+  padding: 0;
   list-style: none;
-  color: var(--muted);
-  font-size: 14px;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
 }
 .crumbs li + li::before {
-  content: '›';
-  margin-right: 6px;
+  content: '/';
+  margin-right: var(--space-xs);
+  color: var(--color-rule-2);
 }
 .crumbs a {
-  color: var(--muted);
+  color: var(--color-muted);
+  text-decoration: none;
 }
-
-main {
-  max-width: 820px;
-  margin: 0 auto;
-  padding: 12px var(--gutter) 56px;
+.crumbs a:hover {
+  color: var(--color-ink);
 }
-h1 {
-  margin: 12px 0 20px;
-  font: 600 clamp(30px, 5vw, 44px) / 1.12 var(--font-display);
-  letter-spacing: -0.01em;
-  text-wrap: balance;
+.h1-title {
+  display: block;
 }
-h2 {
-  margin: 40px 0 12px;
-  font: 600 24px/1.25 var(--font-display);
+.h1-sub {
+  display: block;
+  text-wrap: pretty;
+  max-width: 36ch;
+  margin-top: var(--space-md);
+  font-family: var(--font-body);
+  font-size: var(--text-lead);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.35;
 }
-h3 {
-  margin: 28px 0 6px;
-  font: 600 19px/1.3 var(--font-display);
+.lib-overview h1,
+.lib-level h1,
+.lib-composer h1,
+.lib-collection h1 {
+  max-width: 22ch;
+  font-size: var(--text-display-s);
 }
-p {
-  margin: 0 0 14px;
-}
-.lead {
-  color: var(--ink-2);
-  font-size: 19px;
-}
-
-.actions {
+.hero-actions {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 12px 24px;
-  margin: 24px 0;
-}
-.download {
-  font-size: 15px;
+  gap: var(--space-sm);
+  justify-content: flex-end;
 }
 
+/* Die Piano-Roll: das Stück selbst, über die ganze Breite */
 .roll {
-  margin: 28px 0 8px;
+  margin: var(--space-2xl) 0 0;
 }
 .roll img {
-  display: block;
   width: 100%;
-  height: auto;
-  border-radius: 14px;
-  border: 1px solid var(--rule);
+  border-radius: min(2vw, var(--radius-card));
+  outline: var(--rule-hair) solid color-mix(in oklab, var(--color-ink) 8%, transparent);
+  outline-offset: -1px;
+  box-shadow: var(--shadow-card);
 }
 .roll figcaption {
-  margin-top: 8px;
-  color: var(--muted);
-  font-size: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-xs) var(--space-lg);
+  margin-top: var(--space-md);
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+.legend {
+  display: flex;
+  gap: var(--space-lg);
+  color: var(--color-ink-2);
+}
+.key::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 6px;
+  margin-right: var(--space-xs);
+  border-radius: var(--radius-pill);
+  vertical-align: middle;
+}
+.key-r::before {
+  background: var(--color-hand-right);
+}
+.key-l::before {
+  background: var(--color-hand-left);
 }
 
+/* Überblick: Zahlen neben der Überschrift, Suche darunter */
+.stats {
+  display: grid;
+  gap: var(--space-md);
+  margin: 0;
+}
+.stats div {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  padding-top: var(--space-md);
+  border-top: var(--rule-hair) solid var(--color-rule);
+}
+.stats dt {
+  order: 2;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+.stats dd {
+  margin: 0;
+  min-width: 3ch;
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: var(--display-weight);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.search {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gap-columns);
+  row-gap: var(--space-xs);
+  margin-top: var(--space-2xl);
+}
+.search label {
+  grid-column: 1 / -1;
+  color: var(--color-ink-2);
+  font-size: var(--text-sm);
+}
+.search input {
+  grid-column: 1 / 9;
+  min-height: 52px;
+  padding: 0 var(--space-lg);
+  border: var(--rule-hair) solid var(--color-muted);
+  border-radius: var(--radius-well);
+  background: var(--color-paper-2);
+  color: var(--color-ink);
+  font-size: var(--text-lg);
+}
+.search input::placeholder {
+  color: var(--color-muted);
+}
+.search input:hover {
+  background: var(--color-paper-3);
+}
+.search input:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* ── Abschnitte ─────────────────────────────────── */
+.sec {
+  padding-block: var(--section-gap-s);
+}
+.sec h2 {
+  margin-bottom: var(--space-2xl);
+}
+.sec-facts {
+  padding-top: var(--section-gap);
+}
+.sec-practice {
+  padding-block: var(--section-gap-l) var(--section-gap);
+}
+.sec-related,
+.sec-levels {
+  background: var(--color-paper-2);
+  border-block: var(--rule-hair) solid var(--color-rule);
+}
+
+/* Eckdaten: vier Zahlen, die Handverteilung, dann die Zeilen */
+.figures {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+}
+.figures div {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: var(--space-xs);
+  padding-inline: var(--space-lg);
+  border-left: var(--rule-hair) solid var(--color-rule);
+}
+.figures div:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+.figures dt {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+.figures dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-numeral);
+  font-weight: var(--display-weight);
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  white-space: nowrap;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.unit {
+  margin-left: 0.18em;
+  color: var(--color-ink-2);
+  font-size: 0.36em;
+  letter-spacing: 0;
+}
+.hands {
+  display: flex;
+  gap: var(--space-2xs);
+  margin-top: var(--space-2xl);
+}
+.hand {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+  font-size: var(--text-sm);
+  color: var(--color-ink-2);
+}
+.hand b {
+  font-weight: 500;
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+}
+.hand > span {
+  display: flex;
+  gap: var(--space-xs);
+}
+.hand::after {
+  content: '';
+  order: -1;
+  height: 14px;
+  border-radius: var(--radius-pill);
+}
+.hand-r::after {
+  background: var(--color-hand-right);
+}
+.hand-l {
+  align-items: flex-end;
+}
+.hand-l::after {
+  align-self: stretch;
+  background: var(--color-hand-left);
+}
 .facts {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 1px;
-  margin: 0;
-  border: 1px solid var(--rule);
-  border-radius: 12px;
-  overflow: hidden;
-  background: var(--rule);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: var(--gap-columns);
+  margin: var(--space-2xl) 0 0;
 }
 .facts div {
-  padding: 12px 14px;
-  background: var(--paper-2);
+  padding-block: var(--space-md);
+  border-top: var(--rule-hair) solid var(--color-rule);
+  min-width: 0;
 }
 .facts dt {
-  color: var(--muted);
-  font-size: 13px;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
 }
 .facts dd {
-  margin: 2px 0 0;
-  font-weight: 500;
+  margin: var(--space-2xs) 0 0;
+  overflow-wrap: break-word;
 }
 
-.pieces {
+/* Üben: vier Schritte nebeneinander */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2xl) var(--gap-columns);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+.steps li {
+  display: grid;
+  align-content: start;
+  gap: var(--space-sm);
+  padding-top: var(--space-lg);
+  border-top: var(--rule-hair) solid var(--color-rule-2);
+  counter-increment: step;
+}
+.steps li::before {
+  content: counter(step);
+  margin-bottom: var(--space-md);
+  color: var(--color-ink-2);
+  font-family: var(--font-display);
+  font-size: var(--text-numeral);
+  font-weight: 300;
+  line-height: 0.9;
+  font-variant-numeric: lining-nums;
+}
+.steps p {
+  color: var(--color-ink-2);
+}
+
+.prose {
+  max-width: 65ch;
+}
+.prose h2 {
+  margin-bottom: var(--space-xl);
+}
+.prose p + p,
+.prose ul {
+  margin-top: var(--space-md);
+}
+.prose ul {
+  padding-left: var(--space-lg);
+}
+
+/* Karten: jedes Stück mit seiner Piano-Roll */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2xl) var(--gap-columns);
   margin: 0;
   padding: 0;
   list-style: none;
 }
-.pieces li {
-  padding: 10px 0;
-  border-bottom: 1px solid var(--rule);
+.cards.rail {
+  grid-auto-flow: column;
+  grid-template-columns: none;
+  grid-auto-columns: minmax(240px, calc((100% - 3 * var(--gap-columns)) / 4.3));
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  padding-bottom: var(--space-lg);
+  scrollbar-color: var(--color-rule-2) transparent;
 }
-.pieces a {
-  font-weight: 600;
+.cards.rail .card {
+  scroll-snap-align: start;
 }
-.pieces .by {
-  color: var(--ink-2);
+.card {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: var(--space-2xs);
+  min-width: 0;
 }
-.pieces .row {
-  display: block;
-  color: var(--muted);
-  font-size: 14px;
+.card-roll {
+  width: 100%;
+  margin-bottom: var(--space-md);
+  border-radius: var(--radius-well);
+  outline: var(--rule-hair) solid var(--color-rule);
+  outline-offset: -1px;
 }
+.card-title {
+  font-family: var(--font-display);
+  font-size: var(--text-title);
+  font-weight: var(--display-weight);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  text-decoration: none;
+  overflow-wrap: break-word;
+}
+.card-title::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-well);
+}
+.card-title:focus-visible {
+  outline: none;
+}
+.card-title:focus-visible::after {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 4px;
+}
+.card:has(> .card-title:hover) .card-roll {
+  outline-color: var(--color-accent);
+}
+.card:has(> .card-title:active) .card-roll {
+  outline-color: var(--color-ink);
+}
+.card-by {
+  color: var(--color-ink-2);
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-md);
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-xl);
+  margin: var(--space-xl) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-lg);
+}
+
+/* Stufen und Sammlungen als Kacheln mit großer Ziffer */
 .tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: var(--gap-columns);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 .tiles a {
-  display: block;
-  padding: 14px 16px;
-  border: 1px solid var(--rule);
-  border-radius: 12px;
-  background: var(--paper-2);
+  display: grid;
+  gap: var(--space-xs);
+  height: 100%;
+  padding: var(--space-xl);
+  border: var(--rule-hair) solid var(--color-rule);
+  border-radius: var(--radius-well);
+  background: var(--color-paper);
   text-decoration: none;
+  transition: border-color var(--dur-short) var(--ease-out);
 }
 .tiles a:hover {
-  border-color: var(--accent);
+  border-color: var(--color-accent);
 }
-.links {
-  margin: 18px 0 0;
-  padding-left: 18px;
+.tiles a:active {
+  border-color: var(--color-ink);
 }
-.links li {
-  margin: 4px 0;
+.tile-num {
+  margin-bottom: var(--space-lg);
+  font-family: var(--font-display);
+  font-size: var(--text-numeral);
+  font-weight: 300;
+  line-height: 0.9;
+  font-variant-numeric: lining-nums tabular-nums;
 }
-
-.search {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 14px;
-  margin: 24px 0 0;
+.tile-name {
+  font-family: var(--font-display);
+  font-size: var(--text-title);
+  font-weight: var(--display-weight);
 }
-.search[hidden] {
-  display: none;
-}
-.search label {
-  color: var(--ink-2);
-  font-size: 15px;
-}
-.search input {
-  flex: 1 1 240px;
-  padding: 10px 14px;
-  border: 1px solid var(--rule);
-  border-radius: 10px;
-  background: var(--paper-2);
-  color: var(--ink);
-  font: inherit;
+.tile-count {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
 }
 
-.prose ul {
-  padding-left: 20px;
-}
-
-.site-footer {
-  padding: 32px var(--gutter) 40px;
-  border-top: 1px solid var(--rule);
-  background: var(--paper-2);
-  color: var(--muted);
-  font-size: 14px;
-}
-.site-footer .cols {
+/* Alle Stücke nach Komponist: Name links, Zeilen rechts */
+.composer {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 20px 32px;
-  max-width: 1000px;
-  margin: 0 auto;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gap-columns);
+  padding-block: var(--space-xl);
+  border-top: var(--rule-hair) solid var(--color-rule-2);
 }
-.site-footer h2 {
-  margin: 0 0 8px;
-  color: var(--ink-2);
-  font: 600 13px/1.3 var(--font-body);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.composer h3 {
+  grid-column: 1 / 5;
 }
-.site-footer ul {
+.composer h3 a {
+  text-decoration: none;
+}
+.composer h3 a:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent);
+}
+.rows {
+  grid-column: 5 / 13;
   margin: 0;
   padding: 0;
   list-style: none;
 }
-.site-footer li {
-  margin: 4px 0;
+.rows li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2xs) var(--space-lg);
+  padding-block: var(--space-md);
+  border-bottom: var(--rule-hair) solid var(--color-rule);
+}
+.rows li:first-child {
+  padding-top: 0;
+}
+.rows a {
+  font-size: var(--text-lg);
+}
+.feed {
+  margin-top: var(--space-xl);
+  font-size: var(--text-sm);
+}
+
+/* ── Footer ─────────────────────────────────────── */
+.site-footer {
+  padding-block: var(--space-3xl) var(--space-2xl);
+  border-top: var(--rule-hair) solid var(--color-rule);
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+.site-footer .cols {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-xl) var(--gap-columns);
+}
+.site-footer h2 {
+  max-width: none;
+  margin: 0 0 var(--space-sm);
+  color: var(--color-ink-2);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.site-footer ul {
+  display: grid;
+  gap: var(--space-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 .site-footer a {
-  color: var(--ink-2);
+  color: var(--color-ink-2);
   text-decoration: none;
 }
 .site-footer a:hover {
-  color: var(--accent-hot);
+  color: var(--color-ink);
+}
+.site-footer .num {
+  display: inline-block;
+  min-width: 1.5ch;
+  color: var(--color-muted);
 }
 .site-footer .note {
-  max-width: 1000px;
-  margin: 24px auto 0;
+  margin-top: var(--space-2xl);
+  padding-top: var(--space-lg);
+  border-top: var(--rule-hair) solid var(--color-rule);
+}
+
+/* ── Schmal ─────────────────────────────────────── */
+@media (max-width: 75rem) {
+  .cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .facts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 60rem) {
+  :root {
+    --gutter: 24px;
+    --section-gap-s: 80px;
+    --section-gap: 96px;
+    --section-gap-l: 120px;
+  }
+  .hero-text,
+  .hero-solo .hero-text,
+  .hero-grid > :not(.hero-text),
+  .search input,
+  .composer h3,
+  .rows {
+    grid-column: 1 / -1;
+  }
+  .hero-actions {
+    justify-content: flex-start;
+  }
+  .figures {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: var(--space-xl);
+  }
+  .figures div:nth-child(3) {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .facts,
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .composer {
+    row-gap: var(--space-lg);
+  }
+  .site-footer .cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 40rem) {
+  :root {
+    --gutter: 16px;
+    --gap-columns: 16px;
+    --section-gap-s: 56px;
+    --section-gap: 72px;
+    --section-gap-l: 96px;
+  }
+  .hero {
+    padding-block: var(--space-xl) var(--space-2xl);
+  }
+  .steps,
+  .cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cards.rail {
+    grid-auto-columns: 78%;
+  }
+  .steps li::before {
+    font-size: var(--text-3xl);
+  }
+  .hero-actions .btn {
+    flex: 1 1 auto;
+  }
+  .facts,
+  .site-footer .cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

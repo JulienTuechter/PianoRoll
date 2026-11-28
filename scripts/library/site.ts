@@ -39,7 +39,11 @@ export interface SitePage {
   title: string;
   description: string;
   h1: string;
+  /** Sichtbare Form der h1 (z. B. Titel groß, Komponist als zweite Zeile); sonst h1 als Text */
+  h1Html?: string;
   crumbs: Crumb[];
+  /** Erster Bildschirm: Einleitung unter der h1, Spalte daneben, volle Breite darunter */
+  hero: { lead: string; aside: string; below: string };
   main: string;
   words: number;
   indexable: boolean;
@@ -160,34 +164,40 @@ export function relatedPieces(p: Piece, all: readonly Piece[], n = config.relate
     .map((x) => x.o);
 }
 
-/** Einzeiler mit Eckdaten für Listen */
-function listRow(p: Piece, l: Locale, c: LibraryCopy, withLevel = true): string {
+/** Eckdaten für Listen als einzelne Werte (Abstand statt Trennzeichen) */
+function listMeta(p: Piece, l: Locale, c: LibraryCopy, withLevel = true): string {
   // geschätzte Tonarten nur auf der Stückseite (dort gekennzeichnet), nicht in Listen
   const known = !!p.stats.key && p.stats.key.source !== 'estimated';
-  const vars = {
-    duration: clock(p.stats.durationSec),
-    meter: p.stats.timeSignature,
-    key: known ? keyName(p.stats.key!, l) : '',
-    level: withLevel && p.level !== null ? fmt(c.list.rowLevel, { level: p.level }) : '',
-  };
-  return fmt(known ? c.list.row : c.list.rowNoKey, vars);
+  const parts = [fmt(c.list.duration, { duration: clock(p.stats.durationSec) }), p.stats.timeSignature];
+  if (known) parts.push(keyName(p.stats.key!, l));
+  if (withLevel && p.level !== null) parts.push(fmt(c.list.level, { level: p.level }));
+  return `<span class="meta">${parts.map((x) => `<span>${esc(x)}</span>`).join('')}</span>`;
+}
+
+/** Stück als Karte: seine Piano-Roll, Titel (Link über die ganze Karte), Komponist, Eckdaten */
+function pieceCard(
+  p: Piece,
+  l: Locale,
+  c: LibraryCopy,
+  opts: { level?: boolean; composer?: boolean },
+): string {
+  return `<li class="card"><img class="card-roll" src="${rollSvgPath(p)}" alt="" width="${ROLL_W}" height="${ROLL_H}" loading="lazy" decoding="async" /><a class="card-title" href="${piecePath(p, l)}">${esc(p.titles[l])}</a>${opts.composer ? `<span class="card-by">${esc(p.composers[l].name)}</span>` : ''}${listMeta(p, l, c, opts.level ?? true)}</li>`;
 }
 
 function pieceList(
   pieces: readonly Piece[],
   l: Locale,
   c: LibraryCopy,
-  opts: { level?: boolean; composer?: boolean } = {},
+  opts: { level?: boolean; composer?: boolean; rail?: boolean } = {},
 ): string {
-  return `<ul class="pieces">${pieces
-    .map(
-      (p) =>
-        `<li><a href="${piecePath(p, l)}">${esc(p.titles[l])}</a>${opts.composer ? ` <span class="by">– ${esc(p.composers[l].name)}</span>` : ''}<span class="row">${esc(listRow(p, l, c, opts.level ?? true))}</span></li>`,
-    )
-    .join('')}</ul>`;
+  return `<ul class="pieces cards${opts.rail ? ' rail' : ''}">${pieces.map((p) => pieceCard(p, l, c, opts)).join('')}</ul>`;
 }
 
 const W = (html: string) => `<!--words-->${html}<!--/words-->`;
+
+/** Ein Abschnitt unter dem ersten Bildschirm: äußeres Element für Fläche und Abstand, innen der Container */
+const section = (cls: string, inner: string, attrs = '') =>
+  `<section class="sec ${cls}"${attrs}><div class="container">${inner}</div></section>`;
 
 /* ── Stückseite ─────────────────────────────────── */
 
@@ -221,10 +231,10 @@ function piecePage(p: Piece, l: Locale, all: readonly Piece[], g: Groups, conten
     esc(fmt(tpl, { ...vars, ...extra }));
   const aliases = aliasesFor(p, l);
 
-  // Einleitung: Variante + Daten-Sätze
-  const facts1 = [t(pick(c.piece.lead, `${seed}:lead`))];
+  // Einleitung: nur, was die Zahlen darunter nicht schon sagen (Tonart, andere Namen, Sammlung)
+  const intro: string[] = [];
   if (s.key)
-    facts1.push(
+    intro.push(
       t(
         s.key.source === 'file'
           ? c.piece.keyFile
@@ -233,14 +243,10 @@ function piecePage(p: Piece, l: Locale, all: readonly Piece[], g: Groups, conten
             : c.piece.keyEstimated,
       ),
     );
-  if (s.tempoRange) facts1.push(t(c.piece.tempoChanges, { min: s.tempoRange[0], max: s.tempoRange[1] }));
-  if (s.timeSignatureChanges) facts1.push(t(c.piece.meterChanges));
-  const facts2 = [t(c.piece.range)];
-  facts2.push(
-    t(s.hands === 'both' ? c.piece.handsBoth : s.hands === 'right' ? c.piece.handsRight : c.piece.handsLeft),
-  );
+  if (s.tempoRange) intro.push(t(c.piece.tempoChanges, { min: s.tempoRange[0], max: s.tempoRange[1] }));
+  if (s.timeSignatureChanges) intro.push(t(c.piece.meterChanges));
   if (aliases.length)
-    facts2.push(
+    intro.push(
       t(c.piece.aliases, {
         aliases: joinList(
           aliases.map((a) => quote(a, l)),
@@ -248,21 +254,37 @@ function piecePage(p: Piece, l: Locale, all: readonly Piece[], g: Groups, conten
         ),
       }),
     );
-  if (p.collection) facts2.push(t(c.piece.collection, { collection: p.collection }));
-  if (p.level !== null) facts2.push(t(c.piece.level));
+  if (p.collection) intro.push(t(c.piece.collection, { collection: p.collection }));
+  if (!intro.length) intro.push(t(c.piece.desc.wait));
 
   const appHref = appPath(l, p.slug);
   const rollAlt = fmt(c.piece.rollAlt, vars);
+  const sizeKb = Math.max(1, Math.round(p.fileBytes / 1024));
 
+  // Vier Zahlen groß, der Rest als Zeilen
+  const figure = (label: string, value: string, unit = '') =>
+    `<div><dt>${esc(label)}</dt><dd class="figure">${value}${unit ? `<span class="unit">${esc(unit)}</span>` : ''}</dd></div>`;
+  const figures = [
+    figure(c.piece.facts.duration, esc(vars.duration), c.piece.units.min),
+    figure(
+      c.piece.facts.tempo,
+      s.tempoRange ? `${s.tempoRange[0]}–${s.tempoRange[1]}` : String(s.tempoBpm),
+      'BPM',
+    ),
+    figure(c.piece.facts.bars, String(s.bars)),
+    figure(c.piece.facts.notes, esc(vars.notes)),
+  ];
+  const handsBar =
+    s.hands === 'both'
+      ? `<div class="hands" role="img" aria-label="${esc(fmt(c.piece.handsAria, vars))}"><span class="hand hand-r" style="flex-grow: ${s.notesRight}"><span>${esc(c.piece.legendRight)}</span><b>${esc(vars.right)}</b></span><span class="hand hand-l" style="flex-grow: ${s.notesLeft}"><span>${esc(c.piece.legendLeft)}</span><b>${esc(vars.left)}</b></span></div>`
+      : '';
+
+  const e = p.entry;
+  const licenseHtml = e.license_url
+    ? `<a href="${esc(e.license_url)}" rel="license noopener">${esc(e.license)}</a>`
+    : esc(e.license);
   const factRows: [string, string][] = [
     [c.piece.facts.composer, `<a href="${composerHref(g, p, l)}">${esc(p.composers[l].name)}</a>`],
-    [c.piece.facts.duration, t(c.piece.durationValue)],
-    [
-      c.piece.facts.tempo,
-      s.tempoRange
-        ? t(c.piece.tempoRangeValue, { min: s.tempoRange[0], max: s.tempoRange[1] })
-        : t(c.piece.tempoValue),
-    ],
   ];
   if (s.key)
     factRows.push([
@@ -271,11 +293,9 @@ function piecePage(p: Piece, l: Locale, all: readonly Piece[], g: Groups, conten
     ]);
   factRows.push(
     [c.piece.facts.meter, esc(s.timeSignature)],
-    [c.piece.facts.bars, String(s.bars)],
-    [c.piece.facts.notes, s.hands === 'both' ? t(c.piece.notesValue) : esc(vars.notes)],
     [c.piece.facts.range, `${esc(low)}–${esc(high)}`],
-    [c.piece.facts.hands, esc(c.piece.handsValue[s.hands])],
   );
+  if (s.hands !== 'both') factRows.push([c.piece.facts.hands, esc(c.piece.handsValue[s.hands])]);
   if (p.level !== null)
     factRows.push([
       c.piece.facts.level,
@@ -289,20 +309,18 @@ function piecePage(p: Piece, l: Locale, all: readonly Piece[], g: Groups, conten
         : esc(p.collection),
     ]);
   factRows.push([c.piece.facts.added, `<time datetime="${p.added}">${p.added}</time>`]);
+  factRows.push([c.piece.facts.license, licenseHtml]);
+  if (e.credit) factRows.push([c.piece.facts.source, t('{credit}', { credit: e.credit })]);
 
-  const practice = [
-    pick(c.piece.wait, `${seed}:wait`),
-    pick(c.piece.loop, `${seed}:loop`),
-    pick(c.piece.tempo, `${seed}:tempo`),
-    pick(c.piece.performance, `${seed}:perf`),
-    c.piece.colors,
-  ].map((x) => `<p>${t(x)}</p>`);
+  // Üben: die vier Schritte, in denen Pianist ein Stück tatsächlich durchgeht
+  const steps: [string, string][] = [
+    [c.piece.steps.wait, pick(c.piece.wait, `${seed}:wait`)],
+    [c.piece.steps.loop, pick(c.piece.loop, `${seed}:loop`)],
+    [c.piece.steps.tempo, pick(c.piece.tempo, `${seed}:tempo`)],
+    [c.piece.steps.performance, pick(c.piece.performance, `${seed}:perf`)],
+  ];
 
   const md = content('pieces', p.slug, l);
-  const e = p.entry;
-  const licenseHtml = e.license_url
-    ? `<a href="${esc(e.license_url)}" rel="license noopener">${esc(e.license)}</a>`
-    : esc(e.license);
 
   const related = relatedPieces(p, all);
   const moreLinks = [
@@ -315,26 +333,36 @@ function piecePage(p: Piece, l: Locale, all: readonly Piece[], g: Groups, conten
   if (p.level !== null)
     moreLinks.push(`<li><a href="${levelPath(p.level, l)}">${t(c.piece.levelLink)}</a></li>`);
 
+  const hero = {
+    lead: W(`<p class="lead">${intro.join(' ')}</p>`),
+    aside: `<div class="hero-actions"><a class="btn btn-primary" href="${appHref}">${esc(c.piece.open)}</a><a class="btn btn-ghost" href="${midiPath(p)}" download>${t(c.piece.download, { size: sizeKb })}</a></div>`,
+    below: `<figure class="roll"><img src="${rollSvgPath(p)}" alt="${esc(rollAlt)}" width="${ROLL_W}" height="${ROLL_H}" decoding="async" fetchpriority="high" /><figcaption><span class="legend"><span class="key key-r">${esc(c.piece.legendRight)}</span><span class="key key-l">${esc(c.piece.legendLeft)}</span></span><span>${esc(c.piece.rollCaption)}</span></figcaption></figure>`,
+  };
+
   const main = [
-    W(`<p class="lead">${facts1.join(' ')}</p>\n<p>${facts2.join(' ')}</p>`),
-    `<p class="actions"><a class="button" href="${appHref}">${esc(c.piece.open)}</a> <a class="download" href="${midiPath(p)}" download>${t(c.piece.download, { size: Math.max(1, Math.round(p.fileBytes / 1024)) })}</a></p>`,
-    `<figure class="roll"><img src="${rollSvgPath(p)}" alt="${esc(rollAlt)}" width="${ROLL_W}" height="${ROLL_H}" decoding="async" /><figcaption>${esc(c.piece.rollCaption)}</figcaption></figure>`,
-    W(
-      `<section><h2>${esc(c.piece.factsH2)}</h2><dl class="facts">${factRows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join('')}</dl></section>`,
+    section(
+      'sec-facts',
+      W(
+        `<h2 id="facts-h">${esc(c.piece.factsH2)}</h2><dl class="figures">${figures.join('')}</dl>${handsBar}<dl class="facts">${factRows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join('')}</dl>`,
+      ),
+      ' aria-labelledby="facts-h"',
     ),
-    W(`<section><h2>${t(c.piece.practiceH2)}</h2>${practice.join('')}</section>`),
-    md ? W(`<section class="prose"><h2>${esc(c.piece.aboutH2)}</h2>${markdown(md)}</section>`) : '',
-    W(
-      `<section><h2>${esc(c.piece.licenseH2)}</h2><p>${fmt(esc(c.piece.license), { license: licenseHtml })}</p>${e.credit ? `<p>${t(c.piece.credit, { credit: e.credit })}</p>` : ''}</section>`,
+    section(
+      'sec-practice',
+      W(
+        `<h2 id="practice-h">${t(c.piece.practiceH2)}</h2><ol class="steps">${steps.map(([h, x]) => `<li><h3>${esc(h)}</h3><p>${t(x)}</p></li>`).join('')}</ol>`,
+      ),
+      ' aria-labelledby="practice-h"',
     ),
-    `<nav class="more" aria-labelledby="rel-h"><h2 id="rel-h">${esc(c.piece.relatedH2)}</h2>${pieceList(
+    md
+      ? section('sec-about', W(`<div class="prose"><h2>${esc(c.piece.aboutH2)}</h2>${markdown(md)}</div>`))
+      : '',
+    `<nav class="sec sec-related" aria-labelledby="rel-h"><div class="container"><h2 id="rel-h">${esc(c.piece.relatedH2)}</h2>${pieceList(
       related,
       l,
       c,
-      {
-        composer: true,
-      },
-    )}<ul class="links">${moreLinks.join('')}</ul></nav>`,
+      { composer: true, rail: true },
+    )}<ul class="links">${moreLinks.join('')}</ul></div></nav>`,
   ]
     .filter(Boolean)
     .join('\n');
@@ -374,12 +402,14 @@ function piecePage(p: Piece, l: Locale, all: readonly Piece[], g: Groups, conten
     ),
     title: '',
     description,
-    h1: fmt(c.piece.h1, vars),
+    h1: `${title} ${fmt(c.piece.h1Sub, vars)}`,
+    h1Html: `<span class="h1-title">${esc(title)}</span> <span class="h1-sub">${t(c.piece.h1Sub)}</span>`,
     crumbs: [
       { name: c.nav.home, path: localizedPath('home', l) },
       { name: c.nav.library, path: overviewPath(l) },
       { name: title, path: piecePath(p, l) },
     ],
+    hero,
     main,
     words: 0,
     indexable: true,
@@ -447,11 +477,16 @@ function listPage(
   const sorted = [...pieces].sort(byTitle(l));
   const h1 = fmt(copy.h1, vars);
   const main = [
-    W(`<p class="lead">${introParts.map(esc).join(' ')}</p>${extraHtml}`),
-    W(
-      `<section><h2>${esc(fmt(copy.listH2, vars))}</h2>${pieceList(sorted, l, c, { level: kind !== 'level', composer: kind !== 'composer' })}</section>`,
+    extraHtml ? section('sec-about', W(extraHtml)) : '',
+    section(
+      'sec-list',
+      W(
+        `<h2>${esc(fmt(copy.listH2, vars))}</h2>${pieceList(sorted, l, c, { level: kind !== 'level', composer: kind !== 'composer' })}`,
+      ),
     ),
-  ].join('\n');
+  ]
+    .filter(Boolean)
+    .join('\n');
   return {
     id,
     kind,
@@ -466,6 +501,7 @@ function listPage(
       { name: c.nav.library, path: overviewPath(l) },
       { name: String(vars.crumb ?? h1), path },
     ],
+    hero: { lead: W(`<p class="lead">${introParts.map(esc).join(' ')}</p>`), aside: '', below: '' },
     main,
     words: 0,
     indexable: true,
@@ -606,56 +642,75 @@ function overviewPage(pieces: readonly Piece[], g: Groups, l: Locale): SitePage 
     .sort((a, b) => a.name.localeCompare(b.name, l));
   const latest = pieces.slice(0, config.latestOnOverview);
 
+  // Die Zahlen der Bibliothek stehen als Ziffern neben der Suche, nicht als Satz
+  const stat = (n: string, label: string) =>
+    `<div><dt>${esc(label)}</dt><dd class="figure">${esc(n)}</dd></div>`;
+  const hero = {
+    lead: W(`<p class="lead">${esc(o.intro)}</p>`),
+    aside: W(
+      `<dl class="stats">${stat(num(pieces.length, l), o.figures.pieces)}${stat(num(g.composers.size, l), o.figures.composers)}${stat(vars.total, o.figures.minutes)}</dl>`,
+    ),
+    below: `<form class="search" role="search" hidden><label for="q">${esc(o.search)}</label><input id="q" type="search" placeholder="${esc(o.searchPlaceholder)}" autocomplete="off" /></form>`,
+  };
+
   const sections: string[] = [];
-  sections.push(W(`<p class="lead">${esc(o.intro)}</p><p>${esc(fmt(o.stats, vars))}</p>`));
   sections.push(
-    `<form class="search" role="search" hidden><label for="q">${esc(o.search)}</label><input id="q" type="search" placeholder="${esc(o.searchPlaceholder)}" autocomplete="off" /></form>`,
-  );
-  sections.push(
-    W(`<section><h2>${esc(o.newH2)}</h2>${pieceList(latest, l, c, { composer: true })}</section>`),
+    section(
+      'sec-latest',
+      W(`<h2>${esc(o.newH2)}</h2>${pieceList(latest, l, c, { composer: true, rail: true })}`),
+    ),
   );
   if (levels.length)
     sections.push(
-      W(
-        `<section><h2>${esc(o.levelsH2)}</h2><ul class="tiles">${levels
-          .map(
-            (n) =>
-              `<li><a href="${levelPath(n, l)}">${esc(fmt(o.levelItem, { level: n, levelName: levelName(n, l), pieces: piecesWord(g.levels.get(n)!.length, l) }))}</a></li>`,
-          )
-          .join('')}</ul></section>`,
+      section(
+        'sec-levels',
+        W(
+          `<h2>${esc(o.levelsH2)}</h2><ul class="tiles">${levels
+            .map(
+              (n) =>
+                `<li><a href="${levelPath(n, l)}"><span class="tile-num figure">${n}</span><span class="tile-name">${esc(levelName(n, l))}</span><span class="tile-count">${esc(piecesWord(g.levels.get(n)!.length, l))}</span></a></li>`,
+            )
+            .join('')}</ul>`,
+        ),
       ),
     );
   if (collections.length)
     sections.push(
-      W(
-        `<section><h2>${esc(o.collectionsH2)}</h2><ul class="tiles">${collections
-          .map(
-            (x) =>
-              `<li><a href="${collectionPath(x.slug, l)}">${esc(fmt(o.collectionItem, { collection: x.name, pieces: piecesWord(x.pieces.length, l) }))}</a></li>`,
-          )
-          .join('')}</ul></section>`,
+      section(
+        'sec-collections',
+        W(
+          `<h2>${esc(o.collectionsH2)}</h2><ul class="tiles">${collections
+            .map(
+              (x) =>
+                `<li><a href="${collectionPath(x.slug, l)}"><span class="tile-name">${esc(x.name)}</span><span class="tile-count">${esc(piecesWord(x.pieces.length, l))}</span></a></li>`,
+            )
+            .join('')}</ul>`,
+        ),
       ),
     );
   sections.push(
-    W(
-      `<section id="all"><h2>${esc(o.composersH2)}</h2>${composers
-        .map((x) => {
-          const head = hasComposerPage(g, x.slug)
-            ? `<h3 id="c-${x.slug}"><a href="${composerPath(x.slug, l)}">${esc(x.names[l].name)}</a></h3>`
-            : `<h3 id="c-${x.slug}">${esc(x.names[l].name)}</h3>`;
-          const items = [...x.pieces]
-            .sort(byTitle(l))
-            .map(
-              (p) =>
-                `<li data-s="${esc([p.titles.en, p.titles.de, p.composers.en.name, p.composers.de.name, ...p.aliases].join(' ').toLowerCase())}"><a href="${piecePath(p, l)}">${esc(p.titles[l])}</a><span class="row">${esc(listRow(p, l, c))}</span></li>`,
-            )
-            .join('');
-          return `<div class="composer">${head}<ul class="pieces">${items}</ul></div>`;
-        })
-        .join('')}</section>`,
+    section(
+      'sec-index',
+      W(
+        `<h2>${esc(o.composersH2)}</h2>${composers
+          .map((x) => {
+            const head = hasComposerPage(g, x.slug)
+              ? `<h3 id="c-${x.slug}"><a href="${composerPath(x.slug, l)}">${esc(x.names[l].name)}</a></h3>`
+              : `<h3 id="c-${x.slug}">${esc(x.names[l].name)}</h3>`;
+            const items = [...x.pieces]
+              .sort(byTitle(l))
+              .map(
+                (p) =>
+                  `<li data-s="${esc([p.titles.en, p.titles.de, p.composers.en.name, p.composers.de.name, ...p.aliases].join(' ').toLowerCase())}"><a href="${piecePath(p, l)}">${esc(p.titles[l])}</a>${listMeta(p, l, c)}</li>`,
+              )
+              .join('');
+            return `<div class="composer">${head}<ul class="pieces rows">${items}</ul></div>`;
+          })
+          .join('')}`,
+      ) + `<p class="feed"><a href="${localizedPath('libraryFeed', l)}">${esc(o.feed)}</a></p>`,
+      ' id="all"',
     ),
   );
-  sections.push(`<p><a href="${localizedPath('libraryFeed', l)}">${esc(o.feed)}</a></p>`);
   // Suche nur als Zusatz: ohne JS bleibt alles als Liste sichtbar
   sections.push(`<script>
 (() => {
@@ -691,6 +746,7 @@ function overviewPage(pieces: readonly Piece[], g: Groups, l: Locale): SitePage 
       { name: c.nav.home, path: localizedPath('home', l) },
       { name: c.nav.library, path: overviewPath(l) },
     ],
+    hero,
     main: sections.join('\n'),
     words: 0,
     indexable: true,
@@ -792,7 +848,7 @@ export function footerHtml(g: Groups, l: Locale): string {
     .slice(0, 12);
   const col = (h: string, items: string[]) =>
     items.length ? `<div><h2>${esc(h)}</h2><ul>${items.join('')}</ul></div>` : '';
-  return `<footer class="site-footer"><div class="cols">${[
+  return `<footer class="site-footer"><div class="container"><div class="cols">${[
     col(f.libraryH, [
       `<li><a href="${overviewPath(l)}">${esc(f.overview)}</a></li>`,
       `<li><a href="${localizedPath('libraryFeed', l)}">${esc(f.feed)}</a></li>`,
@@ -800,7 +856,10 @@ export function footerHtml(g: Groups, l: Locale): string {
     ]),
     col(
       f.levelsH,
-      levels.map((n) => `<li><a href="${levelPath(n, l)}">${n} · ${esc(levelName(n, l))}</a></li>`),
+      levels.map(
+        (n) =>
+          `<li><a href="${levelPath(n, l)}"><span class="num">${n}</span> ${esc(levelName(n, l))}</a></li>`,
+      ),
     ),
     col(
       f.composersH,
@@ -810,7 +869,7 @@ export function footerHtml(g: Groups, l: Locale): string {
       f.collectionsH,
       collections.map((x) => `<li><a href="${collectionPath(x.slug, l)}">${esc(x.name)}</a></li>`),
     ),
-  ].join('')}</div><p class="note">${esc(f.note)}</p></footer>`;
+  ].join('')}</div><p class="note">${esc(f.note)}</p></div></footer>`;
 }
 
 export function layout(page: SitePage, ctx: LayoutContext): string {
@@ -894,20 +953,35 @@ export function layout(page: SitePage, ctx: LayoutContext): string {
     <meta name="color-scheme" content="dark" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preload" href="/library/fonts/fraunces-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/library/fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="${ctx.cssHref}" />
   </head>
   <body class="lib lib-${page.kind}">
     <header class="site-header">
-      <a class="wordmark" href="${localizedPath('home', l)}"><img src="/favicon.svg" alt="" width="22" height="22" />Pianist</a>
-      <nav aria-label="${esc(c.nav.library)}">
-        <a href="${overviewPath(l)}">${esc(c.nav.library)}</a>
-        <span class="lang" role="group" aria-label="${esc(c.nav.langLabel)}">${langLinks}</span>
-        <a class="cta" href="${page.kind === 'piece' ? page.appHref : appPath(l)}">${esc(c.nav.openApp)}</a>
-      </nav>
+      <div class="container nav">
+        <a class="wordmark" href="${localizedPath('home', l)}"><img src="/favicon.svg" alt="" width="22" height="22" />Pianist</a>
+        <nav aria-label="${esc(c.nav.library)}">
+          <a href="${overviewPath(l)}"${page.kind === 'overview' ? ' aria-current="page"' : ''}>${esc(c.nav.library)}</a>
+          <span class="lang" role="group" aria-label="${esc(c.nav.langLabel)}">${langLinks}</span>
+          <a class="btn btn-ghost btn-s" href="${page.kind === 'piece' ? page.appHref : appPath(l)}">${esc(c.nav.openApp)}</a>
+        </nav>
+      </div>
     </header>
-    <nav class="crumbs" aria-label="${esc(c.nav.breadcrumb)}"><ol>${crumbs}</ol></nav>
     <main>
-      <h1>${esc(page.h1)}</h1>
+      <section class="hero">
+        <div class="container">
+          <div class="hero-grid${page.hero.aside ? '' : ' hero-solo'}">
+            <div class="hero-text">
+              <nav class="crumbs" aria-label="${esc(c.nav.breadcrumb)}"><ol>${crumbs}</ol></nav>
+              <h1>${page.h1Html ?? esc(page.h1)}</h1>
+              ${page.hero.lead}
+            </div>
+            ${page.hero.aside}
+          </div>
+          ${page.hero.below}
+        </div>
+      </section>
 ${page.main}
     </main>
     ${ctx.footer[l]}

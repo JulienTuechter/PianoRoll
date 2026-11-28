@@ -1,6 +1,6 @@
 /**
  * Texte der Bibliotheksseiten (scripts/library/). Englisch gibt die Struktur vor; de.json muss denselben Typ
- * erfüllen, npm run check:i18n vergleicht Keys und {Platzhalter}. Listen (z. B. piece.lead) sind
+ * erfüllen, npm run check:i18n vergleicht Keys und {Platzhalter}. Listen (z. B. piece.wait) sind
  * Textvarianten: Jede Seite wählt anhand ihres Slugs eine aus, damit sich die Seiten nicht gleichen.
  */
 import en from './en.json';

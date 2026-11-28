@@ -8,7 +8,7 @@
     "home": "Pianist"
   },
   "piece": {
-    "h1": "{title} – {composer}: learn it on a MIDI keyboard",
+    "h1Sub": "by {composer}, to learn on your MIDI keyboard",
     "titles": [
       "Learn {title} ({last}) on a MIDI Keyboard | Pianist",
       "Learn {title} on a MIDI Keyboard | Pianist",
@@ -26,23 +26,13 @@
       "hands": "{right} notes for the right hand, {left} for the left.",
       "free": "Free in the browser."
     },
-    "lead": [
-      "{title} by {composer} is part of the Pianist library. The MIDI file runs for {duration} at about {tempo} BPM in {meter} time and contains {notes} notes across {bars} bars.",
-      "This page is about {title} by {composer}: {notes} notes in {bars} bars, {meter} time, around {tempo} BPM and a playing time of {duration}.",
-      "You can play {title} by {composer} in Pianist straight away. The MIDI file has {notes} notes over {bars} bars, a {meter} meter and about {tempo} BPM, and it lasts {duration}."
-    ],
     "keyFile": "The file is notated in {key}.",
     "keyCatalog": "The piece is in {key}.",
     "keyEstimated": "The file has no key signature; judging by its notes it is most likely in {key}.",
     "tempoChanges": "The tempo changes within the file, between {min} and {max} BPM.",
     "meterChanges": "The time signature changes along the way; it starts in {meter}.",
-    "range": "The notes reach from {low} up to {high}, a span of {span} semitones.",
-    "handsBoth": "The right hand plays {right} notes, the left hand {left}.",
-    "handsRight": "All {notes} notes are for the right hand.",
-    "handsLeft": "All {notes} notes are for the left hand.",
     "aliases": "It is also known as {aliases}.",
     "collection": "The piece belongs to {collection}.",
-    "level": "In the Pianist library it is filed under level {level} ({levelName}).",
     "practiceH2": "How to practise {title} in Pianist",
     "wait": [
       "In Wait mode the falling notes stop at each of the {notes} notes until you press the right key, so you can work through {title} at your own pace.",
@@ -60,7 +50,6 @@
       "When the notes sit, switch to Performance mode: {title} runs in real time and Pianist rates the timing of every note you play.",
       "Performance mode is the next step: no more waiting, {title} plays in real time and every note gets a timing score."
     ],
-    "colors": "Blue notes belong to the right hand, orange notes to the left. You can follow along as falling notes, as sheet music or both at once.",
     "rollAlt": "Piano roll of {title} by {composer}: {notes} notes from {low} to {high} over {duration}, right hand in blue, left hand in orange",
     "rollCaption": "Piano roll of the MIDI file: time runs from left to right, pitch from bottom to top.",
     "factsH2": "Key facts",
@@ -76,7 +65,9 @@
       "hands": "Hands",
       "level": "Level",
       "collection": "Collection",
-      "added": "Added"
+      "added": "Added",
+      "license": "License",
+      "source": "Source"
     },
     "estimated": "estimated",
     "handsValue": {
@@ -84,26 +75,30 @@
       "right": "right hand",
       "left": "left hand"
     },
-    "notesValue": "{notes} (right {right}, left {left})",
-    "durationValue": "{duration} min",
-    "tempoValue": "{tempo} BPM",
-    "tempoRangeValue": "{min}–{max} BPM",
     "aboutH2": "About this piece",
-    "licenseH2": "License and source",
-    "license": "License: {license}",
-    "credit": "Source: {credit}",
     "download": "Download MIDI file ({size} KB)",
     "open": "Open in Pianist",
     "relatedH2": "Related pieces",
     "composerLink": "All pieces by {composer}",
     "composerOverviewLink": "{composer} in the library",
     "collectionLink": "More from {collection}",
-    "levelLink": "All pieces at level {level}"
+    "levelLink": "All pieces at level {level}",
+    "units": {
+      "min": "min"
+    },
+    "steps": {
+      "wait": "Wait for every note",
+      "loop": "Loop the hard bars",
+      "tempo": "Start slower",
+      "performance": "Play it in time"
+    },
+    "legendRight": "Right hand",
+    "legendLeft": "Left hand",
+    "handsAria": "{notes} notes: {right} for the right hand, {left} for the left"
   },
   "list": {
-    "row": "{duration} min · {meter} · {key}{level}",
-    "rowNoKey": "{duration} min · {meter}{level}",
-    "rowLevel": " · level {level}",
+    "duration": "{duration} min",
+    "level": "Level {level}",
     "pieces": "{count} pieces",
     "piecesOne": "1 piece"
   },
@@ -145,18 +140,21 @@
     "title": "Piano Library: Pieces for Your MIDI Keyboard | Pianist",
     "h1": "Piano library: pieces to learn on your MIDI keyboard",
     "desc": "{count} free pieces by {composers} and more to learn with Pianist on your MIDI keyboard, with falling notes, sheet music and Wait mode.",
-    "intro": "Every piece in this library opens directly in Pianist. Connect a MIDI keyboard, pick a piece and play along: falling notes show what comes next, the sheet music runs alongside, and in Wait mode the piece pauses until you hit the right key.",
+    "intro": "Every piece opens straight in Pianist: connect a MIDI keyboard, pick a piece and play along.",
     "stats": "The library currently holds {count} pieces by {composerCount} composers, {total} minutes of music in total.",
     "newH2": "Recently added",
     "levelsH2": "Levels",
-    "levelItem": "Level {level} ({levelName}): {pieces}",
     "collectionsH2": "Collections",
-    "collectionItem": "{collection}: {pieces}",
     "composersH2": "Composers and pieces",
     "composerPage": "All pieces by {composer}",
     "search": "Search the library",
     "searchPlaceholder": "Title or composer",
-    "feed": "Feed of new pieces"
+    "feed": "Feed of new pieces",
+    "figures": {
+      "pieces": "pieces",
+      "composers": "composers",
+      "minutes": "minutes of music"
+    }
   },
   "footer": {
     "libraryH": "Library",
